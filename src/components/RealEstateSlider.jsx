@@ -6,7 +6,7 @@ export default function RealEstateSlider() {
 
   // Fetch data when the component mounts
   useEffect(() => {
-    fetch("http://localhost:8080/api/real-estates/")  // Replace with your actual API endpoint
+    fetch("https://mdexo-backend.onrender.com/api/real-estates/")  // Replace with your actual API endpoint
       .then((response) => {
         if (!response.ok) {
           throw new Error("Network response was not ok " + response.statusText);
