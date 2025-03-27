@@ -1,36 +1,44 @@
-// src/components/Header.jsx
-import { Link } from "react-router-dom"; // Import Link for routing
+import { Link } from "react-router-dom";
+import { FaHome, FaSearch, FaSignInAlt, FaQuestionCircle } from "react-icons/fa";
 
 export default function Header() {
   return (
-    <div>
-      {/* Header Section */}
-      <div className="flex h-25 w-screen flex-row justify-between bg-blue-600">
-        <div className="ml-26 flex w-2/5 flex-row items-center justify-start">
-          {/* Home Button */}
-          <Link to="/" className="mr-6 bg-amber-300 hover:bg-blue-600 p-2 rounded">
-            Real Estate Company INC
+    <div className="bg-blue-600 shadow-lg">
+      <div className="flex flex-wrap justify-between items-center p-4 max-w-screen-xl mx-auto">
+        <div className="flex items-center space-x-6 w-full sm:w-auto justify-between sm:justify-start">
+          <Link to="/" className="text-2xl font-bold text-white hover:text-yellow-400 transition duration-300 flex items-center space-x-2">
+            <FaHome /> <span>Real Estate Company INC</span>
           </Link>
-          
+        </div>
+
+        <div className="flex items-center justify-between w-full sm:w-auto mt-4 sm:mt-0">
           <Link to="/real-estates">
-            <button className="mr-6 bg-amber-300 hover:bg-blue-600">
+            <button className="bg-amber-300 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition duration-300">
               КУПОВИНА
             </button>
           </Link>
           <Link to="/iznamljivanje">
-            <button className="mr-6 mr-6 bg-amber-300 hover:bg-blue-600">ИЗНАЈМЉИВАЊЕ</button>
+            <button className="bg-amber-300 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition duration-300">
+              ИЗНАЈМЉИВАЊЕ
+            </button>
           </Link>
           <Link to="/prodaja">
-            <button className="mr-6 mr-6 bg-amber-300 hover:bg-blue-600">ПРОДАЈА</button>
+            <button className="bg-amber-300 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition duration-300">
+              ПРОДАЈА
+            </button>
           </Link>
         </div>
-        <div className="logo w-2/5"></div>
-        <div className="mr-26 flex w-1/5 flex-row items-center justify-end">
+
+        <div className="flex items-center space-x-6 w-full sm:w-auto mt-4 sm:mt-0">
           <Link to="/pomoc">
-            <button className="mr-6 mr-6 bg-amber-300 hover:bg-blue-600">ПОМОЋ</button>
+            <button className="bg-amber-300 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition duration-300">
+              <FaQuestionCircle />
+            </button>
           </Link>
           <Link to="/prijava">
-            <button className="mr-6 mr-6 bg-amber-300 hover:bg-blue-600">ПРИЈАВА</button>
+            <button className="bg-amber-300 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition duration-300">
+              <FaSignInAlt /> ПРИЈАВА
+            </button>
           </Link>
         </div>
       </div>
