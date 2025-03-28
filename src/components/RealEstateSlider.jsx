@@ -1,19 +1,17 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 export default function RealEstateSlider() {
   const [realEstates, setRealEstates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Fetch data when the component mounts
   useEffect(() => {
-    fetch("https://mdexo-backend.onrender.com/api/real-estates/")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok " + response.statusText);
-        }
-        return response.json();
-      })
+    fetch("https://mdexo-backend.onrender.com/api/real-estates/")  // For development: "http://localhost:8080/api/real-estates/"
+      .then((response) => response.json())
       .then((data) => {
-        setRealEstates(data.content);
+        setRealEstates(data.content); // Adjust to match your backend response (e.g., data.content)
         setLoading(false);
       })
       .catch((error) => {
@@ -22,42 +20,73 @@ export default function RealEstateSlider() {
       });
   }, []);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
+  // Loading state
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-xl text-blue-600">Loading...</div>
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
+  // Next button logic to slide the slider
+  const goToNext = () => {
+    if (currentIndex < realEstates.length - 5) {
+      setCurrentIndex(currentIndex + 3); // Slide by 3 items at a time
+    }
+  };
+
+  // Previous button logic to slide the slider
+  const goToPrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 3); // Slide by 3 items at a time
+    }
+  };
+
   return (
-    <div className="p-4 max-w-screen-xl mx-auto">
-      <h2 className="text-3xl font-semibold mb-6 text-center text-blue-600">Available Real Estates</h2>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {realEstates.length > 0 ? (
-          realEstates.map((estate) => (
-            <div key={estate.propertyId} className="border p-4 rounded-lg shadow-lg bg-white hover:shadow-2xl transition duration-300 transform hover:scale-105">
-              <h3 className="text-xl font-semibold">{estate.title}</h3>
-              <p className="text-gray-600">{estate.description}</p>
-              <p className="mt-2 text-lg font-semibold">Price: ${estate.price}</p>
-              <p className="text-sm text-gray-500">{estate.city}, {estate.state}</p>
-              <p className="mt-2 text-sm text-gray-400">Size: {estate.sizeInSqMt} sq meters</p>
-              <p className="mt-2 text-xs text-gray-400">Added: {formatDate(estate.createdAt)}</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-center col-span-3">No real estate listings available.</p>
-        )}
+    <section className="w-full py-8">
+      <h2 className="text-3xl font-bold text-center mb-6">Available Real Estates</h2>
+
+      <div className="relative w-full">
+        <div className="slider-container overflow-hidden">
+          <div className="real-estates-slider flex gap-6 transition-all duration-500">
+            {/* Displaying 5 real estates at a time */}
+            {realEstates.slice(currentIndex, currentIndex + 5).map((estate) => (
+              <div key={estate.id} className="real-estate-item w-80 border rounded-lg shadow-lg">
+                <img
+                  src={estate.imageUrl || "/default-image.jpg"} // Add default image path
+                  alt={estate.title}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                />
+                <div className="p-4">
+                  <h3 className="font-bold text-xl">{estate.title}</h3>
+                  <p className="text-sm text-gray-600">{estate.description}</p>
+                  <p><strong>Price:</strong> ${estate.price}</p>
+                  <p><strong>Location:</strong> {estate.city}, {estate.state}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Prev and Next buttons */}
+        <button
+          onClick={goToPrev}
+          className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full"
+        >
+          &lt;
+        </button>
+        <button
+          onClick={goToNext}
+          className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-black text-white p-2 rounded-full"
+        >
+          &gt;
+        </button>
+
+        <div className="text-center mt-6">
+          <Link to="/real-estates">
+            <button className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
+              See More
+            </button>
+          </Link>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

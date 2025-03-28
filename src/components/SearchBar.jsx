@@ -1,11 +1,11 @@
-import { FaSearch } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa"; // Import the search icon
 
 export default function SearchBar() {
   return (
-    <div className="flex items-center bg-white rounded-lg shadow-lg p-2 w-80 mx-auto mt-4 sm:w-full">
-      <FaSearch className="text-gray-600 text-xl ml-2" />
+    <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2 max-w-xl w-full">
+      <FaSearch id="pretraga-lokacija" className="ml-3 text-gray-600" />
       <input
-        className="w-full px-4 py-2 text-gray-700 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full text-left p-2"
         type="text"
         placeholder="Куцајте за претрагу"
       />
