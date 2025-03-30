@@ -8,7 +8,7 @@ export default function RealEstateSlider() {
 
   // Fetch data when the component mounts
   useEffect(() => {
-    fetch("http://localhost:8080/api/real-estates/")  // TODO REPLACE: "https://mdexo-backend.onrender.com/api/real-estates/"
+    fetch("https://mdexo-backend.onrender.com/api/real-estates/")  // TODO REPLACE:  "http://localhost:8080/api/real-estates/"
       .then((response) => response.json())
       .then((data) => {
         setRealEstates(data.content); // Adjust to match your backend response (e.g., data.content)

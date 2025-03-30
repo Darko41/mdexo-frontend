@@ -15,7 +15,7 @@ export default function PrijavaPage() {
   if (email && password) {
     try {
       // Make a fetch call to your backend for authentication
-      const response = await fetch("http://localhost:8080/api/authenticate", {
+      const response = await fetch("https://mdexo-backend.onrender.com/api/authenticate", {			// TODO Replace: "http://localhost:8080/api/authenticate"
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -127,7 +127,7 @@ export default function PrijavaPage() {
         </form>
 
         <div className="mt-4 text-center">
-          <span className="text-gray-600">Don't have an account? </span>
+          <span className="text-gray-600">Don&apost have an account? </span>
           <Link to="/signup" className="text-blue-600 hover:text-blue-800">
             Sign Up
           </Link>
