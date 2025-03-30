@@ -45,8 +45,10 @@ export default function PrijavaPage() {
         if (Array.isArray(roles) && roles.includes("ROLE_ADMIN")) {
           if (isDevelopment) {
 			  window.open("http://localhost:8080/admin/dashboard")
+			  window.location.href = "/";
 		  } else {
 			  window.open("https://mdexo-backend.onrender.com/admin/dashboard")
+			  window.location.href = "/";
 		  }
         } else {
           navigate("/");
