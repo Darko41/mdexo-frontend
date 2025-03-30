@@ -8,7 +8,7 @@ export default function Header() {
         <div className="flex items-center space-x-4 sm:space-x-6"> {/* Reduced width classes and added space-x */}
           {/* Home Button */}
           <Link to="/" className="bg-amber-300 hover:bg-blue-600 p-2 rounded">
-            Real Estate Company INC
+            Mdexo
           </Link>
         </div>
 

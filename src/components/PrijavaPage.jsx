@@ -1,25 +1,64 @@
-import { useState } from "react";
-import { Link } from "react-router-dom"; // Link for navigating to other pages
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom"; // Add Link import here
+import { jwtDecode } from "jwt-decode"; // Install jwt-decode package
 
 export default function PrijavaPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Hook for navigation
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Perform your login logic here
-    // For now, we'll just log the values (you can replace this with your API call)
-    if (email && password) {
-      console.log("Logging in with", { email, password, rememberMe });
-      setError(null);
-      // Simulate successful login:
-      // redirect or show success message
-    } else {
-      setError("Please fill in both email and password.");
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (email && password) {
+    try {
+      // Make a fetch call to your backend for authentication
+      const response = await fetch("http://localhost:8080/api/authenticate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      // Log the response data for debugging
+      console.log(data);  // Log the data returned from the backend
+
+      if (response.ok) {
+        const token = data.token;
+        const roles = data.roles;
+
+        localStorage.setItem("jwtToken", token); // Store the token
+
+        // Decode the JWT token using jwt_decode directly (no .decode method)
+        const decodedToken = jwtDecode(token); // Correct usage here
+        console.log(decodedToken);  // Log the decoded token to check its content
+
+        // Extract roles from the decoded token (optional, since roles are in the response)
+        const userRoles = decodedToken.roles || roles; // Use roles from the response or decoded token
+
+        if (userRoles.includes("ROLE_ADMIN")) {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
+
+        setError(null); // Reset any errors
+      } else {
+        setError("Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Error occurred:", error);
+      setError("An error occurred. Please try again.");
     }
-  };
+  } else {
+    setError("Please fill in both email and password.");
+  }
+};
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -33,7 +72,6 @@ export default function PrijavaPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Input */}
           <div>
             <label htmlFor="email" className="block text-gray-700 font-semibold">
               Email
@@ -50,7 +88,6 @@ export default function PrijavaPage() {
             />
           </div>
 
-          {/* Password Input */}
           <div>
             <label htmlFor="password" className="block text-gray-700 font-semibold">
               Password
@@ -67,7 +104,6 @@ export default function PrijavaPage() {
             />
           </div>
 
-          {/* Remember Me Checkbox */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -80,7 +116,6 @@ export default function PrijavaPage() {
             <label htmlFor="rememberMe" className="ml-2 text-gray-700">Remember me</label>
           </div>
 
-          {/* Submit Button */}
           <div>
             <button
               type="submit"
@@ -91,14 +126,6 @@ export default function PrijavaPage() {
           </div>
         </form>
 
-        {/* Forgot Password Link */}
-        <div className="mt-4 text-center">
-          <Link to="/forgot-password" className="text-blue-600 hover:text-blue-800">
-            Forgot Password?
-          </Link>
-        </div>
-
-        {/* Sign Up Link */}
         <div className="mt-4 text-center">
           <span className="text-gray-600">Don't have an account? </span>
           <Link to="/signup" className="text-blue-600 hover:text-blue-800">
