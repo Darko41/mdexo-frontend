@@ -30,7 +30,7 @@ export default function PrijavaPage() {
 
       if (response.ok) {
         const token = data.token;
-        const roles = data.roles;
+        // const roles = data.roles;
 
         localStorage.setItem("jwtToken", token); // Store the token
 
@@ -39,10 +39,16 @@ export default function PrijavaPage() {
         console.log(decodedToken);  // Log the decoded token to check its content
 
         // Extract roles from the decoded token (optional, since roles are in the response)
-        const userRoles = decodedToken.roles || roles; // Use roles from the response or decoded token
+        const roles = decodedToken.roles || []; // Use roles from the response or decoded token
 
-        if (userRoles.includes("ROLE_ADMIN")) {
-          navigate("/admin/dashboard");
+		const isDevelopment = import.meta.env.MODE === 'development';
+		
+        if (Array.isArray(roles) && roles.includes("ROLE_ADMIN")) {
+          if (isDevelopment) {
+			  navigate("http://localhost:8080/admin/dashboard");
+		  } else {
+			  navigate("/admin/dashboard");
+		  }
         } else {
           navigate("/");
         }
