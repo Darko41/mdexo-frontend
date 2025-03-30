@@ -36,21 +36,17 @@ export default function PrijavaPage() {
 
         // Decode the JWT token using jwt_decode directly (no .decode method)
         const decodedToken = jwtDecode(token); // Correct usage here
-        console.log(decodedToken);  // Log the decoded token to check its content
 
         // Extract roles from the decoded token (optional, since roles are in the response)
         const roles = decodedToken.roles || data.roles || []; // Use roles from the response or decoded token
-        console.log("Roles from token/response: ", roles);
-		console.log("Email:", email);
-		console.log("Password:", password);
-		console.log("Roles:", roles);
+
 		const isDevelopment = import.meta.env.MODE === 'development';
 		
         if (Array.isArray(roles) && roles.includes("ROLE_ADMIN")) {
           if (isDevelopment) {
-			  navigate("http://localhost:8080/admin/dashboard");
+			  window.open("http://localhost:8080/admin/dashboard")
 		  } else {
-			  navigate("/admin/dashboard");
+			  window.open("https://mdexo-backend.onrender.com/admin/dashboard")
 		  }
         } else {
           navigate("/");
