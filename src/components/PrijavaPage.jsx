@@ -39,7 +39,8 @@ export default function PrijavaPage() {
         console.log(decodedToken);  // Log the decoded token to check its content
 
         // Extract roles from the decoded token (optional, since roles are in the response)
-        const roles = decodedToken.roles || []; // Use roles from the response or decoded token
+        const roles = decodedToken.roles || data.roles || []; // Use roles from the response or decoded token
+        console.log("Roles from token/response: ", roles);
 
 		const isDevelopment = import.meta.env.MODE === 'development';
 		
