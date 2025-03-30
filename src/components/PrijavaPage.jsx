@@ -41,7 +41,9 @@ export default function PrijavaPage() {
         // Extract roles from the decoded token (optional, since roles are in the response)
         const roles = decodedToken.roles || data.roles || []; // Use roles from the response or decoded token
         console.log("Roles from token/response: ", roles);
-
+		console.log("Email:", email);
+		console.log("Password:", password);
+		console.log("Roles:", roles);
 		const isDevelopment = import.meta.env.MODE === 'development';
 		
         if (Array.isArray(roles) && roles.includes("ROLE_ADMIN")) {
