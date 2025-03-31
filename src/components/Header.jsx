@@ -25,27 +25,27 @@ export default function Header() {
 
         {/* Button Section */}
         <div className="flex items-center space-x-4 sm:space-x-6"> {/* Applied space-x here */}
-          <Link to="/real-estates">
+          <Link to="/buy">
             <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
               КУПОВИНА
             </button>
           </Link>
-          <Link to="/iznamljivanje">
+          <Link to="/rent">
             <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
               ИЗНАЈМЉИВАЊЕ
             </button>
           </Link>
-          <Link to="/prodaja">
+          <Link to="/sell">
             <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
               ПРОДАЈА
             </button>
           </Link>
-          <Link to="/pomoc">
+          <Link to="/help">
             <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
               ПОМОЋ
             </button>
           </Link>
-          <Link to="/prijava">
+          <Link to="/login">
             <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
               ПРИЈАВА
             </button>

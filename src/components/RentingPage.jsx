@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export default function RealEstateList() {
+export default function RentingPage() {
   const [realEstates, setRealEstates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -9,8 +9,8 @@ export default function RealEstateList() {
 
   useEffect(() => {
     const apiUrl = isDevelopment
-      ? "http://localhost:8080/api/real-estates/"
-      : "https://mdexo-backend.onrender.com/api/real-estates/";
+      ? "http://localhost:8080/api/real-estates/?listingType=FOR_RENT"
+      : "https://mdexo-backend.onrender.com/api/real-estates/?listingType=FOR_RENT";
 
     fetch(apiUrl)
       .then((response) => {

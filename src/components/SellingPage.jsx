@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-export default function RealEstateSlider() {
+export default function SellingPage() {
   const [realEstates, setRealEstates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,6 +69,7 @@ export default function RealEstateSlider() {
     <section className="w-full py-8">
       <h2 className="text-3xl font-bold text-center mb-6">Available Real Estates</h2>
 
+      {/* Slider Section */}
       <div className="relative w-full">
         <div className="slider-container overflow-hidden">
           <div className="real-estates-slider flex gap-6 transition-all duration-500">
@@ -109,6 +110,24 @@ export default function RealEstateSlider() {
           <Link to="/real-estates">
             <button className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
               See More
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Advertisement Section */}
+      <div className="mt-12 text-center">
+        <h3 className="text-2xl font-semibold mb-4">Advertise Your Real Estate</h3>
+        <p className="mb-4 text-lg">You can advertise your real estate here for sale or for rent. Reach a large audience and get your property listed in no time!</p>
+        <div>
+          <Link to="/signup">
+            <button className="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700 transition duration-300 mr-4">
+              Sign Up
+            </button>
+          </Link>
+          <Link to="/login">
+            <button className="bg-yellow-600 text-white py-2 px-6 rounded-lg hover:bg-yellow-700 transition duration-300">
+              Login
             </button>
           </Link>
         </div>

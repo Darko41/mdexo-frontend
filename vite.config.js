@@ -4,5 +4,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    hmr: false,  // Disable HMR temporarily to check if WebSocket is causing the issue
+  },
   plugins: [react(), tailwindcss()],
 });
+
+
