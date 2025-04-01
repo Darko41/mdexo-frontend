@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     hmr: false,  // Disable HMR temporarily to check if WebSocket is causing the issue
   },
+  base: '/',
   plugins: [react(), tailwindcss()],
 });
 
