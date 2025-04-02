@@ -7,6 +7,7 @@ import HelpPage from "./components/HelpPage";
 import LoginPage from "./components/LoginPage";
 import RealEstateList from "./components/RealEstateList";
 import BuyingPage from "./components/BuyingPage";
+import CreateListingForm from "./components/CreateListingForm";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/help" element={<HelpPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/buy" element={<BuyingPage />} />
+        <Route path="/createadd" element={<CreateListingForm />} />
       </Routes>
      </Router>
     </>
