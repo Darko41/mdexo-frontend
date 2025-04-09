@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"; // Use Routes instead of Switch
 import Header from "./components/Header";
 import Main from "./components/Main";
+import Main2 from "./components/Main2";
 import RentingPage from "./components/RentingPage";
 import SellingPage from "./components/SellingPage";
 import HelpPage from "./components/HelpPage";
@@ -14,6 +15,8 @@ function App() {
     <>
     <Router>
       <Header />
+      <Main/>
+      <Main2/>
       <Routes>
         <Route path="/" element={<Main />} /> {/* Default route */}
         <Route path="/real-estates" element={<RealEstateList />} />

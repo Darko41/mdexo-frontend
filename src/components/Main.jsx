@@ -1,25 +1,15 @@
-import RealEstateSlider from "./RealEstateSlider";
-import SearchBar from "./SearchBar";  // Ensure SearchBar is imported
+import React from "react";
+import SearchBar from "./SearchBar";
 
 export default function Main() {
   return (
-    <>
-      <section className="relative w-full h-[20vh] bg-[url('/bgImage.jpg')] bg-cover bg-no-repeat bg-center">
-        <div className="absolute top-0 left-0 w-full h-[20vh] bg-black opacity-30"></div> {/* Optional dark overlay */}
-        
-        <div className="flex flex-col items-center justify-center h-full z-10 relative">
-          <div className="flex flex-col items-center justify-center w-full px-4 pt-8">
-            <p className="bg mb-3 text-4xl font-bold text-white text-center">
-              ПРОНАЂИТЕ ВАШ ДОМ ИЗ СНОВА
-            </p>
-            {/* Search Bar */}
-            <SearchBar />
-          </div>
-        </div>
-      </section>
-      
-      {/* Real Estate Slider Below the Background Image */}
-      <RealEstateSlider />
-    </>
+    <section className="flex h-72 w-full flex-col items-center justify-center bg-[url('/public/bgImage.jpg')] bg-cover bg-center bg-no-repeat">
+      <div className="flex w-200 flex-col items-center justify-center">
+        <p className="bg mb-6 pt-12 text-center text-5xl font-bold text-wrap text-black">
+          ПРОНАЂИТЕ ВАШ ДОМ ИЗ СНОВА
+        </p>
+        <SearchBar></SearchBar>
+      </div>
+    </section>
   );
 }

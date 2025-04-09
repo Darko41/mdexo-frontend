@@ -1,56 +1,27 @@
-import { Link } from "react-router-dom"; // Import Link for routing
+import React from "react";
 
 export default function Header() {
   return (
-    <div>
-      {/* Header Section */}
-      <div className="flex h-25 w-screen flex-row justify-between bg-blue-600 px-4 sm:px-12">
-        <div className="flex items-center space-x-4 sm:space-x-6"> {/* Reduced width classes and added space-x */}
-          {/* Home Button */}
-          <Link to="/" className="bg-amber-300 hover:bg-blue-600 p-2 rounded">
-            Mdexo
-          </Link>
-        </div>
-
-        {/* Logo Section */}
-        <div className="logo flex justify-center items-center">
-          {/* Logo - Use an image or text as logo */}
-          <Link to="/" className="text-white text-2xl font-bold">
-            {/* Here you can use an image tag, or leave it as text for simplicity */}
-            <img src="/path/to/your/logo.png" alt="MDEXO" className="h-10 w-auto" />
-            {/* OR */}
-            {/* <p className="text-white text-2xl font-bold">Real Estate Co</p> */}
-          </Link>
-        </div>
-
-        {/* Button Section */}
-        <div className="flex items-center space-x-4 sm:space-x-6"> {/* Applied space-x here */}
-          <Link to="/buy">
-            <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
-              КУПОВИНА
-            </button>
-          </Link>
-          <Link to="/rent">
-            <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
-              ИЗНАЈМЉИВАЊЕ
-            </button>
-          </Link>
-          <Link to="/sell">
-            <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
-              ПРОДАЈА
-            </button>
-          </Link>
-          <Link to="/help">
-            <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
-              ПОМОЋ
-            </button>
-          </Link>
-          <Link to="/login">
-            <button className="bg-amber-300 hover:bg-blue-600 px-4 py-2 rounded">
-              ПРИЈАВА
-            </button>
-          </Link>
-        </div>
+    <div className="flex h-25 w-screen flex-row justify-between bg-blue-600">
+      <div className="ml-26 flex w-2/5 flex-row items-center justify-start">
+        <button className="mr-6 cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
+          КУПОВИНА
+        </button>
+        <button className="mr-6 cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
+          ИЗНАЈМЉИВАЊЕ
+        </button>
+        <button className="cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
+          ПРОДАЈА
+        </button>
+      </div>
+      <div className="logo w-2/5"></div>
+      <div className="mr-26 flex w-1/5 flex-row items-center justify-end">
+        <button className="mr-6 cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
+          ПОМОЋ
+        </button>
+        <button className="cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
+          ПРИЈАВА
+        </button>
       </div>
     </div>
   );
