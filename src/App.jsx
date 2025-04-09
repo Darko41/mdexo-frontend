@@ -13,21 +13,21 @@ import CreateListingForm from "./components/CreateListingForm";
 function App() {
   return (
     <>
-    <Router>
-      <Header />
-      <Main/>
-      <Main2/>
-      <Routes>
-        <Route path="/" element={<Main />} /> {/* Default route */}
-        <Route path="/real-estates" element={<RealEstateList />} />
-        <Route path="/rent" element={<RentingPage />} />
-        <Route path="/sell" element={<SellingPage />} />
-        <Route path="/help" element={<HelpPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/buy" element={<BuyingPage />} />
-        <Route path="/createadd" element={<CreateListingForm />} />
-      </Routes>
-     </Router>
+      <Router>
+        <Header />
+
+        <Routes>
+          <Route path="/" element={<Main />} /> {/* Default route */}
+          <Route path="/real-estates" element={<RealEstateList />} />
+          <Route path="/rent" element={<RentingPage />} />
+          <Route path="/sell" element={<SellingPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/buy" element={<BuyingPage />} />
+          <Route path="/createadd" element={<CreateListingForm />} />
+        </Routes>
+        <Main2 />
+      </Router>
     </>
   );
 }
