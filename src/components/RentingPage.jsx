@@ -9,8 +9,8 @@ export default function RentingPage() {
 
   useEffect(() => {
     const apiUrl = isDevelopment
-      ? "http://localhost:8080/api/real-estates/?listingType=FOR_RENT"
-      : "https://mdexo-backend.onrender.com/api/real-estates/?listingType=FOR_RENT";
+      ? "http://localhost:8080/api/real-estates/search?listingType=FOR_RENT"
+      : "https://mdexo-backend.onrender.com/api/real-estates/search?listingType=FOR_RENT";
 
     fetch(apiUrl)
       .then((response) => {

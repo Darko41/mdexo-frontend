@@ -22,7 +22,7 @@ function App() {
         <Route path="/help" element={<HelpPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/buy" element={<BuyingPage />} />
-        <Route path="/createadd" element={<CreateListingForm />} />
+        <Route path="/create-listing" element={<CreateListingForm />} />
       </Routes>
      </Router>
     </>

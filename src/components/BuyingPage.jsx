@@ -9,8 +9,8 @@ export default function BuyingPage() {
 
   useEffect(() => {
     const apiUrl = isDevelopment
-      ? "http://localhost:8080/api/real-estates/?listingType=FOR_SALE"
-      : "https://mdexo-backend.onrender.com/api/real-estates/?listingType=FOR_SALE";
+      ? "http://localhost:8080/api/real-estates/search?listingType=FOR_SALE"
+      : "https://mdexo-backend.onrender.com/api/real-estates/search?listingType=FOR_SALE";
 
     fetch(apiUrl)
       .then((response) => {

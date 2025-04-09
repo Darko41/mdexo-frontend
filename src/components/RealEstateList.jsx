@@ -9,8 +9,8 @@ export default function RealEstateList() {
 
   useEffect(() => {
     const apiUrl = isDevelopment
-      ? "http://localhost:8080/api/real-estates/"
-      : "https://mdexo-backend.onrender.com/api/real-estates/";
+      ? "http://localhost:8080/api/real-estates/search"
+      : "https://mdexo-backend.onrender.com/api/real-estates/search";
 
     fetch(apiUrl)
       .then((response) => {
