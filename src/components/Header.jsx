@@ -1,28 +1,61 @@
-import React from "react";
+import { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Header() {
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const isAdmin = user?.roles?.includes("ROLE_ADMIN");
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
-    <div className="flex h-25 w-screen flex-row justify-between bg-blue-600">
-      <div className="ml-26 flex w-2/5 flex-row items-center justify-start">
-        <button className="mr-6 cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
-          КУПОВИНА
-        </button>
-        <button className="mr-6 cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
-          ИЗНАЈМЉИВАЊЕ
-        </button>
-        <button className="cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
-          ПРОДАЈА
-        </button>
+    <header className="bg-white shadow p-4 flex justify-between items-center">
+      <div className="text-xl font-bold text-blue-600">
+        <Link to="/">MyApp</Link>
       </div>
-      <div className="logo w-2/5"></div>
-      <div className="mr-26 flex w-1/5 flex-row items-center justify-end">
-        <button className="mr-6 cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
-          ПОМОЋ
-        </button>
-        <button className="cursor-pointer rounded-sm p-1.5 font-semibold hover:bg-amber-300">
-          ПРИЈАВА
-        </button>
-      </div>
-    </div>
+
+      <nav className="space-x-4">
+        {user ? (
+          <>
+            {isAdmin && (
+              <a
+                href="http://localhost:8080/admin/dashboard"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 font-semibold"
+              >
+                Admin Dashboard
+              </a>
+            )}
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+            >
+              Log Out
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/login"
+              className="text-blue-600 hover:text-blue-800 font-semibold"
+            >
+              Log In
+            </Link>
+            <Link
+              to="/signup"
+              className="text-blue-600 hover:text-blue-800 font-semibold"
+            >
+              Sign Up
+            </Link>
+          </>
+        )}
+      </nav>
+    </header>
   );
 }

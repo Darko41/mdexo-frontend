@@ -1,34 +1,36 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom"; // Use Routes instead of Switch
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+
+import CreateListingForm from "./components/CreateListingForm";
 import Header from "./components/Header";
 import Main from "./components/Main";
-import Main2 from "./components/Main2";
-import RentingPage from "./components/RentingPage";
-import SellingPage from "./components/SellingPage";
-import HelpPage from "./components/HelpPage";
-import LoginPage from "./components/LoginPage";
 import RealEstateList from "./components/RealEstateList";
-import BuyingPage from "./components/BuyingPage";
-import CreateListingForm from "./components/CreateListingForm";
+import RentingPage from "./pages/RentingPage";
+import SellingPage from "./pages/SellingPage";
+import HelpPage from "./pages/HelpPage";
+import LoginPage from "./pages/LoginPage";
+import BuyingPage from "./pages/BuyingPage";
+import SearchResultsPage from "./pages/SearchResultsPage";
+import PropertyDetailsPage from "./pages/PropertyDetailsPage";
 
 function App() {
   return (
-    <>
-
     <Router>
       <Header />
-      <Routes>
-        <Route path="/" element={<Main />} /> {/* Default route */}
-        <Route path="/real-estates" element={<RealEstateList />} />
-        <Route path="/rent" element={<RentingPage />} />
-        <Route path="/sell" element={<SellingPage />} />
-        <Route path="/help" element={<HelpPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/buy" element={<BuyingPage />} />
-        <Route path="/create-listing" element={<CreateListingForm />} />
-      </Routes>
-     </Router>
-
-    </>
+      <main className="min-h-screen">
+        <Routes>
+          <Route path="/" element={<Main />} />
+          <Route path="/real-estates" element={<RealEstateList />} />
+          <Route path="/rent" element={<RentingPage />} />
+          <Route path="/sell" element={<SellingPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/buy" element={<BuyingPage />} />
+          <Route path="/create-listing" element={<CreateListingForm />} />
+          <Route path="/search" element={<SearchResultsPage />} />
+		  <Route path="/properties/:id" element={<PropertyDetailsPage />} />
+        </Routes>
+      </main>
+    </Router>
   );
 }
 

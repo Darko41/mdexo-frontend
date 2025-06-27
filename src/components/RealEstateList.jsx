@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { RealEstateCard, RealEstateCardSkeleton } from "../components/real-estate";
 
 export default function RealEstateList() {
   const [realEstates, setRealEstates] = useState([]);
@@ -30,15 +31,6 @@ export default function RealEstateList() {
       });
   }, [isDevelopment]);
 
-  // Loading state UI
-  if (loading) {
-    return (
-      <div className="text-center">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
   // Error state UI
   if (error) {
     return (
@@ -54,27 +46,20 @@ export default function RealEstateList() {
 
       {/* Real Estate Grid Layout */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {/* Display each real estate item */}
-        {realEstates.length === 0 ? (
+        {loading ? (
+          // Show skeleton loaders while loading
+          [...Array(8)].map((_, index) => (
+            <RealEstateCardSkeleton key={`skeleton-${index}`} />
+          ))
+        ) : realEstates.length === 0 ? (
           <div className="col-span-full text-center">No real estates available.</div>
         ) : (
+          // Show actual real estate cards when data is loaded
           realEstates.map((estate) => (
-            <div 
-              key={estate.id} // Ensure each item has a unique key
-              className="real-estate-item w-full border rounded-lg shadow-lg overflow-hidden"
-            >
-              <img
-                src={estate.imageUrl || "/default-image.jpg"} // Fallback to default image if no image is provided
-                alt={estate.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="font-bold text-xl">{estate.title}</h3>
-                <p className="text-sm text-gray-600">{estate.description}</p>
-                <p><strong>Price:</strong> ${estate.price}</p>
-                <p><strong>Location:</strong> {estate.city}, {estate.state}</p>
-              </div>
-            </div>
+            <RealEstateCard 
+              key={estate.id}
+              property={estate}
+            />
           ))
         )}
       </div>

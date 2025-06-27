@@ -1,11 +1,20 @@
-import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom"; // Ensure BrowserRouter is imported here
-import App from "./App"; // Import App component
-import "./index.css"; // Ensure you are importing the styles correctly
+// React 18+ Imports (with explicit imports)
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import './index.css';
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+// Type Validation (optional but recommended)
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
+
+// Create root and render
+const root = createRoot(rootElement);
 root.render(
-  <BrowserRouter> {/* Wrap App with BrowserRouter to enable routing */}
+  <BrowserRouter>
     <App />
   </BrowserRouter>
 );

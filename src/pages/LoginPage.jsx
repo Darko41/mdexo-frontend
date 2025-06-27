@@ -1,28 +1,28 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; // Correct import
+import { jwtDecode } from "jwt-decode";
+import { AuthContext } from "../context/AuthContext";
 
-export default function PrijavaPage() {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
-  const isDevelopment = import.meta.env.MODE === 'development';
+  const { login } = useContext(AuthContext);
+
+  const isDevelopment = import.meta.env.MODE === "development";
   const apiUrl = isDevelopment
     ? "http://localhost:8080/api/authenticate"
     : "https://mdexo-backend.onrender.com/api/authenticate";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Log the start of the function to check if it's triggered
     console.log("Handle Submit triggered");
 
     if (email && password) {
       try {
-        // Log before the fetch request to ensure it's being triggered
         console.log("Sending fetch request to:", apiUrl);
 
         const response = await fetch(apiUrl, {
@@ -33,49 +33,40 @@ export default function PrijavaPage() {
           body: JSON.stringify({ email, password }),
         });
 
-        // Check if the response is ok
-        console.log("Fetch response status:", response.status); // Log the status
+        console.log("Fetch response status:", response.status);
 
         const data = await response.json();
-        console.log("Fetch response data:", data); // Log the response data
+        console.log("Fetch response data:", data);
 
         if (response.ok) {
           const token = data.token;
-          console.log("JWT Token:", token); // Log the token for debugging
+          console.log("JWT Token:", token);
 
-          // Store the token
-          localStorage.setItem("jwtToken", token); // Store the token
-
-          // Decode the JWT token using jwt_decode
+          // Decode token to get roles, email, etc.
           const decodedToken = jwtDecode(token);
-          console.log("Decoded Token:", decodedToken); // Log the decoded token
-
-          // Extract roles from the decoded token (optional, since roles are in the response)
           const roles = decodedToken.roles || data.roles || [];
-          console.log("Roles:", roles); // Log roles for debugging
 
-          // **Check if the user is an admin and has the right role**
-          if (Array.isArray(roles) && roles.includes("ROLE_ADMIN")) {
-            console.log("User is an admin, redirecting to the dashboard...");
+          const user = {
+            email: decodedToken.sub || decodedToken.email,
+            roles,
+          };
 
-            // If user is an admin, redirect to admin dashboard
-            if (isDevelopment) {
-              window.open("http://localhost:8080/admin/dashboard"); // Open admin dashboard for dev
-              window.location.href = "/"; // Redirect to home page after
-            } else {
-              window.open("https://mdexo-backend.onrender.com/admin/dashboard"); // Open admin dashboard for production
-              window.location.href = "/"; // Redirect to home page after
-            }
+          // Use context login method to set user + token + localStorage + cookie
+          login(user, token);
+
+          // Redirect based on role
+          if (roles.includes("ROLE_ADMIN")) {
+            console.log("Admin login detected");
+            navigate("/"); // Redirect home; header will show admin dashboard link
           } else {
-            // If not an admin, navigate to home page
-            setError("You don't have permission to access the admin dashboard.");
-            navigate("/"); // Redirect to home page for non-admins
+            console.log("Standard user login");
+            navigate("/");
           }
 
-          setError(null); // Reset any errors
+          setError(null);
         } else {
-          console.log("Invalid credentials error response:", data); // Log if invalid credentials
-          setError("Invalid credentials"); // Display error if authentication fails
+          console.log("Invalid credentials error response:", data);
+          setError("Invalid credentials");
         }
       } catch (error) {
         console.error("Error occurred:", error);
@@ -139,7 +130,9 @@ export default function PrijavaPage() {
               onChange={(e) => setRememberMe(e.target.checked)}
               className="h-4 w-4 text-blue-500 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
             />
-            <label htmlFor="rememberMe" className="ml-2 text-gray-700">Remember me</label>
+            <label htmlFor="rememberMe" className="ml-2 text-gray-700">
+              Remember me
+            </label>
           </div>
 
           <div>
@@ -153,7 +146,7 @@ export default function PrijavaPage() {
         </form>
 
         <div className="mt-4 text-center">
-          <span className="text-gray-600">Don&apost have an account? </span>
+          <span className="text-gray-600">Don&apos;t have an account? </span>
           <Link to="/signup" className="text-blue-600 hover:text-blue-800">
             Sign Up
           </Link>

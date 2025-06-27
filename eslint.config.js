@@ -10,29 +10,43 @@ export default [
     files: ["**/*.{js,jsx}"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        ...globals.es2020
+      },
       parserOptions: {
         ecmaVersion: "latest",
-        ecmaFeatures: { jsx: true },
-        sourceType: "module",
-      },
+        ecmaFeatures: { 
+          jsx: true 
+        },
+        sourceType: "module"
+      }
     },
-    settings: { react: { version: "18.3" } },
+    settings: { 
+      react: { 
+        version: "detect" 
+      } 
+    },
     plugins: {
       react,
       "react-hooks": reactHooks,
-      "react-refresh": reactRefresh,
+      "react-refresh": reactRefresh
     },
     rules: {
       ...js.configs.recommended.rules,
       ...react.configs.recommended.rules,
-      ...react.configs["jsx-runtime"].rules,
       ...reactHooks.configs.recommended.rules,
+      "react/jsx-uses-react": "off",
+      "react/react-in-jsx-scope": "off",
       "react/jsx-no-target-blank": "off",
       "react-refresh/only-export-components": [
         "warn",
-        { allowConstantExport: true },
+        { 
+          allowConstantExport: true 
+        }
       ],
-    },
-  },
+      "react/jsx-key": "warn",
+      "react/prop-types": "warn"
+    }
+  }
 ];
