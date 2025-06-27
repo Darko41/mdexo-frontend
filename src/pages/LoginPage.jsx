@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "../context/AuthContext";
+import API from '../utils/api/api.js';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,70 +13,53 @@ export default function LoginPage() {
 
   const { login } = useContext(AuthContext);
 
-  const isDevelopment = import.meta.env.MODE === "development";
-  const apiUrl = isDevelopment
-    ? "http://localhost:8080/api/authenticate"
-    : "https://mdexo-backend.onrender.com/api/authenticate";
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("Handle Submit triggered");
+  e.preventDefault();
+  console.log("Handle Submit triggered");
 
-    if (email && password) {
-      try {
-        console.log("Sending fetch request to:", apiUrl);
+  if (email && password) {
+    try {
+      const response = await API.auth.login({ email, password });
+      const data = response.data;
 
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        });
+      console.log("Login response:", data);
 
-        console.log("Fetch response status:", response.status);
+      const token = data.token;
+      const decodedToken = jwtDecode(token);
+      const roles = decodedToken.roles || data.roles || [];
 
-        const data = await response.json();
-        console.log("Fetch response data:", data);
+      const user = {
+        email: decodedToken.sub || decodedToken.email,
+        roles,
+      };
 
-        if (response.ok) {
-          const token = data.token;
-          console.log("JWT Token:", token);
+      login(user, token);
 
-          // Decode token to get roles, email, etc.
-          const decodedToken = jwtDecode(token);
-          const roles = decodedToken.roles || data.roles || [];
-
-          const user = {
-            email: decodedToken.sub || decodedToken.email,
-            roles,
-          };
-
-          // Use context login method to set user + token + localStorage + cookie
-          login(user, token);
-
-          // Redirect based on role
-          if (roles.includes("ROLE_ADMIN")) {
-            console.log("Admin login detected");
-            navigate("/"); // Redirect home; header will show admin dashboard link
-          } else {
-            console.log("Standard user login");
-            navigate("/");
-          }
-
-          setError(null);
-        } else {
-          console.log("Invalid credentials error response:", data);
-          setError("Invalid credentials");
-        }
-      } catch (error) {
-        console.error("Error occurred:", error);
-        setError("An error occurred. Please try again.");
+      if (roles.includes("ROLE_ADMIN")) {
+        console.log("Admin login detected");
+        navigate("/");
+      } else {
+        console.log("Standard user login");
+        navigate("/");
       }
-    } else {
-      setError("Please fill in both email and password.");
+
+      setError(null);
+    } catch (error) {
+      console.error("Login error:", {
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+
+      const message =
+        error.response?.data?.message || "Invalid credentials or server error.";
+      setError(message);
     }
-  };
+  } else {
+    setError("Please fill in both email and password.");
+  }
+};
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-50">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import API from '../utils/api/api.js';
 
 export default function SellingPage() {
   const [realEstates, setRealEstates] = useState([]);
@@ -17,27 +18,24 @@ export default function SellingPage() {
 
   // Fetch data when the component mounts
   useEffect(() => {
-    const apiUrl = isDevelopment
-      ? "http://localhost:8080/api/real-estates/search"
-      : "https://mdexo-backend.onrender.com/api/real-estates/search";
-
-    fetch(apiUrl)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setRealEstates(data.content || []);
-        setLoading(false);
-      })
-      .catch((error) => {
-        setError("Failed to fetch real estate data.");
-        console.error("Error fetching real estate data:", error);
-        setLoading(false);
+  const fetchRealEstates = async () => {
+    try {
+      const response = await API.realEstates.searchAll();
+      setRealEstates(response.data.content || []);
+    } catch (error) {
+      console.error("Error fetching real estate data:", {
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data
       });
-  }, [isDevelopment]);
+      setError("Failed to fetch real estate data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchRealEstates();
+}, []);
 
   // Touch and mouse event handlers for swipe functionality
   useEffect(() => {

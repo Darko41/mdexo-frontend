@@ -1,34 +1,28 @@
 import { useState, useEffect } from "react";
+import API from '../utils/api/api.js';
 
 export default function BuyingPage() {
   const [realEstates, setRealEstates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const isDevelopment = import.meta.env.MODE === 'development';
 
   useEffect(() => {
-    const apiUrl = isDevelopment
-      ? "http://localhost:8080/api/real-estates/search?listingType=FOR_SALE"
-      : "https://mdexo-backend.onrender.com/api/real-estates/search?listingType=FOR_SALE";
-
-    fetch(apiUrl)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setRealEstates(data.content || []); // Adjust to match your backend response
-        setLoading(false);
-      })
-      .catch((error) => {
-        setError("Failed to fetch real estate data.");
-        console.error("Error fetching real estate data:", error);
-        setLoading(false);
+  API.realEstates.searchForSale()
+    .then((response) => {
+      setRealEstates(response.data.content || []);
+      setLoading(false);
+    })
+    .catch((error) => {
+      console.error("Error fetching real estate data:", {
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data
       });
-  }, [isDevelopment]);
+      setError("Failed to fetch real estate data.");
+      setLoading(false);
+    });
+}, []);
 
   // Loading state UI
   if (loading) {
