@@ -9,11 +9,12 @@ export const BACKEND_BASE_URL = isDevelopment
 const api = axios.create({
   baseURL: BACKEND_BASE_URL,
   timeout: 10000,
+  withCredentials: true, // Crucial for cookies
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-  },
-  withCredentials: true, // Changed to true for CORS with credentials
+    'X-Requested-With': 'XMLHttpRequest' // Helps identify AJAX requests
+  }
 });
 
 api.interceptors.request.use((config) => {
