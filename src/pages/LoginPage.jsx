@@ -16,48 +16,66 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
   e.preventDefault();
+  setError(null);
   console.log("Handle Submit triggered");
 
-  if (email && password) {
-    try {
-      const response = await API.auth.login({ email, password });
-      const data = response.data;
-
-      console.log("Login response:", data);
-
-      const token = data.token;
-      const decodedToken = jwtDecode(token);
-      const roles = decodedToken.roles || data.roles || [];
-
-      const user = {
-        email: decodedToken.sub || decodedToken.email,
-        roles,
-      };
-
-      login(user, token);
-
-      if (roles.includes("ROLE_ADMIN")) {
-        console.log("Admin login detected");
-        navigate("/");
-      } else {
-        console.log("Standard user login");
-        navigate("/");
-      }
-
-      setError(null);
-    } catch (error) {
-      console.error("Login error:", {
-        url: error.config?.url,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-
-      const message =
-        error.response?.data?.message || "Invalid credentials or server error.";
-      setError(message);
-    }
-  } else {
+  if (!email || !password) {
     setError("Please fill in both email and password.");
+    return;
+  }
+
+  try {
+    console.log("Attempting login with:", { email, password });
+    const response = await API.auth.login({ email, password });
+    
+    // Log the full response for debugging
+    console.log("Full response:", response);
+    
+    if (!response.data || !response.data.token) {
+      throw new Error("No token received in response");
+    }
+
+    const { token } = response.data;
+    const decodedToken = jwtDecode(token);
+    const roles = decodedToken.roles || response.data.roles || [];
+
+    console.log("Decoded token:", decodedToken);
+    console.log("User roles:", roles);
+
+    const user = {
+      email: decodedToken.sub || decodedToken.email,
+      roles,
+    };
+
+    login(user, token);
+
+    // Redirect based on role
+    navigate("/");
+    
+  } catch (error) {
+    console.error("Detailed login error:", {
+      name: error.name,
+      message: error.message,
+      config: error.config,
+      response: error.response,
+    });
+
+    let errorMessage = "Login failed. Please try again.";
+    
+    if (error.response) {
+      // Handle HTTP error responses
+      if (error.response.status === 403) {
+        errorMessage = "Access forbidden. Please check your credentials.";
+      } else if (error.response.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+    } else if (error.message.includes("Network Error")) {
+      errorMessage = "Network error. Please check your connection.";
+    } else if (error.message.includes("CORS")) {
+      errorMessage = "Cross-origin request blocked. Please contact support.";
+    }
+
+    setError(errorMessage);
   }
 };
 

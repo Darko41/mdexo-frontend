@@ -1,21 +1,11 @@
 import axios from 'axios';
 
-// Determine environment
 const isDevelopment = import.meta.env.MODE === 'development';
 
-// Backend base URL based on environment
 export const BACKEND_BASE_URL = isDevelopment
   ? "http://localhost:8080"
   : "https://mdexo-backend.onrender.com";
 
-// API endpoint paths (relative to BACKEND_BASE_URL)
-export const API_ENDPOINTS = {
-  SEARCH: "/api/real-estates/search",
-  PROPERTIES: "/api/real-estates",
-  // Add other endpoints here as needed
-};
-
-// Create Axios instance with base URL and default headers
 const api = axios.create({
   baseURL: BACKEND_BASE_URL,
   timeout: 10000,
@@ -23,28 +13,30 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: false, // Set to true if backend requires cookies/session
+  withCredentials: true, // Changed to true for CORS with credentials
 });
 
-// Add authorization header automatically if token is present in localStorage
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('jwtToken'); // Changed from 'authToken' to match your AuthContext
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// Basic response interceptor for centralized error handling (optional)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // You can add global error handling/logging here if needed
+    if (error.response?.status === 401) {
+      // Handle token expiration or unauthorized access
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login'; // Redirect to login
+    }
     return Promise.reject(error);
   }
 );
 
-// Define API methods for real estates resource
 const API = {
   realEstates: {
     search: (params) => api.get('/api/real-estates/search', { params }),
@@ -61,9 +53,19 @@ const API = {
     delete: (id) => api.delete(`${API_ENDPOINTS.PROPERTIES}/${id}`)
   },
   auth: {
-    login: (credentials) => api.post('/api/authenticate', credentials)
-  }
+    login: (credentials) => api.post('/api/authenticate', credentials, {
+      headers: {
+        'Content-Security-Policy': 'default-src \'self\'',
+      }
+    }),
+    logout: () => {
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('user');
+      return api.post('/api/logout');
+    }
+  },
+  // Add more API groups as needed
 };
 
-export { api as axiosInstance }; // raw axios instance for direct usage if needed
-export default API;                 // clean API method abstraction for app usage
+export { api as axiosInstance };
+export default API;
