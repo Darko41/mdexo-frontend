@@ -25,45 +25,35 @@ export default function LoginPage() {
   }
 
   try {
-    console.log("Attempting login with:", { email, password });
     const response = await API.auth.login({ email, password });
-    
-    // Log the full response for debugging
-    console.log("Full response:", response);
-    
-    if (!response.data || !response.data.token) {
-      throw new Error("No token received in response");
-    }
+    console.log("Login response:", response.data); // Debug log
 
-    const { token } = response.data;
+    const { token, roles } = response.data;
     const decodedToken = jwtDecode(token);
-    const roles = decodedToken.roles || response.data.roles || [];
-
-    console.log("Decoded token:", decodedToken);
-    console.log("User roles:", roles);
-
+    
     const user = {
-      email: decodedToken.sub || decodedToken.email,
-      roles,
+      email: decodedToken.sub || email,
+      roles: roles || decodedToken.roles || [],
     };
 
+    console.log("Calling login with:", { user, token }); // Debug log
     login(user, token);
-
-    // Redirect based on role
-    navigate("/");
     
+    // Ensure state is updated before redirect
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    navigate("/", { replace: true });
+
   } catch (error) {
-    console.error("Detailed login error:", {
-      name: error.name,
-      message: error.message,
-      config: error.config,
+    console.log("ERROR OCCURRED:", {
+      step: "Caught in catch block",
+      error: error,
       response: error.response,
     });
 
     let errorMessage = "Login failed. Please try again.";
     
     if (error.response) {
-      // Handle HTTP error responses
       if (error.response.status === 403) {
         errorMessage = "Access forbidden. Please check your credentials.";
       } else if (error.response.data?.message) {
@@ -75,6 +65,7 @@ export default function LoginPage() {
       errorMessage = "Cross-origin request blocked. Please contact support.";
     }
 
+    console.log("Setting error message:", errorMessage);
     setError(errorMessage);
   }
 };

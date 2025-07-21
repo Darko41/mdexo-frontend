@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import BuyingPage from "./pages/BuyingPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
 import PropertyDetailsPage from "./pages/PropertyDetailsPage";
+import SignUpPage from "./pages/SignUpPage";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/create-listing" element={<CreateListingForm />} />
           <Route path="/search" element={<SearchResultsPage />} />
 		  <Route path="/properties/:id" element={<PropertyDetailsPage />} />
+		  <Route path="/signup" element={<SignUpPage />} />
         </Routes>
       </main>
     </Router>

@@ -59,6 +59,11 @@ const API = {
         'Content-Security-Policy': 'default-src \'self\'',
       }
     }),
+    register: (userData) => api.post('/api/users/register', userData, {
+      headers: {
+        'Content-Security-Policy': 'default-src \'self\'',
+      }
+    }),
     logout: () => {
       localStorage.removeItem('jwtToken');
       localStorage.removeItem('user');
@@ -68,5 +73,5 @@ const API = {
   // Add more API groups as needed
 };
 
-export { api as axiosInstance };
+export const axiosInstance = api;
 export default API;
