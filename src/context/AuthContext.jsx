@@ -9,7 +9,7 @@ export const AuthContext = createContext({
   isAuthenticated: false,
   login: () => {},
   logout: () => {},
-  loading: true, // Added loading state
+  loading: true,
 });
 
 export function AuthProvider({ children }) {
@@ -17,15 +17,18 @@ export function AuthProvider({ children }) {
     user: null,
     token: null,
     isAuthenticated: false,
-    loading: true, // Initial loading state
+    loading: true,
   });
 
   // Initialize auth state from storage
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        console.log("🔄 AuthProvider: Initializing auth state...");
         const token = localStorage.getItem("jwtToken");
         const userString = localStorage.getItem("user");
+
+        console.log("📦 Storage check - Token:", token ? "Present" : "Missing", "User:", userString ? "Present" : "Missing");
 
         if (token && userString) {
           const user = JSON.parse(userString);
@@ -33,11 +36,13 @@ export function AuthProvider({ children }) {
           // Verify token expiration if needed
           const decodedToken = jwtDecode(token);
           if (decodedToken.exp * 1000 < Date.now()) {
+            console.log("❌ Token expired");
             throw new Error("Token expired");
           }
 
           // Set axios auth header
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          console.log("✅ Axios header set with token");
 
           setAuthState({
             user,
@@ -45,12 +50,13 @@ export function AuthProvider({ children }) {
             isAuthenticated: true,
             loading: false,
           });
+          console.log("✅ Auth state set to authenticated");
         } else {
+          console.log("ℹ️ No stored auth data found");
           setAuthState(prev => ({ ...prev, loading: false }));
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
-        // Clear invalid auth data
+        console.error("❌ Auth initialization error:", error);
         localStorage.removeItem("jwtToken");
         localStorage.removeItem("user");
         delete axiosInstance.defaults.headers.common['Authorization'];
@@ -68,11 +74,12 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (userData, token) => {
     try {
+      console.log("🔐 AuthContext.login called with:", { userData, token });
+      
       // Decode token to verify
       const decodedToken = jwtDecode(token);
       const completeUserData = {
         ...userData,
-        // Ensure we always have roles array
         roles: userData.roles || decodedToken.roles || [],
       };
 
@@ -83,30 +90,32 @@ export function AuthProvider({ children }) {
         isAuthenticated: true,
         loading: false,
       });
+      console.log("✅ AuthContext state updated");
 
       // Persist to storage
       localStorage.setItem("user", JSON.stringify(completeUserData));
       localStorage.setItem("jwtToken", token);
+      console.log("💾 Data saved to localStorage");
 
       // Set axios headers
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      console.log("🔧 Axios headers configured");
 
-      // Set cookie if needed
-      document.cookie = `token=${token}; path=/; ${
-        !import.meta.env.DEV ? 'Secure; SameSite=None' : 'SameSite=Lax'
-      }`;
-
-      console.log("Login successful", { user: completeUserData }); // Debug log
+      console.log("🎉 Login successful", { user: completeUserData });
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("❌ Login error:", error);
       throw error;
     }
   }, []);
 
   const logout = useCallback(async () => {
     try {
+      console.log("🚪 AuthContext.logout called");
+      
       // Optional: Call logout API if available
-      await API.auth.logout().catch(() => {});
+      await API.auth.logout().catch(() => {
+        console.log("ℹ️ No logout endpoint or error calling it");
+      });
     } finally {
       // Clear state
       setAuthState({
@@ -127,6 +136,8 @@ export function AuthProvider({ children }) {
       document.cookie = `token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${
         !import.meta.env.DEV ? 'Secure; SameSite=None' : ''
       }`;
+
+      console.log("✅ Logout completed - all data cleared");
     }
   }, []);
 

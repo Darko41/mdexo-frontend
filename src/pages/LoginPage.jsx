@@ -13,62 +13,67 @@ export default function LoginPage() {
 
   const { login } = useContext(AuthContext);
 
-
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError(null);
-  console.log("Handle Submit triggered");
+    e.preventDefault();
+    setError(null);
+    console.log("🚀 Login: Handle Submit triggered");
 
-  if (!email || !password) {
-    setError("Please fill in both email and password.");
-    return;
-  }
-
-  try {
-    const response = await API.auth.login({ email, password });
-    console.log("Login response:", response.data); // Debug log
-
-    const { token, roles } = response.data;
-    const decodedToken = jwtDecode(token);
-    
-    const user = {
-      email: decodedToken.sub || email,
-      roles: roles || decodedToken.roles || [],
-    };
-
-    console.log("Calling login with:", { user, token }); // Debug log
-    login(user, token);
-    
-    // Ensure state is updated before redirect
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    navigate("/", { replace: true });
-
-  } catch (error) {
-    console.log("ERROR OCCURRED:", {
-      step: "Caught in catch block",
-      error: error,
-      response: error.response,
-    });
-
-    let errorMessage = "Login failed. Please try again.";
-    
-    if (error.response) {
-      if (error.response.status === 403) {
-        errorMessage = "Access forbidden. Please check your credentials.";
-      } else if (error.response.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-    } else if (error.message.includes("Network Error")) {
-      errorMessage = "Network error. Please check your connection.";
-    } else if (error.message.includes("CORS")) {
-      errorMessage = "Cross-origin request blocked. Please contact support.";
+    if (!email || !password) {
+      setError("Please fill in both email and password.");
+      return;
     }
 
-    console.log("Setting error message:", errorMessage);
-    setError(errorMessage);
-  }
-};
+    try {
+      const response = await API.auth.login({ email, password });
+      console.log("✅ Login: API response received:", response.data);
+
+      const { token, roles } = response.data;
+      const decodedToken = jwtDecode(token);
+      
+      const user = {
+        email: decodedToken.sub || email,
+        roles: roles || decodedToken.roles || [],
+      };
+
+      console.log("🔐 Login: Calling AuthContext.login...");
+      login(user, token); // Remove await - just call directly
+      
+      // Wait a bit more for state propagation
+      setTimeout(() => {
+        console.log("➡️ Login: Navigating to home page...");
+        console.log("📦 Checking localStorage after login:", {
+          token: localStorage.getItem('jwtToken'),
+          user: localStorage.getItem('user')
+        });
+        navigate("/", { replace: true });
+      }, 150);
+
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      console.log("ERROR OCCURRED:", {
+        step: "Caught in catch block",
+        error: error,
+        response: error.response,
+      });
+
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error.response) {
+        if (error.response.status === 403) {
+          errorMessage = "Access forbidden. Please check your credentials.";
+        } else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.message.includes("Network Error")) {
+        errorMessage = "Network error. Please check your connection.";
+      } else if (error.message.includes("CORS")) {
+        errorMessage = "Cross-origin request blocked. Please contact support.";
+      }
+
+      console.log("Setting error message:", errorMessage);
+      setError(errorMessage);
+    }
+  };
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-50">

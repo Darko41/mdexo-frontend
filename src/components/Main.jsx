@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaSlidersH } from "react-icons/fa";
 import ChooseComponent from "./ChooseComponent";
 import SearchBar from "./SearchBar";
 import AdvancedSearchModal from "./AdvancedSearchModal";
 import { RealEstateCard } from "../components/real-estate";
+// import API from '../utils/api/api';
 
 export default function Main() {
   // State management
@@ -11,12 +13,27 @@ export default function Main() {
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // Handler for search results
   const handleSearchResults = (results) => {
     setSearchResults(results);
     setError(null);
   };
+  
+  // Test API call function
+  /*const testApiCall = async () => {
+    try {
+      console.log("🧪 Testing API call...");
+      const response = await API.realEstates.searchForSale();
+      console.log("✅ API test successful:", response.data);
+      // Optionally show the results
+      setSearchResults(response.data);
+    } catch (error) {
+      console.error("❌ API test failed:", error);
+      setError("Test API call failed: " + error.message);
+    }
+  };*/
 
   // Handler for errors
   const handleError = (error) => {
@@ -27,6 +44,21 @@ export default function Main() {
 
   return (
     <div className="flex flex-col items-center bg-amber-50 pt-15 pb-15 px-4 min-h-screen">
+      
+      
+      
+      {/* Temporary test button - remove after debugging */}
+     
+      {/*
+      <button 
+        onClick={testApiCall}
+        className="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+      >
+        🧪 Test API Call
+      </button>
+		*/}
+
+
       {/* 1. Top Section - ChooseComponent Buttons */}
       <div className="flex flex-row flex-wrap items-center justify-around w-full mb-8 gap-4">
         <ChooseComponent
@@ -34,21 +66,21 @@ export default function Main() {
           title="Kupi dom"
           description="Pronađite savršen dom za kupovinu"
           buttonText="Pronađi agenta"
-          onClick={() => window.location.href = '/buy'}
+          onClick={() => navigate('/buy')}
         />
         <ChooseComponent
           image=""
           title="Iznajmi dom"
           description="Pronađite idealan prostor za iznajmljivanje"
           buttonText="Pronađi nekretninu"
-          onClick={() => window.location.href = '/rent'}
+          onClick={() => navigate('/rent')}
         />
         <ChooseComponent
           image=""
           title="Prodaj dom"
           description="Postavite oglas za svoju nekretninu"
           buttonText="Pogledaj opcije"
-          onClick={() => window.location.href = '/sell'}
+          onClick={() => navigate('/sell')}
         />
       </div>
 
