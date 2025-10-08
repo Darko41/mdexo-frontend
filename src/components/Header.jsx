@@ -7,14 +7,29 @@ export default function Header() {
     const { user, isAuthenticated, logout } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    console.log("Header render - Auth state:", { user, isAuthenticated }); // Debug log
+    console.log("Header render - Auth state:", { user, isAuthenticated });
 
     const isAdmin = user?.roles?.includes("ROLE_ADMIN");
 
     const handleLogout = () => {
-        console.log("Logging out..."); // Debug log
+        console.log("Logging out...");
         logout();
         navigate("/login");
+    };
+
+    const handleAdminAccess = () => {
+        console.log("Accessing admin dashboard...");
+        const token = localStorage.getItem('jwtToken');
+        if (token) {
+            // Method 1: Pass token as URL parameter (simpler)
+            window.location.href = `${BACKEND_BASE_URL}/admin/dashboard?token=${encodeURIComponent(token)}`;
+            
+            // Method 2: Use the bridge with token in URL
+            // window.location.href = `${BACKEND_BASE_URL}/admin/login?token=${encodeURIComponent(token)}`;
+        } else {
+            alert('Please login first to access admin panel');
+            navigate('/login');
+        }
     };
 
     return (
@@ -35,16 +50,14 @@ export default function Header() {
                     Sell
                 </Link>
 
-                {/* Admin Dashboard link - open in new tab */}
+                {/* Admin Dashboard link */}
                 {isAdmin && (
-                    <a
-                        href={`${BACKEND_BASE_URL}/admin/dashboard`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 hover:text-green-800 font-semibold"
+                    <button
+                        onClick={handleAdminAccess}
+                        className="text-green-600 hover:text-green-800 font-semibold bg-transparent border-none cursor-pointer"
                     >
                         Admin Dashboard
-                    </a>
+                    </button>
                 )}
             </div>
 
