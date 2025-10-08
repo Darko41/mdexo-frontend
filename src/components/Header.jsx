@@ -18,19 +18,9 @@ export default function Header() {
     };
 
     const handleAdminAccess = () => {
-        console.log("Accessing admin dashboard...");
-        const token = localStorage.getItem('jwtToken');
-        if (token) {
-            // Method 1: Pass token as URL parameter (simpler)
-            window.location.href = `${BACKEND_BASE_URL}/admin/dashboard?token=${encodeURIComponent(token)}`;
-            
-            // Method 2: Use the bridge with token in URL
-            // window.location.href = `${BACKEND_BASE_URL}/admin/login?token=${encodeURIComponent(token)}`;
-        } else {
-            alert('Please login first to access admin panel');
-            navigate('/login');
-        }
-    };
+    console.log("Accessing admin dashboard...");
+    window.location.href = `${BACKEND_BASE_URL}/admin/login`;
+};
 
     return (
         <header className="bg-white shadow p-4 flex justify-between items-center">
