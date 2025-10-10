@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from '../utils/api/api.js';
+import { AuthContext } from '../context/AuthContext';
 
 export default function SellingPage() {
   const [realEstates, setRealEstates] = useState([]);
@@ -14,28 +15,33 @@ export default function SellingPage() {
   const [currentTranslate, setCurrentTranslate] = useState(0);
   const [prevTranslate, setPrevTranslate] = useState(0);
 
+  // Use AuthContext to check authentication
+  const { isAuthenticated, loading: authLoading, user } = useContext(AuthContext);
+
   const isDevelopment = import.meta.env.MODE === 'development';
 
   // Fetch data when the component mounts
   useEffect(() => {
-  const fetchRealEstates = async () => {
-    try {
-      const response = await API.realEstates.searchAll();
-      setRealEstates(response.data.content || []);
-    } catch (error) {
-      console.error("Error fetching real estate data:", {
-        url: error.config?.url,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-      setError("Failed to fetch real estate data.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchRealEstates = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await API.realEstates.searchAll();
+        setRealEstates(response.data.content || []);
+      } catch (error) {
+        console.error("Error fetching real estate data:", {
+          url: error.config?.url,
+          status: error.response?.status,
+          data: error.response?.data
+        });
+        setError("Failed to fetch real estate data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchRealEstates();
-}, []);
+    fetchRealEstates();
+  }, []);
 
   // Touch and mouse event handlers for swipe functionality
   useEffect(() => {
@@ -119,8 +125,32 @@ export default function SellingPage() {
   };
 
   const handleCreateListingClick = () => {
+  if (!isAuthenticated) {
+    // Redirect to login with return URL to /create-listing
+    navigate('/login', { 
+      state: { 
+        from: '/create-listing', // Always go to create-listing after login
+        message: 'Please log in to create a property listing'
+      }
+    });
+  } else {
     navigate('/create-listing');
+  }
+};
+
+  const handleRetry = () => {
+    window.location.reload();
   };
+
+  // Show loading while checking auth or data
+  if (authLoading) {
+    return (
+      <div className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="mt-2">Loading...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -133,20 +163,37 @@ export default function SellingPage() {
 
   if (error) {
     return (
-      <div className="text-center py-12 text-red-600">
-        <p>{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-        >
-          Try Again
-        </button>
+      <div className="text-center py-12">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+          <div className="text-red-600 mb-4">
+            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-red-800 mb-2">Unable to Load Properties</h3>
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={handleRetry} 
+            className="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-300"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
+  // Optional: Add user greeting if authenticated
+  const userGreeting = isAuthenticated && user ? (
+    <div className="text-center mb-6">
+      <p className="text-gray-600">Welcome back, {user.email}!</p>
+    </div>
+  ) : null;
+
   return (
     <section className="w-full py-8 px-4 max-w-7xl mx-auto">
+      {userGreeting}
+      
       {/* Featured Properties Section */}
       <div className="mb-16">
         <h2 className="text-3xl font-bold text-center mb-6">Featured Properties</h2>
@@ -162,26 +209,33 @@ export default function SellingPage() {
               }}
             >
               {realEstates.map((estate) => (
-                <div 
-                  key={estate.id} 
-                  className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 transition-transform duration-300 hover:scale-105"
+  				<div 
+			    key={estate.propertyId || estate.id}  // Use propertyId as fallback
+			    className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 transition-transform duration-300 hover:scale-105"
                 >
                   <div className="bg-white rounded-xl shadow-md overflow-hidden h-full flex flex-col">
                     <div className="relative h-48 overflow-hidden">
                       <img 
-                        src={estate.imageUrl || 'https://via.placeholder.com/300'} 
+                        src={estate.imageUrl || "/default-image.jpg"} 
                         alt={estate.title} 
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        onError={(e) => {
+    						e.target.src = '/images/placeholder-property.jpg'; // Local fallback
+						  }}
                       />
                       <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                        <span className="text-white font-semibold">${estate.price.toLocaleString()}</span>
+                        <span className="text-white font-semibold">${estate.price?.toLocaleString() || 'N/A'}</span>
                       </div>
                     </div>
                     <div className="p-4 flex-grow">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{estate.title}</h3>
-                      <p className="text-gray-600 text-sm mb-2">{estate.city}, {estate.state}</p>
-                      <p className="text-gray-700 text-sm mb-3 line-clamp-2">{estate.description}</p>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{estate.title || 'Untitled Property'}</h3>
+                      <p className="text-gray-600 text-sm mb-2">
+                        {estate.city || 'Unknown City'}, {estate.state || 'Unknown State'}
+                      </p>
+                      <p className="text-gray-700 text-sm mb-3 line-clamp-2">
+                        {estate.description || 'No description available.'}
+                      </p>
                       <div className="flex justify-between text-sm text-gray-500 mt-auto">
                         <span>{estate.bedrooms || 'N/A'} beds</span>
                         <span>{estate.bathrooms || 'N/A'} baths</span>
@@ -198,10 +252,10 @@ export default function SellingPage() {
                 <button
                   onClick={goToPrev}
                   disabled={currentIndex === 0}
-                  className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none ${
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none transition-colors ${
                     currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                  aria-label="Previous"
+                  aria-label="Previous properties"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -210,10 +264,10 @@ export default function SellingPage() {
                 <button
                   onClick={goToNext}
                   disabled={currentIndex >= realEstates.length - 5}
-                  className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none ${
+                  className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none transition-colors ${
                     currentIndex >= realEstates.length - 5 ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                  aria-label="Next"
+                  aria-label="Next properties"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -232,7 +286,13 @@ export default function SellingPage() {
           </div>
         ) : (
           <div className="text-center py-8 bg-gray-50 rounded-lg">
-            <p className="text-lg">No properties available at the moment.</p>
+            <div className="text-gray-500 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <p className="text-lg text-gray-600 mb-4">No properties available at the moment.</p>
+            <p className="text-gray-500">Check back later for new listings.</p>
           </div>
         )}
       </div>
@@ -240,18 +300,23 @@ export default function SellingPage() {
       {/* Advertisement CTA Section */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 md:p-12 text-center">
         <div className="max-w-3xl mx-auto">
-          <h3 className="text-2xl md:text-3xl font-bold mb-4">Want to list your property with us?</h3>
+          <h3 className="text-2xl md:text-3xl font-bold mb-4">
+            {isAuthenticated ? 'Ready to list your property?' : 'Want to list your property with us?'}
+          </h3>
           <p className="text-lg mb-6">
-            Join thousands of satisfied sellers who have successfully marketed their properties through our platform.
-            Get more visibility, serious buyers, and faster sales.
+            {isAuthenticated 
+              ? 'Create your listing now and reach thousands of potential buyers.'
+              : 'Join thousands of satisfied sellers who have successfully marketed their properties through our platform. Get more visibility, serious buyers, and faster sales.'
+            }
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
               onClick={handleCreateListingClick}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={authLoading}
             >
-              Create Your Listing Now
+              {authLoading ? 'Loading...' : (isAuthenticated ? 'Create Listing Now' : 'Create Your Listing Now')}
             </button>
             
             <Link to="/how-it-works">
@@ -282,22 +347,24 @@ export default function SellingPage() {
         </div>
       </div>
 
-      {/* For Existing Users */}
-      <div className="mt-12 text-center">
-        <p className="mb-4">Already have an account?</p>
-        <div className="flex justify-center gap-4">
-          <Link to="/login">
-            <button className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
-              Sign In
-            </button>
-          </Link>
-          <Link to="/signup">
-            <button className="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg hover:bg-gray-300 transition duration-300">
-              Register
-            </button>
-          </Link>
+      {/* For Existing Users - Only show if not authenticated */}
+      {!isAuthenticated && !authLoading && (
+        <div className="mt-12 text-center">
+          <p className="mb-4">Already have an account?</p>
+          <div className="flex justify-center gap-4">
+            <Link to="/login">
+              <button className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
+                Sign In
+              </button>
+            </Link>
+            <Link to="/signup">
+              <button className="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg hover:bg-gray-300 transition duration-300">
+                Register
+              </button>
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

@@ -6,6 +6,11 @@ export const BACKEND_BASE_URL = isDevelopment
   ? "http://localhost:8080"
   : "https://mdexo-backend.onrender.com";
 
+// Define API endpoints if you're using them
+const API_ENDPOINTS = {
+  PROPERTIES: '/api/real-estates',
+};
+
 const api = axios.create({
   baseURL: BACKEND_BASE_URL,
   timeout: 10000,
@@ -18,7 +23,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('jwtToken'); // Changed from 'authToken' to match your AuthContext
+  const token = localStorage.getItem('jwtToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -46,19 +51,24 @@ const API = {
       params: { listingType: 'FOR_SALE' }
     }),
     searchForRent: () => api.get('/api/real-estates/search', { 
-	  params: { listingType: 'FOR_RENT' } }),
-	  searchPost: (payload) => api.post('/api/real-estates/search', payload),
+      params: { listingType: 'FOR_RENT' } 
+    }),
+    searchPost: (payload) => api.post('/api/real-estates/search', payload),
     getById: (id, params) => api.get(`${API_ENDPOINTS.PROPERTIES}/${id}`, { params }),
     create: (data) => api.post(API_ENDPOINTS.PROPERTIES, data),
     update: (id, data) => api.put(`${API_ENDPOINTS.PROPERTIES}/${id}`, data),
     delete: (id) => api.delete(`${API_ENDPOINTS.PROPERTIES}/${id}`)
   },
   auth: {
-    login: (credentials) => api.post('/api/authenticate', credentials, {
+    getCurrentUser: () => api.get('/api/auth/current-user'),
+    login: (credentials) => {
+    console.log("📤 Sending login request with:", credentials);
+    return api.post('/api/auth/authenticate', credentials, {
       headers: {
-        'Content-Security-Policy': 'default-src \'self\'',
+        'Content-Type': 'application/json',
       }
-    }),
+    });
+  },
     register: (userData) => api.post('/api/users/register', userData, {
       headers: {
         'Content-Security-Policy': 'default-src \'self\'',

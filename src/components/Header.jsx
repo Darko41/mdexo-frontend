@@ -7,18 +7,15 @@ export default function Header() {
     const { user, isAuthenticated, logout } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    console.log("Header render - Auth state:", { user, isAuthenticated });
 
     const isAdmin = user?.roles?.includes("ROLE_ADMIN");
 
     const handleLogout = () => {
-        console.log("Logging out...");
         logout();
         navigate("/login");
     };
 
     const handleAdminAccess = () => {
-    console.log("Accessing admin dashboard...");
     window.location.href = `${BACKEND_BASE_URL}/admin/login`;
 };
 

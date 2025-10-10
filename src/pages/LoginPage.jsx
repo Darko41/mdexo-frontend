@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "../context/AuthContext";
 import API from '../utils/api/api.js';
@@ -10,75 +10,74 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { login } = useContext(AuthContext);
 
+  // Get the return URL from location state, default to '/create-listing'
+  const from = location.state?.from || '/create-listing';
+  const message = location.state?.message;
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    console.log("🚀 Login: Handle Submit triggered");
+  e.preventDefault();
+  setError(null);
 
-    if (!email || !password) {
-      setError("Please fill in both email and password.");
-      return;
-    }
+  if (!email || !password) {
+    setError("Please fill in both email and password.");
+    return;
+  }
 
-    try {
-      const response = await API.auth.login({ email, password });
-      console.log("✅ Login: API response received:", response.data);
+  try { 
+	  
+    const response = await API.auth.login({ email, password });
 
-      const { token, roles } = response.data;
-      const decodedToken = jwtDecode(token);
-      
-      const user = {
-        email: decodedToken.sub || email,
-        roles: roles || decodedToken.roles || [],
-      };
+    const { token, roles } = response.data;
+    const decodedToken = jwtDecode(token);
+    
+    const user = {
+      email: decodedToken.sub || email,
+      roles: roles || decodedToken.roles || [],
+    };
 
-      console.log("🔐 Login: Calling AuthContext.login...");
-      login(user, token); // Remove await - just call directly
-      
-      // Wait a bit more for state propagation
-      setTimeout(() => {
-        console.log("➡️ Login: Navigating to home page...");
-        console.log("📦 Checking localStorage after login:", {
-          token: localStorage.getItem('jwtToken'),
-          user: localStorage.getItem('user')
-        });
-        navigate("/", { replace: true });
-      }, 150);
+    
+    // ADD AWAIT HERE - this is crucial!
+    await login(user, token);
+    
+    
+    // Navigate immediately after login completes
+    navigate(from, { replace: true });
 
-    } catch (error) {
-      console.error("❌ Login error:", error);
-      console.log("ERROR OCCURRED:", {
-        step: "Caught in catch block",
-        error: error,
-        response: error.response,
-      });
+  } catch (error) {
 
-      let errorMessage = "Login failed. Please try again.";
-      
-      if (error.response) {
-        if (error.response.status === 403) {
-          errorMessage = "Access forbidden. Please check your credentials.";
-        } else if (error.response.data?.message) {
-          errorMessage = error.response.data.message;
-        }
-      } else if (error.message.includes("Network Error")) {
-        errorMessage = "Network error. Please check your connection.";
-      } else if (error.message.includes("CORS")) {
-        errorMessage = "Cross-origin request blocked. Please contact support.";
+    let errorMessage = "Login failed. Please try again.";
+    
+    if (error.response) {
+      if (error.response.status === 403) {
+        errorMessage = "Access forbidden. Please check your credentials.";
+      } else if (error.response.data?.message) {
+        errorMessage = error.response.data.message;
       }
-
-      console.log("Setting error message:", errorMessage);
-      setError(errorMessage);
+    } else if (error.message.includes("Network Error")) {
+      errorMessage = "Network error. Please check your connection.";
+    } else if (error.message.includes("CORS")) {
+      errorMessage = "Cross-origin request blocked. Please contact support.";
     }
-  };
+
+    setError(errorMessage);
+  }
+};
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-50">
       <div className="bg-white p-8 rounded-lg shadow-xl w-96">
         <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">ПРИЈАВА</h2>
+
+        {/* Show the custom message if provided (e.g., "Please log in to create a property listing") */}
+        {message && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 text-center p-3 mb-4 rounded-md">
+            {message}
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-500 text-white text-center p-2 mb-4 rounded-md">

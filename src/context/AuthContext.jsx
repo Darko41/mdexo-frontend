@@ -24,11 +24,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        console.log("🔄 AuthProvider: Initializing auth state...");
         const token = localStorage.getItem("jwtToken");
         const userString = localStorage.getItem("user");
 
-        console.log("📦 Storage check - Token:", token ? "Present" : "Missing", "User:", userString ? "Present" : "Missing");
 
         if (token && userString) {
           const user = JSON.parse(userString);
@@ -50,9 +48,7 @@ export function AuthProvider({ children }) {
             isAuthenticated: true,
             loading: false,
           });
-          console.log("✅ Auth state set to authenticated");
         } else {
-          console.log("ℹ️ No stored auth data found");
           setAuthState(prev => ({ ...prev, loading: false }));
         }
       } catch (error) {
@@ -73,48 +69,46 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (userData, token) => {
-    try {
-      console.log("🔐 AuthContext.login called with:", { userData, token });
-      
-      // Decode token to verify
-      const decodedToken = jwtDecode(token);
-      const completeUserData = {
-        ...userData,
-        roles: userData.roles || decodedToken.roles || [],
-      };
+  try {
+    
+    // Decode token to verify
+    const decodedToken = jwtDecode(token);
+    const completeUserData = {
+      ...userData,
+      roles: userData.roles || decodedToken.roles || [],
+    };
 
-      // Update state
-      setAuthState({
-        user: completeUserData,
-        token,
-        isAuthenticated: true,
-        loading: false,
-      });
-      console.log("✅ AuthContext state updated");
+    // Update state
+    setAuthState({
+      user: completeUserData,
+      token,
+      isAuthenticated: true,
+      loading: false,
+    });
 
-      // Persist to storage
-      localStorage.setItem("user", JSON.stringify(completeUserData));
-      localStorage.setItem("jwtToken", token);
-      console.log("💾 Data saved to localStorage");
+    // Persist to storage
+    localStorage.setItem("user", JSON.stringify(completeUserData));
+    localStorage.setItem("jwtToken", token);
 
-      // Set axios headers
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      console.log("🔧 Axios headers configured");
+    // Set axios headers
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      console.log("🎉 Login successful", { user: completeUserData });
-    } catch (error) {
-      console.error("❌ Login error:", error);
-      throw error;
-    }
-  }, []);
+    console.log("🎉 Login successful", { user: completeUserData });
+    
+    // Return a resolved promise to make await work
+    return Promise.resolve();
+    
+  } catch (error) {
+    console.error("❌ Login error:", error);
+    return Promise.reject(error);
+  }
+}, []);
 
   const logout = useCallback(async () => {
     try {
-      console.log("🚪 AuthContext.logout called");
       
       // Optional: Call logout API if available
       await API.auth.logout().catch(() => {
-        console.log("ℹ️ No logout endpoint or error calling it");
       });
     } finally {
       // Clear state
@@ -137,7 +131,6 @@ export function AuthProvider({ children }) {
         !import.meta.env.DEV ? 'Secure; SameSite=None' : ''
       }`;
 
-      console.log("✅ Logout completed - all data cleared");
     }
   }, []);
 
