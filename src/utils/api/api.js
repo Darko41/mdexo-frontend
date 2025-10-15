@@ -53,16 +53,24 @@ const API = {
     searchForRent: () => api.get('/api/real-estates/search', { 
       params: { listingType: 'FOR_RENT' } 
     }),
-    searchPost: (payload) => api.post('/api/real-estates/search', payload),
-    getById: (id, params) => api.get(`${API_ENDPOINTS.PROPERTIES}/${id}`, { params }),
-    create: (data) => api.post(API_ENDPOINTS.PROPERTIES, data),
-    update: (id, data) => api.put(`${API_ENDPOINTS.PROPERTIES}/${id}`, data),
-    delete: (id) => api.delete(`${API_ENDPOINTS.PROPERTIES}/${id}`)
+    getById: (id) => api.get(`/api/real-estates/${id}`),
+    
+    // Unified create method with FormData
+    createWithFormData: (formData) => api.post('/api/real-estates', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    }),
+    
+    // Keep the old create for backward compatibility (will use JSON endpoint)
+    create: (data) => api.post('/api/real-estates', data),
+    
+    update: (id, data) => api.put(`/api/real-estates/${id}`, data),
+    delete: (id) => api.delete(`/api/real-estates/${id}`)
   },
   auth: {
     getCurrentUser: () => api.get('/api/auth/current-user'),
     login: (credentials) => {
-    console.log("📤 Sending login request with:", credentials);
     return api.post('/api/auth/authenticate', credentials, {
       headers: {
         'Content-Type': 'application/json',
@@ -75,10 +83,11 @@ const API = {
       }
     }),
     logout: () => {
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('user');
-      return api.post('/api/logout');
-    }
+	  // Just clear client-side storage, no API call
+	  localStorage.removeItem('jwtToken');
+	  localStorage.removeItem('user');
+	  return Promise.resolve(); // Return resolved promise
+}
   },
   // Add more API groups as needed
 };

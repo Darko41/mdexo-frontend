@@ -31,7 +31,7 @@ function App() {
             <Route path="/buy" element={<BuyingPage />} />
             <Route path="/create-listing" element={<CreateListingForm />} />
             <Route path="/search" element={<SearchResultsPage />} />
-            <Route path="/properties/:id" element={<PropertyDetailsPage />} />
+            <Route path="/property/:id" element={<PropertyDetailsPage />} />
             <Route path="/signup" element={<SignUpPage />} />
           </Routes>
         </main>

@@ -24,7 +24,7 @@ export default function RealEstateCard({ property }) {
       <div className="relative h-48 overflow-hidden">
         <img
           src={mainImage}
-          alt={property.title} // Restored alt text for accessibility
+          /* alt={property.title} // Restored alt text for accessibility */
           className="w-full h-full object-cover"
           loading="lazy"
         />

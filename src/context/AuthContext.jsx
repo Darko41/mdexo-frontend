@@ -92,8 +92,6 @@ export function AuthProvider({ children }) {
 
     // Set axios headers
     axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-    console.log("🎉 Login successful", { user: completeUserData });
     
     // Return a resolved promise to make await work
     return Promise.resolve();
@@ -105,34 +103,23 @@ export function AuthProvider({ children }) {
 }, []);
 
   const logout = useCallback(async () => {
-    try {
-      
-      // Optional: Call logout API if available
-      await API.auth.logout().catch(() => {
-      });
-    } finally {
-      // Clear state
-      setAuthState({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        loading: false,
-      });
-
-      // Clear storage
-      localStorage.removeItem("user");
-      localStorage.removeItem("jwtToken");
-
-      // Clear axios header
-      delete axiosInstance.defaults.headers.common['Authorization'];
-
-      // Clear cookie
-      document.cookie = `token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${
-        !import.meta.env.DEV ? 'Secure; SameSite=None' : ''
-      }`;
-
-    }
-  }, []);
+	  // No API call needed for JWT logout
+	  // Clear state
+	  setAuthState({
+	    user: null,
+	    token: null,
+	    isAuthenticated: false,
+	    loading: false,
+	  });
+	
+	  // Clear storage
+	  localStorage.removeItem("user");
+	  localStorage.removeItem("jwtToken");
+	
+	  // Clear axios header
+	  delete axiosInstance.defaults.headers.common['Authorization'];
+	
+	}, []);
 
   return (
     <AuthContext.Provider

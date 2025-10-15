@@ -37,6 +37,7 @@ export default function CreateListingForm() {
 	const [newFeature, setNewFeature] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState(null);
+	const [isDragOver, setIsDragOver] = useState(false);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -47,11 +48,39 @@ export default function CreateListingForm() {
 	};
 
 	const handleFileChange = (e) => {
-		const files = Array.from(e.target.files);
-		setFormData(prev => ({
-			...prev,
-			images: files
-		}));
+	  const files = Array.from(e.target.files);
+	  console.log('📸 Files selected:', files.length, files);
+	  
+	  setFormData(prev => ({
+	    ...prev,
+	    images: files
+	  }));
+	};
+
+	const handleDragOver = (e) => {
+	  e.preventDefault();
+	  setIsDragOver(true);
+	};
+
+	const handleDragLeave = (e) => {
+	  e.preventDefault();
+	  setIsDragOver(false);
+	};
+
+	const handleDrop = (e) => {
+	  e.preventDefault();
+	  setIsDragOver(false);
+	  
+	  const files = Array.from(e.dataTransfer.files).filter(file => 
+	    file.type.startsWith('image/')
+	  );
+	  
+	  if (files.length > 0) {
+	    setFormData(prev => ({
+	      ...prev,
+	      images: [...prev.images, ...files] // Append to existing images
+	    }));
+	  }
 	};
 
 	const handleAddFeature = () => {
@@ -71,41 +100,69 @@ export default function CreateListingForm() {
 		}));
 	};
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		setIsSubmitting(true);
-		setError(null);
-
-		try {
-			// First upload images to S3 and get URLs
-			const imageUrls = await uploadImagesToS3(formData.images);
-
-			// Prepare the final payload
-			const payload = {
-				...formData,
-				price: parseFloat(formData.price),
-				images: imageUrls,
-				// For unauthenticated users
-				ownerId: null,
-			};
-
-			// Call API method instead of fetch
-			const response = await API.realEstates.searchPost(payload); // or .create(payload) depending on your api.js method
-			const data = response.data;
-
-			navigate(`/property/${data.propertyId}`);
-		} catch (err) {
-			console.error('Error creating listing:', err);
-			setError(err.response?.data?.message || err.message || 'Failed to create listing');
-		} finally {
-			setIsSubmitting(false);
-		}
+	const handleRemoveImage = (index) => {
+		setFormData(prev => ({
+			...prev,
+			images: prev.images.filter((_, i) => i !== index)
+		}));
 	};
 
-	// Mock function for image upload - replace with actual S3 upload logic
-	const uploadImagesToS3 = async (files) => {
-		console.log('Uploading images to S3:', files);
-		return files.map(file => URL.createObjectURL(file)); // Mock URLs for demo
+	const handleSubmit = async (e) => {
+	  e.preventDefault();
+	  setIsSubmitting(true);
+	  setError(null);
+	
+	  try {
+	    // Create FormData for multipart request
+	    const formDataToSend = new FormData();
+	    
+	    // Prepare the listing data
+	    const listingData = {
+	      title: formData.title,
+	      description: formData.description,
+	      propertyType: formData.propertyType,
+	      listingType: formData.listingType,
+	      price: parseFloat(formData.price),
+	      address: formData.address,
+	      city: formData.city,
+	      state: formData.state,
+	      zipCode: formData.zipCode,
+	      sizeInSqMt: formData.sizeInSqMt,
+	      features: formData.features || [],
+	      ownerId: null,
+	    };
+	    
+	    console.log('📦 Listing data being sent:', listingData);
+	    
+	    // Add the listing data as JSON blob
+	    formDataToSend.append('createDto', new Blob([JSON.stringify(listingData)], {
+	      type: 'application/json'
+	    }));
+	    
+	    // Add images if any
+	    if (formData.images && formData.images.length > 0) {
+	      formData.images.forEach(file => {
+	        formDataToSend.append('images', file);
+	      });
+	    }
+
+	    console.log('📦 Sending multipart form data with', formData.images?.length || 0, 'images');
+	    
+	    // Use the unified endpoint
+	    const response = await API.realEstates.createWithFormData(formDataToSend);
+	    const data = response.data;
+
+	    console.log('✅ Listing created successfully:', data);
+	    navigate(`/property/${data.propertyId}`);
+	  } catch (err) {
+	    console.error('Error creating listing:', err);
+	    if (err.response?.data) {
+	      console.error('Backend error details:', err.response.data);
+	    }
+	    setError(err.response?.data?.message || err.message || 'Failed to create listing');
+	  } finally {
+	    setIsSubmitting(false);
+	  }
 	};
 
 	// Helper function to format enum values for display
@@ -338,58 +395,88 @@ export default function CreateListingForm() {
 				{/* Image Upload */}
 				<div className="mt-6">
 					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Images*
+						Images
 					</label>
-					<div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-						<input
-							type="file"
-							id="images"
-							name="images"
-							onChange={handleFileChange}
-							multiple
-							accept="image/*"
-							required
-							className="hidden"
-						/>
-						<label
-							htmlFor="images"
-							className="cursor-pointer flex flex-col items-center justify-center"
+					
+					{/* Hidden file input */}
+					<input
+						type="file"
+						id="images"
+						name="images"
+						onChange={handleFileChange}
+						multiple
+						accept="image/*"
+						className="hidden"
+					/>
+					
+					{/* Drag and drop area */}
+					<div 
+						className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+							isDragOver 
+								? 'border-blue-500 bg-blue-50' 
+								: 'border-gray-300 hover:border-gray-400'
+						}`}
+						onDragOver={handleDragOver}
+						onDragLeave={handleDragLeave}
+						onDrop={handleDrop}
+						onClick={() => document.getElementById('images').click()}
+					>
+						<svg
+							className="mx-auto h-12 w-12 text-gray-400"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 48 48"
+							aria-hidden="true"
 						>
-							<svg
-								className="mx-auto h-12 w-12 text-gray-400"
-								stroke="currentColor"
-								fill="none"
-								viewBox="0 0 48 48"
-								aria-hidden="true"
-							>
-								<path
-									d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-									strokeWidth={2}
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
-							<span className="mt-2 block text-sm font-medium text-gray-700">
-								{formData.images.length > 0
-									? `${formData.images.length} file(s) selected`
-									: 'Click to upload images'}
-							</span>
-							<span className="mt-1 text-xs text-gray-500">
-								PNG, JPG, GIF up to 10MB
-							</span>
-						</label>
+							<path
+								d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+								strokeWidth={2}
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							/>
+						</svg>
+						<span className="mt-2 block text-sm font-medium text-gray-700">
+							{formData.images.length > 0
+								? `${formData.images.length} file(s) selected`
+								: 'Click to upload images or drag and drop'}
+						</span>
+						<span className="mt-1 text-xs text-gray-500">
+							PNG, JPG, GIF up to 10MB
+						</span>
+						{isDragOver && (
+							<div className="mt-2 text-blue-500 text-sm">
+								Drop images here...
+							</div>
+						)}
 					</div>
+					
+					{/* Image previews */}
 					{formData.images.length > 0 && (
-						<div className="mt-4 grid grid-cols-3 gap-2">
-							{formData.images.map((file, index) => (
-								<div key={index} className="relative h-24 rounded-md overflow-hidden">
-									<img
-										src={URL.createObjectURL(file)}
-										alt={`Preview ${index}`}
-										className="w-full h-full object-cover"
-									/>
-								</div>
-							))}
+						<div className="mt-4">
+							<p className="text-sm text-gray-600 mb-2">
+								{formData.images.length} image(s) selected
+							</p>
+							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+								{formData.images.map((file, index) => (
+									<div key={index} className="relative group">
+										<img
+											src={URL.createObjectURL(file)}
+											alt={`Preview ${index + 1}`}
+											className="w-full h-24 object-cover rounded-lg"
+										/>
+										<button
+											type="button"
+											onClick={() => handleRemoveImage(index)}
+											className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+										>
+											×
+										</button>
+										<div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 truncate">
+											{file.name}
+										</div>
+									</div>
+								))}
+							</div>
 						</div>
 					)}
 				</div>

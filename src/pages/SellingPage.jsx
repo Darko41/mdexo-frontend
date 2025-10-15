@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { RealEstateCard, RealEstateCardSkeleton } from "../components/real-estate";
 import API from '../utils/api/api.js';
 import { AuthContext } from '../context/AuthContext';
 
@@ -9,11 +10,6 @@ export default function SellingPage() {
   const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
-  const sliderRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startPos, setStartPos] = useState(0);
-  const [currentTranslate, setCurrentTranslate] = useState(0);
-  const [prevTranslate, setPrevTranslate] = useState(0);
 
   // Use AuthContext to check authentication
   const { isAuthenticated, loading: authLoading, user } = useContext(AuthContext);
@@ -43,75 +39,6 @@ export default function SellingPage() {
     fetchRealEstates();
   }, []);
 
-  // Touch and mouse event handlers for swipe functionality
-  useEffect(() => {
-    if (!sliderRef.current || realEstates.length === 0) return;
-
-    const slider = sliderRef.current;
-
-    const getPositionX = (e) => {
-      return e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
-    };
-
-    const handleStart = (e) => {
-      setIsDragging(true);
-      setStartPos(getPositionX(e));
-      setPrevTranslate(currentTranslate);
-      slider.style.cursor = 'grabbing';
-      slider.style.transition = 'none';
-    };
-
-    const handleMove = (e) => {
-      if (!isDragging) return;
-      const currentPosition = getPositionX(e);
-      const diff = currentPosition - startPos;
-      setCurrentTranslate(prevTranslate + diff);
-    };
-
-    const handleEnd = () => {
-      setIsDragging(false);
-      const movedBy = currentTranslate - prevTranslate;
-
-      // If moved significantly to left, go to next
-      if (movedBy < -50 && currentIndex < realEstates.length - 5) {
-        goToNext();
-      }
-      // If moved significantly to right, go to previous
-      else if (movedBy > 50 && currentIndex > 0) {
-        goToPrev();
-      }
-
-      // Reset translate
-      setCurrentTranslate(0);
-      slider.style.cursor = 'grab';
-      slider.style.transition = 'transform 0.3s ease-out';
-    };
-
-    // Add event listeners for touch
-    slider.addEventListener('touchstart', handleStart);
-    slider.addEventListener('touchmove', handleMove);
-    slider.addEventListener('touchend', handleEnd);
-
-    // Add event listeners for mouse
-    slider.addEventListener('mousedown', handleStart);
-    slider.addEventListener('mousemove', handleMove);
-    slider.addEventListener('mouseup', handleEnd);
-    slider.addEventListener('mouseleave', handleEnd);
-
-    return () => {
-      // Clean up touch listeners
-      slider.removeEventListener('touchstart', handleStart);
-      slider.removeEventListener('touchmove', handleMove);
-      slider.removeEventListener('touchend', handleEnd);
-
-      // Clean up mouse listeners
-      slider.removeEventListener('mousedown', handleStart);
-      slider.removeEventListener('mousemove', handleMove);
-      slider.removeEventListener('mouseup', handleEnd);
-      slider.removeEventListener('mouseleave', handleEnd);
-    };
-  }, [currentIndex, isDragging, prevTranslate, realEstates.length, startPos]);
-
   const goToNext = () => {
     if (currentIndex < realEstates.length - 5) {
       setCurrentIndex(prev => prev + 1);
@@ -125,18 +52,18 @@ export default function SellingPage() {
   };
 
   const handleCreateListingClick = () => {
-  if (!isAuthenticated) {
-    // Redirect to login with return URL to /create-listing
-    navigate('/login', { 
-      state: { 
-        from: '/create-listing', // Always go to create-listing after login
-        message: 'Please log in to create a property listing'
-      }
-    });
-  } else {
-    navigate('/create-listing');
-  }
-};
+    if (!isAuthenticated) {
+      // Redirect to login with return URL to /create-listing
+      navigate('/login', { 
+        state: { 
+          from: '/create-listing', // Always go to create-listing after login
+          message: 'Please log in to create a property listing'
+        }
+      });
+    } else {
+      navigate('/create-listing');
+    }
+  };
 
   const handleRetry = () => {
     window.location.reload();
@@ -190,6 +117,9 @@ export default function SellingPage() {
     </div>
   ) : null;
 
+  // Get featured properties for slider (first 10 properties)
+  const featuredProperties = realEstates.slice(0, 10);
+
   return (
     <section className="w-full py-8 px-4 max-w-7xl mx-auto">
       {userGreeting}
@@ -198,56 +128,23 @@ export default function SellingPage() {
       <div className="mb-16">
         <h2 className="text-3xl font-bold text-center mb-6">Featured Properties</h2>
         
-        {realEstates.length > 0 ? (
+        {featuredProperties.length > 0 ? (
           <div className="relative">
-            <div 
-              ref={sliderRef}
-              className="flex gap-6 overflow-hidden cursor-grab"
-              style={{
-                transform: `translateX(${-currentIndex * 25}%)`,
-                transition: isDragging ? 'none' : 'transform 0.3s ease-out'
-              }}
-            >
-              {realEstates.map((estate) => (
-  				<div 
-			    key={estate.propertyId || estate.id}  // Use propertyId as fallback
-			    className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 transition-transform duration-300 hover:scale-105"
+            <div className="flex gap-6 overflow-hidden">
+              {featuredProperties.map((estate, index) => (
+                <div 
+                  key={estate.propertyId || estate.id}
+                  className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 transition-transform duration-300"
+                  style={{
+                    transform: `translateX(${-currentIndex * 100}%)`
+                  }}
                 >
-                  <div className="bg-white rounded-xl shadow-md overflow-hidden h-full flex flex-col">
-                    <div className="relative h-48 overflow-hidden">
-                      <img 
-                        src={estate.imageUrl || "/default-image.jpg"} 
-                        alt={estate.title} 
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-    						e.target.src = '/images/placeholder-property.jpg'; // Local fallback
-						  }}
-                      />
-                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                        <span className="text-white font-semibold">${estate.price?.toLocaleString() || 'N/A'}</span>
-                      </div>
-                    </div>
-                    <div className="p-4 flex-grow">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{estate.title || 'Untitled Property'}</h3>
-                      <p className="text-gray-600 text-sm mb-2">
-                        {estate.city || 'Unknown City'}, {estate.state || 'Unknown State'}
-                      </p>
-                      <p className="text-gray-700 text-sm mb-3 line-clamp-2">
-                        {estate.description || 'No description available.'}
-                      </p>
-                      <div className="flex justify-between text-sm text-gray-500 mt-auto">
-                        <span>{estate.bedrooms || 'N/A'} beds</span>
-                        <span>{estate.bathrooms || 'N/A'} baths</span>
-                        <span>{estate.sqft || 'N/A'} sqft</span>
-                      </div>
-                    </div>
-                  </div>
+                  <RealEstateCard property={estate} />
                 </div>
               ))}
             </div>
 
-            {realEstates.length > 5 && (
+            {featuredProperties.length > 5 && (
               <>
                 <button
                   onClick={goToPrev}
@@ -263,9 +160,9 @@ export default function SellingPage() {
                 </button>
                 <button
                   onClick={goToNext}
-                  disabled={currentIndex >= realEstates.length - 5}
+                  disabled={currentIndex >= featuredProperties.length - 5}
                   className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none transition-colors ${
-                    currentIndex >= realEstates.length - 5 ? 'opacity-50 cursor-not-allowed' : ''
+                    currentIndex >= featuredProperties.length - 5 ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   aria-label="Next properties"
                 >
