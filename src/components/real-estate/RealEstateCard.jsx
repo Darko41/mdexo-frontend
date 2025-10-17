@@ -95,7 +95,7 @@ export default function RealEstateCard({ property }) {
       {/* Footer Button */}
       <div className="p-4 border-t border-gray-100">
         <Link
-          to={`/properties/${property.propertyId}`}
+          to={`/property/${property.propertyId}`}
           className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition-colors"
         >
           Више детаља

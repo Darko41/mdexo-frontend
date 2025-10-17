@@ -22,6 +22,12 @@ export default function PropertyDetailsPage() {
   
   useEffect(() => {
     const fetchProperty = async () => {
+		
+		if (!id || id === 'undefined') {
+	      setError('Invalid property ID');
+	      setLoading(false);
+	      return;
+	    }
       try {
         setLoading(true);
         setError(null);
