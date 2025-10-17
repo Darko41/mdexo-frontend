@@ -145,21 +145,57 @@ export default function CreateListingForm() {
 	        formDataToSend.append('images', file);
 	      });
 	    }
-
+	
 	    console.log('📦 Sending multipart form data with', formData.images?.length || 0, 'images');
 	    
 	    // Use the unified endpoint
 	    const response = await API.realEstates.createWithFormData(formDataToSend);
+	    
+	    // ✅ CRITICAL: Check if response is HTML (redirect happened)
+	    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+	      console.error('❌ Received HTML instead of JSON - authentication failed');
+	      throw new Error('Authentication failed. Please log in again.');
+	    }
+	    
 	    const data = response.data;
-
 	    console.log('✅ Listing created successfully:', data);
+	    
+	    // ✅ Validate propertyId exists
+	    if (!data.propertyId) {
+	      console.error('❌ No propertyId in response:', data);
+	      throw new Error('Property creation failed - no ID returned from server');
+	    }
+	    
+	    console.log('🔗 Navigating to property:', data.propertyId);
 	    navigate(`/property/${data.propertyId}`);
 	  } catch (err) {
 	    console.error('Error creating listing:', err);
-	    if (err.response?.data) {
-	      console.error('Backend error details:', err.response.data);
+	    
+	    // ✅ Handle different error types
+	    if (err.message.includes('Authentication failed')) {
+	      setError('Your session has expired. Please log in again.');
+	      // Force logout and redirect to login
+	      localStorage.removeItem('jwtToken');
+	      localStorage.removeItem('user');
+	      setTimeout(() => {
+	        window.location.href = '/login';
+	      }, 2000);
+	    } else if (err.message.includes('no ID returned')) {
+	      setError('Property creation failed. The server did not return a valid property ID. Please try again.');
+	    } else if (err.response?.status === 302) {
+	      setError('Authentication required. Redirecting to login...');
+	      localStorage.removeItem('jwtToken');
+	      localStorage.removeItem('user');
+	      setTimeout(() => {
+	        window.location.href = '/login';
+	      }, 1000);
+	    } else {
+	      // Original error handling
+	      if (err.response?.data) {
+	        console.error('Backend error details:', err.response.data);
+	      }
+	      setError(err.response?.data?.message || err.message || 'Failed to create listing');
 	    }
-	    setError(err.response?.data?.message || err.message || 'Failed to create listing');
 	  } finally {
 	    setIsSubmitting(false);
 	  }

@@ -30,14 +30,32 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// ✅ ADDED: Response interceptor to detect redirects and HTML responses
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle token expiration or unauthorized access
+  (response) => {
+    // Check if response is HTML (redirect happened but axios followed it)
+    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+      console.error('🔄 Interceptor: Received HTML response, likely authentication issue');
       localStorage.removeItem('jwtToken');
       localStorage.removeItem('user');
-      window.location.href = '/login'; // Redirect to login
+      window.location.href = '/login';
+      throw new Error('Authentication redirect detected');
+    }
+    return response;
+  },
+  (error) => {
+    // Check if it's a redirect (302)
+    if (error.response?.status === 302) {
+      console.error('🔀 API returned 302 redirect - authentication failed');
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    // Handle token expiration or unauthorized access
+    if (error.response?.status === 401) {
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
@@ -87,7 +105,7 @@ const API = {
 	  localStorage.removeItem('jwtToken');
 	  localStorage.removeItem('user');
 	  return Promise.resolve(); // Return resolved promise
-}
+    }
   },
   // Add more API groups as needed
 };
