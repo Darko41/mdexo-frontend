@@ -169,34 +169,34 @@ export default function CreateListingForm() {
 	    console.log('🔗 Navigating to property:', data.propertyId);
 	    navigate(`/property/${data.propertyId}`);
 	  } catch (err) {
-	    console.error('Error creating listing:', err);
-	    
-	    // ✅ Handle different error types
-	    if (err.message.includes('Authentication failed')) {
-	      setError('Your session has expired. Please log in again.');
-	      // Force logout and redirect to login
-	      localStorage.removeItem('jwtToken');
-	      localStorage.removeItem('user');
-	      setTimeout(() => {
-	        window.location.href = '/login';
-	      }, 2000);
-	    } else if (err.message.includes('no ID returned')) {
-	      setError('Property creation failed. The server did not return a valid property ID. Please try again.');
-	    } else if (err.response?.status === 302) {
-	      setError('Authentication required. Redirecting to login...');
-	      localStorage.removeItem('jwtToken');
-	      localStorage.removeItem('user');
-	      setTimeout(() => {
-	        window.location.href = '/login';
-	      }, 1000);
-	    } else {
-	      // Original error handling
-	      if (err.response?.data) {
-	        console.error('Backend error details:', err.response.data);
-	      }
-	      setError(err.response?.data?.message || err.message || 'Failed to create listing');
-	    }
-	  } finally {
+		  console.error('Error creating listing:', err);
+		  
+		  // ✅ Handle different error types
+		  if (err.message.includes('Authentication failed')) {
+		    setError('Your session has expired. Please log in again.');
+		    // Force logout and redirect to home page
+		    localStorage.removeItem('jwtToken');
+		    localStorage.removeItem('user');
+		    setTimeout(() => {
+		      window.location.href = '/'; // Redirect to home
+		    }, 2000);
+		  } else if (err.message.includes('no ID returned')) {
+		    setError('Property creation failed. The server did not return a valid property ID. Please try again.');
+		  } else if (err.response?.status === 302) {
+		    setError('Authentication required. Redirecting...');
+		    localStorage.removeItem('jwtToken');
+		    localStorage.removeItem('user');
+		    setTimeout(() => {
+		      window.location.href = '/'; // Redirect to home
+		    }, 1000);
+		  } else {
+		    // Original error handling
+		    if (err.response?.data) {
+		      console.error('Backend error details:', err.response.data);
+		    }
+		    setError(err.response?.data?.message || err.message || 'Failed to create listing');
+		  }
+		} finally {
 	    setIsSubmitting(false);
 	  }
 	};

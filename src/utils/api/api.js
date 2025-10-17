@@ -30,36 +30,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ✅ ADDED: Response interceptor to detect redirects and HTML responses
-api.interceptors.response.use(
-  (response) => {
-    // Check if response is HTML (redirect happened but axios followed it)
-    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-      console.error('🔄 Interceptor: Received HTML response, likely authentication issue');
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-      throw new Error('Authentication redirect detected');
-    }
-    return response;
-  },
-  (error) => {
-    // Check if it's a redirect (302)
-    if (error.response?.status === 302) {
-      console.error('🔀 API returned 302 redirect - authentication failed');
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    // Handle token expiration or unauthorized access
-    if (error.response?.status === 401) {
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+// Response interceptor to detect redirects and HTML responses
+	api.interceptors.response.use(
+	  (response) => {
+	    // Check if response is HTML (redirect happened but axios followed it)
+	    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+	      console.error('🔄 Interceptor: Received HTML response, likely authentication issue');
+	      localStorage.removeItem('jwtToken');
+	      localStorage.removeItem('user');
+	      // Don't redirect here - just clear tokens
+	      // Your AuthContext or routing will handle the redirect
+	      throw new Error('Authentication failed');
+	    }
+	    return response;
+	  },
+	  (error) => {
+	    // Clear tokens on auth errors but don't redirect
+	    if (error.response?.status === 302 || error.response?.status === 401) {
+	      console.error('🔀 Authentication failed - clearing tokens');
+	      localStorage.removeItem('jwtToken');
+	      localStorage.removeItem('user');
+	      // Your React app will detect the missing token and redirect
+	    }
+	    return Promise.reject(error);
+	  }
+	);
 
 const API = {
   realEstates: {
