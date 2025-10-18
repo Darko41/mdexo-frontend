@@ -440,7 +440,7 @@ const AdvancedSearchModal = ({
                   
                   {/* Custom Feature Input */}
                   <div className={styles.customFeature}>
-                    <label className={styles.label}>Додај своју карактеристику</label>
+                    <br/>
                     <div className={styles.featureInputRow}>
                       <input
                         type="text"
@@ -541,7 +541,7 @@ const AdvancedSearchModal = ({
 			    value={filters.searchTerm}
 			    onChange={handleFilterChange}
 			    className={styles.input}
-			    placeholder="Унесите кључне речи, адресу, опис..."
+			    placeholder="Унесите кључне речи"
 			  />
 			</div>
           </div>

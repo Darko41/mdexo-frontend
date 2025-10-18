@@ -48,7 +48,7 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
         <input
           className="ml-2 w-full rounded-xl pl-2 text-left outline-none"
           type="text"
-          placeholder="Куцајте за претрагу (локацију, квадратуру, број соба...)"
+          placeholder="Куцајте за претрагу (наслов, опис, град, адреса...)"
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
