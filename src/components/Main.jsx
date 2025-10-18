@@ -20,20 +20,6 @@ export default function Main() {
     setSearchResults(results);
     setError(null);
   };
-  
-  // Test API call function
-  /*const testApiCall = async () => {
-    try {
-      console.log("🧪 Testing API call...");
-      const response = await API.realEstates.searchForSale();
-      console.log("✅ API test successful:", response.data);
-      // Optionally show the results
-      setSearchResults(response.data);
-    } catch (error) {
-      console.error("❌ API test failed:", error);
-      setError("Test API call failed: " + error.message);
-    }
-  };*/
 
   // Handler for errors
   const handleError = (error) => {
@@ -45,20 +31,6 @@ export default function Main() {
   return (
     <div className="flex flex-col items-center bg-amber-50 pt-15 pb-15 px-4 min-h-screen">
       
-      
-      
-      {/* Temporary test button - remove after debugging */}
-     
-      {/*
-      <button 
-        onClick={testApiCall}
-        className="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-      >
-        🧪 Test API Call
-      </button>
-		*/}
-
-
       {/* 1. Top Section - ChooseComponent Buttons */}
       <div className="flex flex-row flex-wrap items-center justify-around w-full mb-8 gap-4">
         <ChooseComponent

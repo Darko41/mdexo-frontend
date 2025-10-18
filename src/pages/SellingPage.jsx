@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { RealEstateCard, RealEstateCardSkeleton } from "../components/real-estate";
+import { RealEstateCard } from "../components/real-estate";
 import API from '../utils/api/api.js';
 import { AuthContext } from '../context/AuthContext';
 
@@ -12,7 +12,7 @@ export default function SellingPage() {
   const navigate = useNavigate();
 
   // Use AuthContext to check authentication
-  const { isAuthenticated, loading: authLoading, user } = useContext(AuthContext);
+  const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
 
   const isDevelopment = import.meta.env.MODE === 'development';
 
@@ -110,19 +110,11 @@ export default function SellingPage() {
     );
   }
 
-  // Optional: Add user greeting if authenticated
-  const userGreeting = isAuthenticated && user ? (
-    <div className="text-center mb-6">
-      <p className="text-gray-600">Welcome back, {user.email}!</p>
-    </div>
-  ) : null;
-
   // Get featured properties for slider (first 10 properties)
   const featuredProperties = realEstates.slice(0, 10);
 
   return (
     <section className="w-full py-8 px-4 max-w-7xl mx-auto">
-      {userGreeting}
       
       {/* Featured Properties Section */}
       <div className="mb-16">
@@ -131,7 +123,7 @@ export default function SellingPage() {
         {featuredProperties.length > 0 ? (
           <div className="relative">
             <div className="flex gap-6 overflow-hidden">
-              {featuredProperties.map((estate, index) => (
+              {featuredProperties.map((estate) => (
                 <div 
                   key={estate.propertyId || estate.id}
                   className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 transition-transform duration-300"

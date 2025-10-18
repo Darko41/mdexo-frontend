@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { RealEstateCard, RealEstateCardSkeleton } from "../components/real-estate";
+import { RealEstateCard } from "../components/real-estate";
 import API from '../utils/api/api.js';
 import { AuthContext } from '../context/AuthContext';
 
@@ -12,7 +12,7 @@ export default function RentingPage() {
   const navigate = useNavigate();
 
   // Use AuthContext to check authentication
-  const { isAuthenticated, loading: authLoading, user } = useContext(AuthContext);
+  const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -105,17 +105,10 @@ export default function RentingPage() {
     );
   }
 
-  const userGreeting = isAuthenticated && user ? (
-    <div className="text-center mb-6">
-      <p className="text-gray-600">Welcome back, {user.email}!</p>
-    </div>
-  ) : null;
-
   const featuredProperties = realEstates.slice(0, 10);
 
   return (
     <section className="w-full py-8 px-4 max-w-7xl mx-auto">
-      {userGreeting}
       
       {/* Featured Rental Properties Section */}
       <div className="mb-16">

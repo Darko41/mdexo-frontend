@@ -12,7 +12,6 @@ import BuyingPage from "./pages/BuyingPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
 import PropertyDetailsPage from "./pages/PropertyDetailsPage";
 import SignUpPage from "./pages/SignUpPage";
-{/*import DebugAuth from "./components/DebugAuth";*/}
 
 function App() {
   return (
