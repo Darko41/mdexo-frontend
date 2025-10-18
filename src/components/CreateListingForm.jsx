@@ -108,98 +108,126 @@ export default function CreateListingForm() {
 	};
 
 	const handleSubmit = async (e) => {
-	  e.preventDefault();
-	  setIsSubmitting(true);
-	  setError(null);
-	
-	  try {
-	    // Create FormData for multipart request
-	    const formDataToSend = new FormData();
-	    
-	    // Prepare the listing data
-	    const listingData = {
-	      title: formData.title,
-	      description: formData.description,
-	      propertyType: formData.propertyType,
-	      listingType: formData.listingType,
-	      price: parseFloat(formData.price),
-	      address: formData.address,
-	      city: formData.city,
-	      state: formData.state,
-	      zipCode: formData.zipCode,
-	      sizeInSqMt: formData.sizeInSqMt,
-	      features: formData.features || [],
-	      ownerId: null,
-	    };
-	    
-	    console.log('📦 Listing data being sent:', listingData);
-	    
-	    // Add the listing data as JSON blob
-	    formDataToSend.append('createDto', new Blob([JSON.stringify(listingData)], {
-	      type: 'application/json'
-	    }));
-	    
-	    // Add images if any
-	    if (formData.images && formData.images.length > 0) {
-	      formData.images.forEach(file => {
-	        formDataToSend.append('images', file);
-	      });
-	    }
-	
-	    console.log('📦 Sending multipart form data with', formData.images?.length || 0, 'images');
-	    
-	    // Use the unified endpoint
-	    const response = await API.realEstates.createWithFormData(formDataToSend);
-	    
-	    // ✅ CRITICAL: Check if response is HTML (redirect happened)
-	    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-	      console.error('❌ Received HTML instead of JSON - authentication failed');
-	      throw new Error('Authentication failed. Please log in again.');
-	    }
-	    
-	    const data = response.data;
-	    console.log('✅ Listing created successfully:', data);
-	    
-	    // ✅ Validate propertyId exists
-	    if (!data.propertyId) {
-	      console.error('❌ No propertyId in response:', data);
-	      throw new Error('Property creation failed - no ID returned from server');
-	    }
-	    
-	    console.log('🔗 Navigating to property:', data.propertyId);
-	    navigate(`/property/${data.propertyId}`);
-	  } catch (err) {
-		  console.error('Error creating listing:', err);
-		  
-		  // ✅ Handle different error types
-		  if (err.message.includes('Authentication failed')) {
-		    setError('Your session has expired. Please log in again.');
-		    // Force logout and redirect to home page
-		    localStorage.removeItem('jwtToken');
-		    localStorage.removeItem('user');
-		    setTimeout(() => {
-		      window.location.href = '/'; // Redirect to home
-		    }, 2000);
-		  } else if (err.message.includes('no ID returned')) {
-		    setError('Property creation failed. The server did not return a valid property ID. Please try again.');
-		  } else if (err.response?.status === 302) {
-		    setError('Authentication required. Redirecting...');
-		    localStorage.removeItem('jwtToken');
-		    localStorage.removeItem('user');
-		    setTimeout(() => {
-		      window.location.href = '/'; // Redirect to home
-		    }, 1000);
-		  } else {
-		    // Original error handling
-		    if (err.response?.data) {
-		      console.error('Backend error details:', err.response.data);
-		    }
-		    setError(err.response?.data?.message || err.message || 'Failed to create listing');
-		  }
-		} finally {
-	    setIsSubmitting(false);
-	  }
-	};
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError(null);
+
+  try {
+    console.log('🚀 [FORM] Starting form submission');
+    
+    // Create FormData for multipart request
+    const formDataToSend = new FormData();
+    
+    // Prepare the listing data
+    const listingData = {
+      title: formData.title,
+      description: formData.description,
+      propertyType: formData.propertyType,
+      listingType: formData.listingType,
+      price: parseFloat(formData.price),
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      zipCode: formData.zipCode,
+      sizeInSqMt: formData.sizeInSqMt,
+      features: formData.features || [],
+      ownerId: null,
+    };
+    
+    console.log('📦 [FORM] Listing data being sent:', listingData);
+    
+    // Add the listing data as JSON blob
+    formDataToSend.append('createDto', new Blob([JSON.stringify(listingData)], {
+      type: 'application/json'
+    }));
+    
+    // Add images if any
+    if (formData.images && formData.images.length > 0) {
+      formData.images.forEach(file => {
+        formDataToSend.append('images', file);
+      });
+    }
+
+    console.log('📦 [FORM] Sending multipart form data with', formData.images?.length || 0, 'images');
+    
+    // Log FormData contents for debugging
+    for (let [key, value] of formDataToSend.entries()) {
+      if (key === 'images') {
+        console.log(`📸 [FORM] FormData ${key}:`, value.name, value.type, value.size);
+      } else if (key === 'createDto') {
+        console.log(`📝 [FORM] FormData ${key}: [JSON Blob]`);
+      } else {
+        console.log(`📝 [FORM] FormData ${key}:`, value);
+      }
+    }
+    
+    console.log('📤 [FORM] Calling API.createWithFormData...');
+    
+    // Use the unified endpoint
+    const response = await API.realEstates.createWithFormData(formDataToSend);
+    
+    console.log('✅ [FORM] Raw response received:', response);
+    
+    // ✅ CRITICAL: Check if response is HTML (redirect happened)
+    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+      console.error('❌ [FORM] Received HTML instead of JSON - authentication failed');
+      throw new Error('Authentication failed. Please log in again.');
+    }
+    
+    const data = response.data;
+    console.log('✅ [FORM] Listing created successfully:', data);
+    
+    // ✅ Validate propertyId exists
+    if (!data.propertyId) {
+      console.error('❌ [FORM] No propertyId in response:', data);
+      throw new Error('Property creation failed - no ID returned from server');
+    }
+    
+    console.log('🔗 [FORM] Navigating to property:', data.propertyId);
+    navigate(`/property/${data.propertyId}`);
+    
+  } catch (err) {
+    console.error('❌ [FORM] Detailed error object:', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack,
+      response: err.response ? {
+        status: err.response.status,
+        statusText: err.response.statusText,
+        headers: err.response.headers,
+        data: err.response.data
+      } : 'No response'
+    });
+    
+    // ✅ Handle different error types
+    if (err.message.includes('Authentication failed')) {
+      setError('Your session has expired. Please log in again.');
+      // Force logout and redirect to home page
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('user');
+      setTimeout(() => {
+        window.location.href = '/'; // Redirect to home
+      }, 2000);
+    } else if (err.message.includes('no ID returned')) {
+      setError('Property creation failed. The server did not return a valid property ID. Please try again.');
+    } else if (err.response?.status === 302) {
+      setError('Authentication required. Redirecting...');
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('user');
+      setTimeout(() => {
+        window.location.href = '/'; // Redirect to home
+      }, 1000);
+    } else {
+      // Original error handling
+      if (err.response?.data) {
+        console.error('Backend error details:', err.response.data);
+      }
+      setError(err.response?.data?.message || err.message || 'Failed to create listing');
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
 	// Helper function to format enum values for display
 	const formatEnumDisplay = (value) => {

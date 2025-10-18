@@ -6,31 +6,50 @@ export const BACKEND_BASE_URL = isDevelopment
   ? "http://localhost:8080"
   : "https://mdexo-backend.onrender.com";
 
-// Define API endpoints if you're using them
-const API_ENDPOINTS = {
-  PROPERTIES: '/api/real-estates',
-};
-
 const api = axios.create({
   baseURL: BACKEND_BASE_URL,
-  timeout: 10000,
-  withCredentials: true, // Crucial for cookies
+  timeout: 30000, // Increased timeout for image uploads
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest' // Helps identify AJAX requests
+    'X-Requested-With': 'XMLHttpRequest'
   }
 });
 
+// ✅ FIXED: Enhanced request interceptor with debugging
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('jwtToken');
+  console.log('🔐 [API] Request to:', config.url);
+  console.log('🔐 [API] Token exists:', !!token);
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('✅ [API] Token added to headers');
+    
+    // Log token details for debugging
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log('📋 [API] Token payload:', {
+        email: payload.sub,
+        roles: payload.roles,
+        expires: new Date(payload.exp * 1000)
+      });
+    } catch (e) {
+      console.log('❌ [API] Cannot decode token');
+    }
+  } else {
+    console.log('❌ [API] No token found in localStorage');
   }
+  
   return config;
+}, (error) => {
+  console.error('❌ [API] Request interceptor error:', error);
+  return Promise.reject(error);
 });
 
 // Response interceptor to detect redirects and HTML responses
+	/*
 	api.interceptors.response.use(
 	  (response) => {
 	    // Check if response is HTML (redirect happened but axios followed it)
@@ -55,6 +74,7 @@ api.interceptors.request.use((config) => {
 	    return Promise.reject(error);
 	  }
 	);
+	*/
 
 const API = {
   realEstates: {
@@ -68,41 +88,52 @@ const API = {
     }),
     getById: (id) => api.get(`/api/real-estates/${id}`),
     
-    // Unified create method with FormData
-    createWithFormData: (formData) => api.post('/api/real-estates', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    // ✅ FIXED: Enhanced create method with better error handling
+    createWithFormData: (formData) => {
+      console.log('📦 [API] Creating listing with form data');
+      
+      // Log FormData contents for debugging
+      for (let [key, value] of formData.entries()) {
+        if (key === 'images') {
+          console.log(`📸 [API] FormData ${key}:`, value.name, value.type, value.size);
+        } else {
+          console.log(`📝 [API] FormData ${key}:`, value);
+        }
       }
-    }),
+      
+      return api.post('/api/real-estates/with-images', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 45000 // 45 seconds for image uploads
+      });
+    },
     
-    // Keep the old create for backward compatibility (will use JSON endpoint)
     create: (data) => api.post('/api/real-estates', data),
-    
     update: (id, data) => api.put(`/api/real-estates/${id}`, data),
     delete: (id) => api.delete(`/api/real-estates/${id}`)
   },
   auth: {
-    getCurrentUser: () => api.get('/api/auth/current-user'),
+    getCurrentUser: () => {
+      console.log('🔑 [API] Getting current user');
+      return api.get('/api/auth/current-user');
+    },
     login: (credentials) => {
-    return api.post('/api/auth/authenticate', credentials, {
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-  },
-    register: (userData) => api.post('/api/users/register', userData, {
-      headers: {
-        'Content-Security-Policy': 'default-src \'self\'',
-      }
-    }),
+      console.log('🔑 [API] Logging in with:', credentials.username);
+      return api.post('/api/auth/authenticate', credentials, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+    },
+    register: (userData) => api.post('/api/users/register', userData),
     logout: () => {
-	  // Just clear client-side storage, no API call
-	  localStorage.removeItem('jwtToken');
-	  localStorage.removeItem('user');
-	  return Promise.resolve(); // Return resolved promise
+      console.log('🔑 [API] Logging out');
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('user');
+      return Promise.resolve();
     }
   },
-  // Add more API groups as needed
 };
 
 export const axiosInstance = api;
