@@ -91,21 +91,11 @@ const API = {
     // ✅ FIXED: Enhanced create method with better error handling
     createWithFormData: (formData) => {
       console.log('📦 [API] Creating listing with form data');
-      
-      // Log FormData contents for debugging
-      for (let [key, value] of formData.entries()) {
-        if (key === 'images') {
-          console.log(`📸 [API] FormData ${key}:`, value.name, value.type, value.size);
-        } else {
-          console.log(`📝 [API] FormData ${key}:`, value);
-        }
-      }
-      
-      return api.post('/api/real-estates/with-images', formData, {
+      return api.post('/api/real-estates', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 45000 // 45 seconds for image uploads
+        timeout: 45000
       });
     },
     
