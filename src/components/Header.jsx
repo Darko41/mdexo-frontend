@@ -16,7 +16,7 @@ export default function Header() {
     };
 
     const handleAdminAccess = () => {
-    window.location.href = `${BACKEND_BASE_URL}/admin/login`;
+    window.open(`${BACKEND_BASE_URL}/admin/login`, '_blank');
 };
 
     return (
@@ -38,14 +38,14 @@ export default function Header() {
                 </Link>
 
                 {/* Admin Dashboard link */}
-                {isAdmin && (
-                    <button
-                        onClick={handleAdminAccess}
-                        className="text-green-600 hover:text-green-800 font-semibold bg-transparent border-none cursor-pointer"
-                    >
-                        Admin Dashboard
-                    </button>
-                )}
+				{isAdmin && (
+				    <button
+				        onClick={handleAdminAccess}
+				        className="text-green-600 hover:text-green-800 font-semibold bg-transparent border-none cursor-pointer"
+				    >
+				        Admin Dashboard
+				    </button>
+				)}
             </div>
 
             {/* Right nav with login/signup or logout */}
