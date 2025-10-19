@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../utils/api/api.js';
 import ImageUpload from '../components/ImageUpload';
@@ -21,6 +21,7 @@ const ListingType = {
 
 export default function CreateListingForm() {
 	const navigate = useNavigate();
+	const imageUploadRef = useRef();
 	const [formData, setFormData] = useState({
 		title: '',
 		description: '',
@@ -33,12 +34,11 @@ export default function CreateListingForm() {
 		zipCode: '',
 		sizeInSqMt: '',
 		features: [],
-		images: [] // This will now store image URLs from ImageUpload
 	});
 	const [newFeature, setNewFeature] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState(null);
-	const [uploadedImageUrls, setUploadedImageUrls] = useState([]);
+	const [uploadedImages, setUploadedImages] = useState([]); // Changed from uploadedImageUrls to uploadedImages
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -48,8 +48,9 @@ export default function CreateListingForm() {
 		}));
 	};
 
-	const handleImageUrlsChange = (imageUrls) => {
-		setUploadedImageUrls(imageUrls);
+	const handleImagesChange = (imageFiles) => { // Renamed from handleImageUrlsChange
+		console.log('Image files updated:', imageFiles);
+		setUploadedImages(imageFiles);
 	};
 
 	const handleAddFeature = () => {
@@ -71,73 +72,67 @@ export default function CreateListingForm() {
 
 	const handleSubmit = async (e) => {
 	  e.preventDefault();
-	  setIsSubmitting(true);
 	  setError(null);
-
-	  // Validate that we have uploaded images
-	  if (uploadedImageUrls.length === 0) {
-	    setError('Please upload at least one image for your listing.');
-	    setIsSubmitting(false);
-	    return;
-	  }
-
+	  
 	  try {
-	    // Prepare the listing data with uploaded image URLs
-	    const listingData = {
+	    setIsSubmitting(true);
+	
+	    // Validate required fields
+	    if (!formData.title || !formData.price || !formData.address || !formData.city || !formData.state || !formData.zipCode) {
+	      setError('Please fill in all required fields');
+	      setIsSubmitting(false);
+	      return;
+	    }
+	
+	    if (uploadedImages.length === 0) {
+	      setError('Please upload at least one image');
+	      setIsSubmitting(false);
+	      return;
+	    }
+	
+	    console.log('Starting bulk upload with', uploadedImages.length, 'images');
+	
+	    // Create FormData for bulk upload
+	    const submitData = new FormData();
+	    
+	    const realEstateData = {
 	      title: formData.title,
 	      description: formData.description,
+	      price: parseFloat(formData.price),
 	      propertyType: formData.propertyType,
 	      listingType: formData.listingType,
-	      price: parseFloat(formData.price),
 	      address: formData.address,
 	      city: formData.city,
 	      state: formData.state,
 	      zipCode: formData.zipCode,
-	      sizeInSqMt: formData.sizeInSqMt,
-	      features: formData.features || [],
-	      images: uploadedImageUrls, // Use the uploaded image URLs
-	      ownerId: null,
+	      sizeInSqMt: formData.sizeInSqMt ? parseInt(formData.sizeInSqMt) : null,
+	      features: formData.features,
 	    };
-
-	    // Use the regular create endpoint (not form data) since images are already uploaded
-	    const response = await API.realEstates.create(listingData);
 	    
-	    // Check if response is HTML (redirect happened)
-	    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-	      throw new Error('Authentication failed. Please log in again.');
-	    }
+	    submitData.append('realEstate', new Blob([JSON.stringify(realEstateData)], {
+	      type: 'application/json'
+	    }));
+	
+	    // Append all image files for bulk upload
+	    uploadedImages.forEach((imageFile, index) => {
+	      submitData.append('images', imageFile);
+	    });
+	
+	    console.log('Sending bulk upload request...');
 	    
-	    const data = response.data;
+	    // Use the bulk upload endpoint
+	    const response = await API.realEstates.createWithFormData(submitData);
+	
+	    console.log('Listing created successfully:', response.data);
+	    navigate('/listings');
 	    
-	    // Validate propertyId exists
-	    if (!data.propertyId) {
-	      throw new Error('Property creation failed - no ID returned from server');
-	    }
-	    
-	    navigate(`/property/${data.propertyId}`);
-	    
-	  } catch (err) {
-	    // Handle different error types
-	    if (err.message.includes('Authentication failed')) {
-	      setError('Your session has expired. Please log in again.');
-	      // Force logout and redirect to home page
-	      localStorage.removeItem('jwtToken');
-	      localStorage.removeItem('user');
-	      setTimeout(() => {
-	        window.location.href = '/'; // Redirect to home
-	      }, 2000);
-	    } else if (err.message.includes('no ID returned')) {
-	      setError('Property creation failed. The server did not return a valid property ID. Please try again.');
-	    } else if (err.response?.status === 302) {
-	      setError('Authentication required. Redirecting...');
-	      localStorage.removeItem('jwtToken');
-	      localStorage.removeItem('user');
-	      setTimeout(() => {
-	        window.location.href = '/'; // Redirect to home
-	      }, 1000);
-	    } else {
-	      setError(err.response?.data?.message || err.message || 'Failed to create listing');
-	    }
+	  } catch (error) {
+	    console.error('Error creating listing:', error);
+	    setError(
+	      error.response?.data?.message || 
+	      error.message || 
+	      'Failed to create listing. Please try again.'
+	    );
 	  } finally {
 	    setIsSubmitting(false);
 	  }
@@ -146,6 +141,20 @@ export default function CreateListingForm() {
 	// Helper function to format enum values for display
 	const formatEnumDisplay = (value) => {
 		return value.toLowerCase().replace(/_/g, ' ');
+	};
+
+	// Check if form is ready for submission
+	const isFormValid = () => {
+		return (
+			formData.title &&
+			formData.price &&
+			formData.address &&
+			formData.city &&
+			formData.state &&
+			formData.zipCode &&
+			uploadedImages.length > 0 && // Changed from uploadedImageUrls to uploadedImages
+			!isSubmitting
+		);
 	};
 
 	return (
@@ -332,11 +341,12 @@ export default function CreateListingForm() {
 						Size (square meters)
 					</label>
 					<input
-						type="text"
+						type="number"
 						id="sizeInSqMt"
 						name="sizeInSqMt"
 						value={formData.sizeInSqMt}
 						onChange={handleChange}
+						min="0"
 						className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
 						placeholder="Enter size in square meters"
 					/>
@@ -398,13 +408,13 @@ export default function CreateListingForm() {
 					</p>
 					
 					<ImageUpload 
-						onImagesChange={handleImageUrlsChange}
+						onImagesChange={handleImagesChange} // Fixed prop name
 					/>
 					
-					{uploadedImageUrls.length > 0 && (
+					{uploadedImages.length > 0 && ( // Changed from uploadedImageUrls to uploadedImages
 						<div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
 							<p className="text-green-800 text-sm">
-								✓ {uploadedImageUrls.length} image(s) ready for your listing
+								✓ {uploadedImages.length} image(s) ready for your listing
 							</p>
 						</div>
 					)}
@@ -414,7 +424,7 @@ export default function CreateListingForm() {
 				<div className="border-t border-gray-200 pt-6 flex justify-end">
 					<button
 						type="submit"
-						disabled={isSubmitting || uploadedImageUrls.length === 0}
+						disabled={!isFormValid()}
 						className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-900 transition duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center space-x-2"
 					>
 						{isSubmitting ? (

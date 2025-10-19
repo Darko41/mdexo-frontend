@@ -74,6 +74,7 @@ const API = {
       });
     },
     
+    // This is for JSON-only (no images)
     create: (data) => api.post('/api/real-estates', data),
     update: (id, data) => api.put(`/api/real-estates/${id}`, data),
     delete: (id) => api.delete(`/api/real-estates/${id}`)
