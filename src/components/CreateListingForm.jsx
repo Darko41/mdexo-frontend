@@ -126,7 +126,7 @@ export default function CreateListingForm() {
 	    const response = await API.realEstates.createWithFormData(submitData);
 
 	    console.log('Listing created successfully:', response.data);
-	    navigate(`/properties/${response.data.propertyId}`);
+	    navigate(`/property/${response.data.propertyId}`);
 	    
 	  } catch (error) {
 	    console.error('Error creating listing:', error);
