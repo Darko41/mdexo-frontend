@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* tailwind.css */
 @import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
@@ -22,6 +26,47 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Smooth drag and drop animations */
+.drag-over {
+  border-color: #3b82f6 !important;
+  background-color: #eff6ff !important;
+}
+
+/* Image thumbnail hover effects */
+.image-thumbnail {
+  transition: all 0.2s ease-in-out;
+}
+
+.image-thumbnail:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width 0.3s ease-in-out;
+}
+
+/* Custom scrollbar for image grid */
+.image-grid-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.image-grid-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.image-grid-container::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 3px;
+}
+
+.image-grid-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.image-grid-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../utils/api/api.js';
+import ImageUpload from '../components/ImageUpload';
 
 const PropertyType = {
 	HOUSE: 'HOUSE',
@@ -32,12 +33,12 @@ export default function CreateListingForm() {
 		zipCode: '',
 		sizeInSqMt: '',
 		features: [],
-		images: []
+		images: [] // This will now store image URLs from ImageUpload
 	});
 	const [newFeature, setNewFeature] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState(null);
-	const [isDragOver, setIsDragOver] = useState(false);
+	const [uploadedImageUrls, setUploadedImageUrls] = useState([]);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -47,39 +48,8 @@ export default function CreateListingForm() {
 		}));
 	};
 
-	const handleFileChange = (e) => {
-	  const files = Array.from(e.target.files);
-	  
-	  setFormData(prev => ({
-	    ...prev,
-	    images: files
-	  }));
-	};
-
-	const handleDragOver = (e) => {
-	  e.preventDefault();
-	  setIsDragOver(true);
-	};
-
-	const handleDragLeave = (e) => {
-	  e.preventDefault();
-	  setIsDragOver(false);
-	};
-
-	const handleDrop = (e) => {
-	  e.preventDefault();
-	  setIsDragOver(false);
-	  
-	  const files = Array.from(e.dataTransfer.files).filter(file => 
-	    file.type.startsWith('image/')
-	  );
-	  
-	  if (files.length > 0) {
-	    setFormData(prev => ({
-	      ...prev,
-	      images: [...prev.images, ...files] // Append to existing images
-	    }));
-	  }
+	const handleImageUrlsChange = (imageUrls) => {
+		setUploadedImageUrls(imageUrls);
 	};
 
 	const handleAddFeature = () => {
@@ -99,23 +69,20 @@ export default function CreateListingForm() {
 		}));
 	};
 
-	const handleRemoveImage = (index) => {
-		setFormData(prev => ({
-			...prev,
-			images: prev.images.filter((_, i) => i !== index)
-		}));
-	};
-
 	const handleSubmit = async (e) => {
 	  e.preventDefault();
 	  setIsSubmitting(true);
 	  setError(null);
 
+	  // Validate that we have uploaded images
+	  if (uploadedImageUrls.length === 0) {
+	    setError('Please upload at least one image for your listing.');
+	    setIsSubmitting(false);
+	    return;
+	  }
+
 	  try {
-	    // Create FormData for multipart request
-	    const formDataToSend = new FormData();
-	    
-	    // Prepare the listing data
+	    // Prepare the listing data with uploaded image URLs
 	    const listingData = {
 	      title: formData.title,
 	      description: formData.description,
@@ -128,23 +95,12 @@ export default function CreateListingForm() {
 	      zipCode: formData.zipCode,
 	      sizeInSqMt: formData.sizeInSqMt,
 	      features: formData.features || [],
+	      images: uploadedImageUrls, // Use the uploaded image URLs
 	      ownerId: null,
 	    };
-	    
-	    // Add the listing data as JSON blob
-	    formDataToSend.append('createDto', new Blob([JSON.stringify(listingData)], {
-	      type: 'application/json'
-	    }));
-	    
-	    // Add images if any
-	    if (formData.images && formData.images.length > 0) {
-	      formData.images.forEach(file => {
-	        formDataToSend.append('images', file);
-	      });
-	    }
 
-	    // Use the unified endpoint
-	    const response = await API.realEstates.createWithFormData(formDataToSend);
+	    // Use the regular create endpoint (not form data) since images are already uploaded
+	    const response = await API.realEstates.create(listingData);
 	    
 	    // Check if response is HTML (redirect happened)
 	    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
@@ -196,15 +152,15 @@ export default function CreateListingForm() {
 		<div className="max-w-4xl mx-auto px-4 py-8">
 			<h2 className="text-3xl font-bold text-gray-900 mb-8">Create a New Listing</h2>
 
-			<form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6">
+			<form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-8">
 				{error && (
-					<div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg">
+					<div className="p-4 bg-red-50 text-red-600 rounded-lg">
 						{error}
 					</div>
 				)}
 
+				{/* Basic Information Section */}
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					{/* Basic Information */}
 					<div className="space-y-4">
 						<div>
 							<label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
@@ -218,6 +174,7 @@ export default function CreateListingForm() {
 								onChange={handleChange}
 								required
 								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="Enter property title"
 							/>
 						</div>
 
@@ -232,6 +189,7 @@ export default function CreateListingForm() {
 								onChange={handleChange}
 								rows={4}
 								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="Describe your property..."
 							/>
 						</div>
 
@@ -254,7 +212,10 @@ export default function CreateListingForm() {
 								))}
 							</select>
 						</div>
+					</div>
 
+					{/* Location & Pricing Information */}
+					<div className="space-y-4">
 						<div>
 							<label htmlFor="listingType" className="block text-sm font-medium text-gray-700 mb-1">
 								Listing Type*
@@ -291,13 +252,11 @@ export default function CreateListingForm() {
 									step="0.01"
 									required
 									className="w-full pl-8 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+									placeholder="0.00"
 								/>
 							</div>
 						</div>
-					</div>
 
-					{/* Location Information */}
-					<div className="space-y-4">
 						<div>
 							<label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
 								Address*
@@ -310,206 +269,162 @@ export default function CreateListingForm() {
 								onChange={handleChange}
 								required
 								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							/>
-						</div>
-
-						<div className="grid grid-cols-2 gap-4">
-							<div>
-								<label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-									City*
-								</label>
-								<input
-									type="text"
-									id="city"
-									name="city"
-									value={formData.city}
-									onChange={handleChange}
-									required
-									className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-								/>
-							</div>
-
-							<div>
-								<label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-									State*
-								</label>
-								<input
-									type="text"
-									id="state"
-									name="state"
-									value={formData.state}
-									onChange={handleChange}
-									required
-									className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-								/>
-							</div>
-						</div>
-
-						<div>
-							<label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">
-								ZIP Code*
-							</label>
-							<input
-								type="text"
-								id="zipCode"
-								name="zipCode"
-								value={formData.zipCode}
-								onChange={handleChange}
-								required
-								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							/>
-						</div>
-
-						<div>
-							<label htmlFor="sizeInSqMt" className="block text-sm font-medium text-gray-700 mb-1">
-								Size (sq. meters)
-							</label>
-							<input
-								type="text"
-								id="sizeInSqMt"
-								name="sizeInSqMt"
-								value={formData.sizeInSqMt}
-								onChange={handleChange}
-								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="Full street address"
 							/>
 						</div>
 					</div>
 				</div>
 
+				{/* Location Details */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div>
+						<label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+							City*
+						</label>
+						<input
+							type="text"
+							id="city"
+							name="city"
+							value={formData.city}
+							onChange={handleChange}
+							required
+							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+							placeholder="City"
+						/>
+					</div>
+
+					<div>
+						<label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+							State*
+						</label>
+						<input
+							type="text"
+							id="state"
+							name="state"
+							value={formData.state}
+							onChange={handleChange}
+							required
+							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+							placeholder="State"
+						/>
+					</div>
+
+					<div>
+						<label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">
+							ZIP Code*
+						</label>
+						<input
+							type="text"
+							id="zipCode"
+							name="zipCode"
+							value={formData.zipCode}
+							onChange={handleChange}
+							required
+							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+							placeholder="ZIP Code"
+						/>
+					</div>
+				</div>
+
+				{/* Property Details */}
+				<div>
+					<label htmlFor="sizeInSqMt" className="block text-sm font-medium text-gray-700 mb-1">
+						Size (square meters)
+					</label>
+					<input
+						type="text"
+						id="sizeInSqMt"
+						name="sizeInSqMt"
+						value={formData.sizeInSqMt}
+						onChange={handleChange}
+						className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+						placeholder="Enter size in square meters"
+					/>
+				</div>
+
 				{/* Features */}
-				<div className="mt-6">
+				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">
 						Features (max 10)
 					</label>
-					<div className="flex gap-2 mb-2">
+					<div className="flex gap-2 mb-3">
 						<input
 							type="text"
 							value={newFeature}
 							onChange={(e) => setNewFeature(e.target.value)}
 							className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							placeholder="Add a feature (e.g. Swimming pool)"
+							placeholder="Add a feature (e.g. Swimming pool, Garage, Garden...)"
+							onKeyPress={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									handleAddFeature();
+								}
+							}}
 						/>
 						<button
 							type="button"
 							onClick={handleAddFeature}
 							disabled={!newFeature || formData.features.length >= 10}
-							className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
+							className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 						>
 							Add
 						</button>
 					</div>
 					<div className="flex flex-wrap gap-2">
 						{formData.features.map((feature, index) => (
-							<div key={index} className="flex items-center bg-gray-100 px-3 py-1 rounded-full">
-								<span className="text-sm">{feature}</span>
+							<div key={index} className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+								<span>{feature}</span>
 								<button
 									type="button"
 									onClick={() => handleRemoveFeature(index)}
-									className="ml-2 text-gray-500 hover:text-red-500"
+									className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
 								>
 									×
 								</button>
 							</div>
 						))}
 					</div>
+					{formData.features.length >= 10 && (
+						<p className="text-sm text-gray-500 mt-2">Maximum 10 features reached</p>
+					)}
 				</div>
 
-				{/* Image Upload */}
-				<div className="mt-6">
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Images
-					</label>
+				{/* Image Upload Section */}
+				<div className="border-t border-gray-200 pt-6">
+					<h3 className="text-lg font-medium text-gray-900 mb-4">Property Images</h3>
+					<p className="text-sm text-gray-600 mb-6">
+						Upload high-quality photos of your property. The first image will be used as the cover photo.
+						Images are automatically optimized for web viewing.
+					</p>
 					
-					{/* Hidden file input */}
-					<input
-						type="file"
-						id="images"
-						name="images"
-						onChange={handleFileChange}
-						multiple
-						accept="image/*"
-						className="hidden"
+					<ImageUpload 
+						onImagesChange={handleImageUrlsChange}
 					/>
 					
-					{/* Drag and drop area */}
-					<div 
-						className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
-							isDragOver 
-								? 'border-blue-500 bg-blue-50' 
-								: 'border-gray-300 hover:border-gray-400'
-						}`}
-						onDragOver={handleDragOver}
-						onDragLeave={handleDragLeave}
-						onDrop={handleDrop}
-						onClick={() => document.getElementById('images').click()}
-					>
-						<svg
-							className="mx-auto h-12 w-12 text-gray-400"
-							stroke="currentColor"
-							fill="none"
-							viewBox="0 0 48 48"
-							aria-hidden="true"
-						>
-							<path
-								d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-								strokeWidth={2}
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							/>
-						</svg>
-						<span className="mt-2 block text-sm font-medium text-gray-700">
-							{formData.images.length > 0
-								? `${formData.images.length} file(s) selected`
-								: 'Click to upload images or drag and drop'}
-						</span>
-						<span className="mt-1 text-xs text-gray-500">
-							PNG, JPG, GIF up to 10MB
-						</span>
-						{isDragOver && (
-							<div className="mt-2 text-blue-500 text-sm">
-								Drop images here...
-							</div>
-						)}
-					</div>
-					
-					{/* Image previews */}
-					{formData.images.length > 0 && (
-						<div className="mt-4">
-							<p className="text-sm text-gray-600 mb-2">
-								{formData.images.length} image(s) selected
+					{uploadedImageUrls.length > 0 && (
+						<div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+							<p className="text-green-800 text-sm">
+								✓ {uploadedImageUrls.length} image(s) ready for your listing
 							</p>
-							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-								{formData.images.map((file, index) => (
-									<div key={index} className="relative group">
-										<img
-											src={URL.createObjectURL(file)}
-											alt={`Preview ${index + 1}`}
-											className="w-full h-24 object-cover rounded-lg"
-										/>
-										<button
-											type="button"
-											onClick={() => handleRemoveImage(index)}
-											className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-										>
-											×
-										</button>
-										<div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 truncate">
-											{file.name}
-										</div>
-									</div>
-								))}
-							</div>
 						</div>
 					)}
 				</div>
 
-				<div className="mt-8 flex justify-end">
+				{/* Submit Button */}
+				<div className="border-t border-gray-200 pt-6 flex justify-end">
 					<button
 						type="submit"
-						disabled={isSubmitting}
-						className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-900 transition duration-300 shadow-md hover:shadow-lg disabled:opacity-70"
+						disabled={isSubmitting || uploadedImageUrls.length === 0}
+						className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-900 transition duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center space-x-2"
 					>
-						{isSubmitting ? 'Creating Listing...' : 'Create Listing'}
+						{isSubmitting ? (
+							<>
+								<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+								<span>Creating Listing...</span>
+							</>
+						) : (
+							<span>Create Listing</span>
+						)}
 					</button>
 				</div>
 			</form>
