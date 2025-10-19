@@ -38,7 +38,7 @@ export default function CreateListingForm() {
 	const [newFeature, setNewFeature] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState(null);
-	const [uploadedImages, setUploadedImages] = useState([]); // Changed from uploadedImageUrls to uploadedImages
+	const [uploadedImages, setUploadedImages] = useState([]);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -48,8 +48,10 @@ export default function CreateListingForm() {
 		}));
 	};
 
-	const handleImagesChange = (imageFiles) => { // Renamed from handleImageUrlsChange
+	const handleImagesChange = (imageFiles) => {
 		console.log('Image files updated:', imageFiles);
+		console.log('Number of images:', imageFiles.length);
+		console.log('First image type:', imageFiles[0]?.constructor.name);
 		setUploadedImages(imageFiles);
 	};
 
@@ -76,22 +78,22 @@ export default function CreateListingForm() {
 	  
 	  try {
 	    setIsSubmitting(true);
-	
+
 	    // Validate required fields
 	    if (!formData.title || !formData.price || !formData.address || !formData.city || !formData.state || !formData.zipCode) {
 	      setError('Please fill in all required fields');
 	      setIsSubmitting(false);
 	      return;
 	    }
-	
+
 	    if (uploadedImages.length === 0) {
 	      setError('Please upload at least one image');
 	      setIsSubmitting(false);
 	      return;
 	    }
-	
+
 	    console.log('Starting bulk upload with', uploadedImages.length, 'images');
-	
+
 	    // Create FormData for bulk upload
 	    const submitData = new FormData();
 	    
@@ -112,17 +114,17 @@ export default function CreateListingForm() {
 	    submitData.append('realEstate', new Blob([JSON.stringify(realEstateData)], {
 	      type: 'application/json'
 	    }));
-	
+
 	    // Append all image files for bulk upload
 	    uploadedImages.forEach((imageFile, index) => {
 	      submitData.append('images', imageFile);
 	    });
-	
+
 	    console.log('Sending bulk upload request...');
 	    
 	    // Use the bulk upload endpoint
 	    const response = await API.realEstates.createWithFormData(submitData);
-	
+
 	    console.log('Listing created successfully:', response.data);
 	    navigate('/listings');
 	    
@@ -145,21 +147,47 @@ export default function CreateListingForm() {
 
 	// Check if form is ready for submission
 	const isFormValid = () => {
-		return (
-			formData.title &&
-			formData.price &&
-			formData.address &&
-			formData.city &&
-			formData.state &&
-			formData.zipCode &&
-			uploadedImages.length > 0 && // Changed from uploadedImageUrls to uploadedImages
-			!isSubmitting
-		);
+	  const isValid = (
+	    formData.title &&
+	    formData.price &&
+	    formData.address &&
+	    formData.city &&
+	    formData.state &&
+	    formData.zipCode &&
+	    uploadedImages.length > 0 &&
+	    !isSubmitting
+	  );
+	  
+	  console.log('Form validation result:', isValid);
+	  return isValid;
+	};
+
+	// Debug function - call this manually if needed
+	const debugFormState = () => {
+	  console.log('=== FORM VALIDATION DEBUG ===');
+	  console.log('Title:', formData.title, !!formData.title);
+	  console.log('Price:', formData.price, !!formData.price);
+	  console.log('Address:', formData.address, !!formData.address);
+	  console.log('City:', formData.city, !!formData.city);
+	  console.log('State:', formData.state, !!formData.state);
+	  console.log('ZipCode:', formData.zipCode, !!formData.zipCode);
+	  console.log('Uploaded Images:', uploadedImages.length, uploadedImages.length > 0);
+	  console.log('Is Submitting:', isSubmitting);
+	  console.log('============================');
 	};
 
 	return (
 		<div className="max-w-4xl mx-auto px-4 py-8">
 			<h2 className="text-3xl font-bold text-gray-900 mb-8">Create a New Listing</h2>
+
+			{/* Debug button - temporary */}
+			<button 
+				type="button"
+				onClick={debugFormState}
+				className="mb-4 px-4 py-2 bg-gray-500 text-white rounded"
+			>
+				Debug Form State
+			</button>
 
 			<form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-8">
 				{error && (
@@ -408,10 +436,10 @@ export default function CreateListingForm() {
 					</p>
 					
 					<ImageUpload 
-						onImagesChange={handleImagesChange} // Fixed prop name
+						onImagesChange={handleImagesChange}
 					/>
 					
-					{uploadedImages.length > 0 && ( // Changed from uploadedImageUrls to uploadedImages
+					{uploadedImages.length > 0 && (
 						<div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
 							<p className="text-green-800 text-sm">
 								✓ {uploadedImages.length} image(s) ready for your listing
@@ -422,21 +450,30 @@ export default function CreateListingForm() {
 
 				{/* Submit Button */}
 				<div className="border-t border-gray-200 pt-6 flex justify-end">
-					<button
-						type="submit"
-						disabled={!isFormValid()}
-						className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-900 transition duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center space-x-2"
-					>
-						{isSubmitting ? (
-							<>
-								<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-								<span>Creating Listing...</span>
-							</>
-						) : (
-							<span>Create Listing</span>
-						)}
-					</button>
-				</div>
+				  <button
+				    type="submit"
+				    disabled={!(
+				      formData.title &&
+				      formData.price &&
+				      formData.address &&
+				      formData.city &&
+				      formData.state &&
+				      formData.zipCode &&
+				      uploadedImages.length > 0 &&
+				      !isSubmitting
+				    )}
+				    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-900 transition duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center space-x-2"
+				  >
+				    {isSubmitting ? (
+				      <>
+				        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+				        <span>Creating Listing...</span>
+				      </>
+				    ) : (
+				      <span>Create Listing</span>
+				    )}
+  				</button>
+</div>
 			</form>
 		</div>
 	);

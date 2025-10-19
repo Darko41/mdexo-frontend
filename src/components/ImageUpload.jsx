@@ -16,6 +16,15 @@ const ImageUpload = ({ onImagesChange, existingImages = [] }) => {
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
   const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB
 
+  const updateParent = (imageList) => {
+    if (onImagesChange) {
+      const imageFiles = imageList.map(img => img.file);
+      console.log('🔄 ImageUpload: Sending files to parent:', imageFiles.length, 'files');
+      console.log('📁 Files:', imageFiles);
+      onImagesChange(imageFiles);
+    }
+  };
+
   const onDrop = useCallback((acceptedFiles) => {
     if (images.length + acceptedFiles.length > MAX_IMAGES) {
       alert(`Maximum ${MAX_IMAGES} images allowed`);
@@ -51,6 +60,10 @@ const ImageUpload = ({ onImagesChange, existingImages = [] }) => {
       if (!hasCover && updated.length > 0) {
         updated[0].isCover = true;
       }
+      
+      // ✅ FIX: Call updateParent here with the updated images
+      updateParent(updated);
+      
       return updated;
     });
   }, [images]);
@@ -78,10 +91,17 @@ const ImageUpload = ({ onImagesChange, existingImages = [] }) => {
   };
 
   const setCoverImage = (id) => {
-    setImages(prev => prev.map(img => ({
-      ...img,
-      isCover: img.id === id
-    })));
+    setImages(prev => {
+      const updated = prev.map(img => ({
+        ...img,
+        isCover: img.id === id
+      }));
+      
+      // ✅ FIX: Notify parent when cover changes
+      updateParent(updated);
+      
+      return updated;
+    });
   };
 
   // Enhanced drag and drop with visual feedback
@@ -126,13 +146,6 @@ const ImageUpload = ({ onImagesChange, existingImages = [] }) => {
     
     dragItem.current = null;
     dragOverItem.current = null;
-  };
-
-  const updateParent = (imageList) => {
-    if (onImagesChange) {
-      const imageFiles = imageList.map(img => img.file);
-      onImagesChange(imageFiles);
-    }
   };
 
   const ImageThumbnail = ({ image, index }) => (
