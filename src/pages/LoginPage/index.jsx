@@ -1,8 +1,8 @@
 import { useState, useContext } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { AuthContext } from "../context/AuthContext";
-import API from '../utils/api/api.js';
+import { AuthContext } from "../../context/AuthContext";
+import API from '../../utils/api/api';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

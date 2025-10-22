@@ -1,0 +1,448 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(135deg, #fef3c7 0%, #dbeafe 100%);
+  padding-top: 3.75rem;
+  padding-bottom: 3.75rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  min-height: 100vh;
+}
+
+.header {
+  width: 100%;
+  max-width: 72rem;
+  margin-bottom: 3rem;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.title h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .title h1 {
+    font-size: 3rem;
+  }
+}
+
+.title span {
+  color: #2563eb;
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: #4b5563;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.actionGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .actionGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.actionCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: 1px solid #f3f4f6;
+  transition: all 0.3s ease;
+}
+
+.actionCard:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border-color: #bfdbfe;
+  transform: translateY(-0.5rem);
+}
+
+.buyCard:hover {
+  border-color: #bfdbfe;
+}
+
+.rentCard:hover {
+  border-color: #bbf7d0;
+}
+
+.sellCard:hover {
+  border-color: #e9d5ff;
+}
+
+.browseCard {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  color: white;
+}
+
+.iconContainer {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.actionCard:hover .iconContainer {
+  transform: scale(1.1);
+}
+
+.buyIcon {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.rentIcon {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+}
+
+.sellIcon {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.browseIcon {
+  background: white;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.browseCard .cardTitle {
+  color: white;
+}
+
+.cardDescription {
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.browseCard .cardDescription {
+  color: #d1d5db;
+}
+
+.cardLink {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.buyLink {
+  color: #2563eb;
+}
+
+.buyLink:hover {
+  color: #1d4ed8;
+}
+
+.rentLink {
+  color: #059669;
+}
+
+.rentLink:hover {
+  color: #047857;
+}
+
+.sellLink {
+  color: #7c3aed;
+}
+
+.sellLink:hover {
+  color: #6d28d9;
+}
+
+.browseLink {
+  color: white;
+}
+
+.browseLink:hover {
+  color: #e5e7eb;
+}
+
+.linkIcon {
+  width: 1rem;
+  height: 1rem;
+  margin-left: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.actionCard:hover .linkIcon {
+  transform: translateX(0.25rem);
+}
+
+/* Search Section */
+.searchSection {
+  width: 100%;
+  max-width: 56rem;
+  margin-bottom: 3rem;
+}
+
+.searchContainer {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.advancedButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 1rem;
+  color: #2563eb;
+  font-weight: 500;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.advancedButton:hover {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+/* Status Indicators */
+.errorMessage {
+  width: 100%;
+  max-width: 56rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  border-radius: 0.75rem;
+}
+
+.loadingSpinner {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+/* Results Section */
+.resultsSection {
+  width: 100%;
+  max-width: 72rem;
+  margin-bottom: 4rem;
+}
+
+.resultsTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.resultsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .resultsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .resultsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.emptyState {
+  width: 100%;
+  max-width: 56rem;
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.emptyStateContainer {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.emptyIcon {
+  color: #9ca3af;
+  font-size: 2.25rem;
+  margin: 0 auto 1rem;
+}
+
+.emptyText {
+  color: #6b7280;
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.emptySubtext {
+  color: #9ca3af;
+}
+
+/* Fully Integrated Search Section */
+.integratedSearchSection {
+  width: 100%;
+  max-width: 56rem;
+  margin-bottom: 3rem;
+}
+
+.searchContent {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.searchHeader {
+  margin-bottom: 2rem;
+}
+
+.searchTitle {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.searchSubtitle {
+  font-size: 1.25rem;
+  color: #6b7280;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.searchArea {
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+
+.searchActions {
+  margin-top: 1rem;
+}
+
+/* Integrated Guidance */
+.integratedGuidance {
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 2.5rem;
+  margin-top: 2rem;
+}
+
+.guidanceSection {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.guidanceTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+}
+
+.quickTips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.tipCard {
+  background: #f8fafc;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.tipIcon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.tipCard h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.tipCard p {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .searchContent {
+    padding: 2rem 1rem;
+  }
+  
+  .searchTitle {
+    font-size: 1.875rem;
+  }
+  
+  .searchSubtitle {
+    font-size: 1.125rem;
+  }
+  
+  .quickTips {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .tipCard {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .integratedSearchSection {
+    margin-bottom: 2rem;
+  }
+}
+
+.ctaAuthSection {
+  width: 100%;
+  max-width: 80rem;
+  margin: 2rem auto 0 auto; /* Same top margin as other sections */
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Consistent gap between CTA and AuthPrompt */
+}
+
+/* Remove margins from AuthPrompt when inside ctaAuthSection */
+.ctaAuthSection .authSection {
+  margin: 0;
+}

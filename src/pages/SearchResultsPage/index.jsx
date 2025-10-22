@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaSlidersH, FaArrowLeft, FaHome } from 'react-icons/fa';
-import API from '../utils/api/api.js';
-import { RealEstateCard, RealEstateCardSkeleton } from '../components/real-estate';
-import AdvancedSearchModal from "../components/AdvancedSearchModal";
+import API from '../../utils/api/api';
+import { RealEstateCard, RealEstateCardSkeleton } from '../../components/real-estate';
+import AdvancedSearchModal from "../../components/AdvancedSearchModal";
 
 export default function SearchResultsPage() {
   const location = useLocation();

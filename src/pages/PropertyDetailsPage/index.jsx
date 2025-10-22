@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import API from '../utils/api/api.js';
+import API from '../../utils/api/api';
 import { 
   FaMapMarkerAlt, 
   FaArrowLeft, 

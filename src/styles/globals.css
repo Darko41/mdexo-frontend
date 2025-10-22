@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Shared Styles */
+/*
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './utilities/spacing.css';
+@import './utilities/typography.css';
+*/
+
 /* tailwind.css */
 @import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");

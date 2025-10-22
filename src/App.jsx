@@ -3,7 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import CreateListingForm from "./components/CreateListingForm";
 import Header from "./components/Header";
 import Main from "./components/Main";
-import RealEstateList from "./components/RealEstateList";
+import { RealEstateList } from "./components/real-estate";
 import RentingPage from "./pages/RentingPage";
 import SellingPage from "./pages/SellingPage";
 import HelpPage from "./pages/HelpPage";
@@ -17,7 +17,6 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        {/* <DebugAuth />*/}
         <Header />
         <main className="min-h-screen">
           <Routes>

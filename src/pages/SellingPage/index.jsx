@@ -1,10 +1,14 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import API from '../utils/api/api.js';
-import { RealEstateCard } from "../components/real-estate";
-import { AuthContext } from '../context/AuthContext';
+import { RealEstateCard } from "../../components/real-estate";
+import API from '../../utils/api/api';
+import { AuthContext } from '../../context/AuthContext';
+import { FaChartLine, FaStar, FaClock, FaHeadset } from "react-icons/fa";
+import styles from './styles.module.css';
+import CTA from "../../components/CTA";
+import AuthPrompt from "../../components/AuthPrompt";
 
-export default function BuyingPage() {
+export default function SellingPage() {
   const [realEstates, setRealEstates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,26 +18,29 @@ export default function BuyingPage() {
   // Use AuthContext to check authentication
   const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
 
+  const isDevelopment = import.meta.env.MODE === 'development';
+
+  // Fetch data when the component mounts
   useEffect(() => {
-    const fetchProperties = async () => {
+    const fetchRealEstates = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await API.realEstates.searchForSale();
+        const response = await API.realEstates.searchAll();
         setRealEstates(response.data.content || []);
       } catch (error) {
-        console.error("Error fetching properties for sale:", {
+        console.error("Error fetching real estate data:", {
           url: error.config?.url,
           status: error.response?.status,
           data: error.response?.data
         });
-        setError("Failed to fetch properties for sale. Please try again later.");
+        setError("Failed to fetch real estate data. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProperties();
+    fetchRealEstates();
   }, []);
 
   const goToNext = () => {
@@ -50,9 +57,10 @@ export default function BuyingPage() {
 
   const handleCreateListingClick = () => {
     if (!isAuthenticated) {
+      // Redirect to login with return URL to /create-listing
       navigate('/login', { 
         state: { 
-          from: '/create-listing',
+          from: '/create-listing', // Always go to create-listing after login
           message: 'Please log in to create a property listing'
         }
       });
@@ -65,6 +73,7 @@ export default function BuyingPage() {
     window.location.reload();
   };
 
+  // Show loading while checking auth or data
   if (authLoading) {
     return (
       <div className="text-center py-12">
@@ -78,7 +87,7 @@ export default function BuyingPage() {
     return (
       <div className="text-center py-12">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-        <p className="mt-2">Loading properties for sale...</p>
+        <p className="mt-2">Loading properties...</p>
       </div>
     );
   }
@@ -105,14 +114,15 @@ export default function BuyingPage() {
     );
   }
 
+  // Get featured properties for slider (first 10 properties)
   const featuredProperties = realEstates.slice(0, 10);
 
   return (
     <section className="w-full py-8 px-4 max-w-7xl mx-auto">
-            
-      {/* Properties for Sale Section */}
+      
+      {/* Featured Properties Section */}
       <div className="mb-16">
-        <h2 className="text-3xl font-bold text-center mb-6">Properties For Sale</h2>
+        <h2 className="text-3xl font-bold text-center mb-6">Featured Properties</h2>
         
         {featuredProperties.length > 0 ? (
           <div className="relative">
@@ -174,80 +184,41 @@ export default function BuyingPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
-            <p className="text-lg text-gray-600 mb-4">No properties for sale available at the moment.</p>
-            <p className="text-gray-500">Check back later for new property listings.</p>
+            <p className="text-lg text-gray-600 mb-4">No properties available at the moment.</p>
+            <p className="text-gray-500">Check back later for new listings.</p>
           </div>
         )}
       </div>
 
       {/* Advertisement CTA Section */}
-      <div className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl p-8 md:p-12 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h3 className="text-2xl md:text-3xl font-bold mb-4">
-            {isAuthenticated ? 'Ready to sell your property?' : 'Want to sell your property with us?'}
-          </h3>
-          <p className="text-lg mb-6">
-            {isAuthenticated 
-              ? 'Create your listing now and reach thousands of potential buyers.'
-              : 'Join thousands of satisfied sellers who have successfully sold their properties through our platform. Get more visibility, serious buyers, and better offers.'
-            }
-          </p>
-          
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button
-              onClick={handleCreateListingClick}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={authLoading}
-            >
-              {authLoading ? 'Loading...' : (isAuthenticated ? 'Create Sale Listing' : 'Create Your Sale Listing')}
-            </button>
-            
-            <Link to="/how-it-works">
-              <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 border border-gray-300 rounded-lg transition-colors">
-                Learn How It Works
-              </button>
-            </Link>
-          </div>
-          
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <div className="font-bold text-green-600">12,000+</div>
-              <div>Monthly Buyers</div>
-            </div>
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <div className="font-bold text-green-600">92%</div>
-              <div>Satisfaction Rate</div>
-            </div>
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <div className="font-bold text-green-600">25 Days</div>
-              <div>Average Sale Time</div>
-            </div>
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <div className="font-bold text-green-600">24/7</div>
-              <div>Support Available</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CTA
+		  title={isAuthenticated ? 'Ready to list your property?' : 'Want to list your property with us?'}
+		  description={isAuthenticated 
+		    ? 'Create your listing now and reach thousands of potential buyers.'
+		    : 'Join thousands of satisfied sellers who have successfully marketed their properties through our platform. Get more visibility, serious buyers, and faster sales.'
+		  }
+		  primaryButtonText={authLoading ? 'Loading...' : (isAuthenticated ? 'Create Listing Now' : 'Create Your Listing Now')}
+		  secondaryButtonText="Learn How It Works"
+		  onPrimaryClick={handleCreateListingClick}
+		  onSecondaryClick={() => navigate('/how-it-works')}
+		  disabled={authLoading}
+		  stats={[
+		    { icon: FaChartLine, number: '10,000+', label: 'Monthly Visitors' },
+		    { icon: FaStar, number: '90%', label: 'Satisfaction Rate' },
+		    { icon: FaClock, number: '30 Days', label: 'Average Sale Time' },
+		    { icon: FaHeadset, number: '24/7', label: 'Support Available' }
+		  ]}
+		  theme="sell"
+		/>
 
       {/* For Existing Users - Only show if not authenticated */}
       {!isAuthenticated && !authLoading && (
-        <div className="mt-12 text-center">
-          <p className="mb-4">Already have an account?</p>
-          <div className="flex justify-center gap-4">
-            <Link to="/login">
-              <button className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
-                Sign In
-              </button>
-            </Link>
-            <Link to="/signup">
-              <button className="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg hover:bg-gray-300 transition duration-300">
-                Register
-              </button>
-            </Link>
-          </div>
-        </div>
-      )}
+		  <AuthPrompt
+		    message="Already have an account?"
+		    onLogin={() => navigate('/login')}
+		    onRegister={() => navigate('/signup')}
+		  />
+		)}
     </section>
   );
 }

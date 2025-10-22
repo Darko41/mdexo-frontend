@@ -65,6 +65,8 @@ const API = {
     }),
     getById: (id) => api.get(`/api/real-estates/${id}`),
     
+    features: () => api.get('/api/real-estates/features'),
+    
     createWithFormData: (formData) => {
       return api.post('/api/real-estates', formData, {
         headers: {

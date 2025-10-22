@@ -1,0 +1,98 @@
+.authSection {
+  text-align: center;
+  margin: 0 0 2rem 0; /* Remove top margin, keep bottom */
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.authText {
+  font-size: 1.125rem;
+  color: #475569;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.authButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.loginButton {
+  background: #2563eb;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.loginButton:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.registerButton {
+  background: white;
+  color: #374151;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.registerButton:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .authSection {
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .authButtons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .loginButton,
+  .registerButton {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+/* Optional: Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .authSection {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-color: #475569;
+  }
+  
+  .authText {
+    color: #e2e8f0;
+  }
+  
+  .registerButton {
+    background: #374151;
+    color: #f1f5f9;
+    border-color: #4b5563;
+  }
+  
+  .registerButton:hover {
+    background: #4b5563;
+  }
+}

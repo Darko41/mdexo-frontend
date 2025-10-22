@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../utils/api/api.js';
-import ImageUpload from '../components/ImageUpload';
+import API from '../../utils/api/api';
+import ImageUpload from '../ImageUpload';
 
 const PropertyType = {
 	HOUSE: 'HOUSE',
@@ -162,157 +162,200 @@ export default function CreateListingForm() {
 	  return isValid;
 	};
 
-	// Debug function - call this manually if needed
-	const debugFormState = () => {
-	  console.log('=== FORM VALIDATION DEBUG ===');
-	  console.log('Title:', formData.title, !!formData.title);
-	  console.log('Price:', formData.price, !!formData.price);
-	  console.log('Address:', formData.address, !!formData.address);
-	  console.log('City:', formData.city, !!formData.city);
-	  console.log('State:', formData.state, !!formData.state);
-	  console.log('ZipCode:', formData.zipCode, !!formData.zipCode);
-	  console.log('Uploaded Images:', uploadedImages.length, uploadedImages.length > 0);
-	  console.log('Is Submitting:', isSubmitting);
-	  console.log('============================');
-	};
-
 	return (
 		<div className="max-w-4xl mx-auto px-4 py-8">
 			<h2 className="text-3xl font-bold text-gray-900 mb-8">Create a New Listing</h2>
 
-			{/* Debug button - temporary */}
-			<button 
-				type="button"
-				onClick={debugFormState}
-				className="mb-4 px-4 py-2 bg-gray-500 text-white rounded"
-			>
-				Debug Form State
-			</button>
-
-			<form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-8">
+			<form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-6">
 				{error && (
 					<div className="p-4 bg-red-50 text-red-600 rounded-lg">
 						{error}
 					</div>
 				)}
 
-				{/* Basic Information Section */}
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					<div className="space-y-4">
-						<div>
-							<label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-								Title*
-							</label>
-							<input
-								type="text"
-								id="title"
-								name="title"
-								value={formData.title}
-								onChange={handleChange}
-								required
-								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-								placeholder="Enter property title"
-							/>
-						</div>
+				{/* Title - Full Width */}
+				<div>
+					<label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+						Title*
+					</label>
+					<input
+						type="text"
+						id="title"
+						name="title"
+						value={formData.title}
+						onChange={handleChange}
+						required
+						className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+						placeholder="Enter property title"
+					/>
+				</div>
 
-						<div>
-							<label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-								Description
-							</label>
-							<textarea
-								id="description"
-								name="description"
-								value={formData.description}
-								onChange={handleChange}
-								rows={4}
-								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-								placeholder="Describe your property..."
-							/>
-						</div>
+				{/* Description - Full Width */}
+				<div>
+					<label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+						Description
+					</label>
+					<textarea
+						id="description"
+						name="description"
+						value={formData.description}
+						onChange={handleChange}
+						rows={3}
+						className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+						placeholder="Describe your property..."
+					/>
+				</div>
 
-						<div>
-							<label htmlFor="propertyType" className="block text-sm font-medium text-gray-700 mb-1">
-								Property Type*
-							</label>
-							<select
-								id="propertyType"
-								name="propertyType"
-								value={formData.propertyType}
-								onChange={handleChange}
-								required
-								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							>
-								{Object.values(PropertyType).map(type => (
-									<option key={type} value={type}>
-										{formatEnumDisplay(type)}
-									</option>
-								))}
-							</select>
-						</div>
+				{/* Property Type, Listing Type, and Price - Compact Row */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div>
+						<label htmlFor="propertyType" className="block text-sm font-medium text-gray-700 mb-1">
+							Property Type*
+						</label>
+						<select
+							id="propertyType"
+							name="propertyType"
+							value={formData.propertyType}
+							onChange={handleChange}
+							required
+							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+						>
+							{Object.values(PropertyType).map(type => (
+								<option key={type} value={type}>
+									{formatEnumDisplay(type)}
+								</option>
+							))}
+						</select>
 					</div>
 
-					{/* Location & Pricing Information */}
-					<div className="space-y-4">
-						<div>
-							<label htmlFor="listingType" className="block text-sm font-medium text-gray-700 mb-1">
-								Listing Type*
-							</label>
-							<select
-								id="listingType"
-								name="listingType"
-								value={formData.listingType}
-								onChange={handleChange}
-								required
-								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							>
-								{Object.values(ListingType).map(type => (
-									<option key={type} value={type}>
-										{formatEnumDisplay(type)}
-									</option>
-								))}
-							</select>
-						</div>
+					<div>
+						<label htmlFor="listingType" className="block text-sm font-medium text-gray-700 mb-1">
+							Listing Type*
+						</label>
+						<select
+							id="listingType"
+							name="listingType"
+							value={formData.listingType}
+							onChange={handleChange}
+							required
+							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+						>
+							{Object.values(ListingType).map(type => (
+								<option key={type} value={type}>
+									{formatEnumDisplay(type)}
+								</option>
+							))}
+						</select>
+					</div>
 
-						<div>
-							<label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-								Price*
-							</label>
-							<div className="relative">
-								<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-								<input
-									type="number"
-									id="price"
-									name="price"
-									value={formData.price}
-									onChange={handleChange}
-									min="0"
-									step="0.01"
-									required
-									className="w-full pl-8 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-									placeholder="0.00"
-								/>
-							</div>
-						</div>
-
-						<div>
-							<label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-								Address*
-							</label>
+					<div>
+						<label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+							Price*
+						</label>
+						<div className="relative">
+							<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
 							<input
-								type="text"
-								id="address"
-								name="address"
-								value={formData.address}
+								type="number"
+								id="price"
+								name="price"
+								value={formData.price}
 								onChange={handleChange}
+								min="0"
+								step="0.01"
 								required
-								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-								placeholder="Full street address"
+								className="w-full pl-8 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="0.00"
 							/>
 						</div>
 					</div>
 				</div>
 
-				{/* Location Details */}
+				{/* Address, Size, and Features - 3-column Row */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div>
+						<label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+							Address*
+						</label>
+						<input
+							type="text"
+							id="address"
+							name="address"
+							value={formData.address}
+							onChange={handleChange}
+							required
+							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+							placeholder="Full street address"
+						/>
+					</div>
+
+					<div>
+						<label htmlFor="sizeInSqMt" className="block text-sm font-medium text-gray-700 mb-1">
+							Size (m²)
+						</label>
+						<input
+							type="number"
+							id="sizeInSqMt"
+							name="sizeInSqMt"
+							value={formData.sizeInSqMt}
+							onChange={handleChange}
+							min="0"
+							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+							placeholder="Square meters"
+						/>
+					</div>
+
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-1">
+							Features (max 10)
+						</label>
+						<div className="flex gap-2">
+							<input
+								type="text"
+								value={newFeature}
+								onChange={(e) => setNewFeature(e.target.value)}
+								className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+								placeholder="Add feature..."
+								onKeyPress={(e) => {
+									if (e.key === 'Enter') {
+										e.preventDefault();
+										handleAddFeature();
+									}
+								}}
+							/>
+							<button
+								type="button"
+								onClick={handleAddFeature}
+								disabled={!newFeature || formData.features.length >= 10}
+								className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
+							>
+								Add
+							</button>
+						</div>
+					</div>
+				</div>
+
+				{/* Features Display */}
+				{formData.features.length > 0 && (
+					<div className="flex flex-wrap gap-2">
+						{formData.features.map((feature, index) => (
+							<div key={index} className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+								<span>{feature}</span>
+								<button
+									type="button"
+									onClick={() => handleRemoveFeature(index)}
+									className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+								>
+									×
+								</button>
+							</div>
+						))}
+					</div>
+				)}
+				{formData.features.length >= 10 && (
+					<p className="text-sm text-gray-500">Maximum 10 features reached</p>
+				)}
+
+				{/* Location Details - Compact Row */}
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 					<div>
 						<label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
@@ -363,70 +406,6 @@ export default function CreateListingForm() {
 					</div>
 				</div>
 
-				{/* Property Details */}
-				<div>
-					<label htmlFor="sizeInSqMt" className="block text-sm font-medium text-gray-700 mb-1">
-						Size (square meters)
-					</label>
-					<input
-						type="number"
-						id="sizeInSqMt"
-						name="sizeInSqMt"
-						value={formData.sizeInSqMt}
-						onChange={handleChange}
-						min="0"
-						className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-						placeholder="Enter size in square meters"
-					/>
-				</div>
-
-				{/* Features */}
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Features (max 10)
-					</label>
-					<div className="flex gap-2 mb-3">
-						<input
-							type="text"
-							value={newFeature}
-							onChange={(e) => setNewFeature(e.target.value)}
-							className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							placeholder="Add a feature (e.g. Swimming pool, Garage, Garden...)"
-							onKeyPress={(e) => {
-								if (e.key === 'Enter') {
-									e.preventDefault();
-									handleAddFeature();
-								}
-							}}
-						/>
-						<button
-							type="button"
-							onClick={handleAddFeature}
-							disabled={!newFeature || formData.features.length >= 10}
-							className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-						>
-							Add
-						</button>
-					</div>
-					<div className="flex flex-wrap gap-2">
-						{formData.features.map((feature, index) => (
-							<div key={index} className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-								<span>{feature}</span>
-								<button
-									type="button"
-									onClick={() => handleRemoveFeature(index)}
-									className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
-								>
-									×
-								</button>
-							</div>
-						))}
-					</div>
-					{formData.features.length >= 10 && (
-						<p className="text-sm text-gray-500 mt-2">Maximum 10 features reached</p>
-					)}
-				</div>
-
 				{/* Image Upload Section */}
 				<div className="border-t border-gray-200 pt-6">
 					<h3 className="text-lg font-medium text-gray-900 mb-4">Property Images</h3>
@@ -473,7 +452,7 @@ export default function CreateListingForm() {
 				      <span>Create Listing</span>
 				    )}
   				</button>
-</div>
+				</div>
 			</form>
 		</div>
 	);

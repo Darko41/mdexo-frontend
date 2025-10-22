@@ -1,8 +1,12 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { RealEstateCard } from "../components/real-estate";
-import API from '../utils/api/api.js';
-import { AuthContext } from '../context/AuthContext';
+import { RealEstateCard } from "../../components/real-estate";
+import API from '../../utils/api/api';
+import { AuthContext } from '../../context/AuthContext';
+import { FaChartLine, FaStar, FaClock, FaHeadset } from "react-icons/fa";
+import styles from './styles.module.css';
+import CTA from "../../components/CTA";
+import AuthPrompt from "../../components/AuthPrompt";
 
 export default function RentingPage() {
   const [realEstates, setRealEstates] = useState([]);
@@ -181,73 +185,34 @@ export default function RentingPage() {
       </div>
 
       {/* Advertisement CTA Section */}
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-8 md:p-12 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h3 className="text-2xl md:text-3xl font-bold mb-4">
-            {isAuthenticated ? 'Ready to list your rental property?' : 'Want to list your rental property with us?'}
-          </h3>
-          <p className="text-lg mb-6">
-            {isAuthenticated 
-              ? 'Create your rental listing now and reach thousands of potential tenants.'
-              : 'Join thousands of satisfied landlords who have successfully rented their properties through our platform. Get more visibility, qualified tenants, and faster rentals.'
-            }
-          </p>
-          
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button
-              onClick={handleCreateListingClick}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={authLoading}
-            >
-              {authLoading ? 'Loading...' : (isAuthenticated ? 'Create Rental Listing' : 'Create Your Rental Listing')}
-            </button>
-            
-            <Link to="/how-it-works">
-              <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 border border-gray-300 rounded-lg transition-colors">
-                Learn How It Works
-              </button>
-            </Link>
-          </div>
-          
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <div className="font-bold text-purple-600">8,000+</div>
-              <div>Monthly Renters</div>
-            </div>
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <div className="font-bold text-purple-600">85%</div>
-              <div>Satisfaction Rate</div>
-            </div>
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <div className="font-bold text-purple-600">15 Days</div>
-              <div>Average Rental Time</div>
-            </div>
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <div className="font-bold text-purple-600">24/7</div>
-              <div>Support Available</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CTA
+		  title={isAuthenticated ? 'Ready to list your rental property?' : 'Want to list your rental property with us?'}
+		  description={isAuthenticated 
+		    ? 'Create your rental listing now and reach thousands of potential tenants.'
+		    : 'Join thousands of satisfied landlords who have successfully rented their properties through our platform. Get more visibility, qualified tenants, and faster rentals.'
+		  }
+		  primaryButtonText={authLoading ? 'Loading...' : (isAuthenticated ? 'Create Rental Listing' : 'Create Your Rental Listing')}
+		  secondaryButtonText="Learn How It Works"
+		  onPrimaryClick={handleCreateListingClick}
+		  onSecondaryClick={() => navigate('/how-it-works')}
+		  disabled={authLoading}
+		  stats={[
+		    { icon: FaChartLine, number: '8,000+', label: 'Monthly Renters' },
+		    { icon: FaStar, number: '85%', label: 'Satisfaction Rate' },
+		    { icon: FaClock, number: '15 Days', label: 'Average Rental Time' },
+		    { icon: FaHeadset, number: '24/7', label: 'Support Available' }
+		  ]}
+		  theme="rent"
+		/>
 
       {/* For Existing Users - Only show if not authenticated */}
       {!isAuthenticated && !authLoading && (
-        <div className="mt-12 text-center">
-          <p className="mb-4">Already have an account?</p>
-          <div className="flex justify-center gap-4">
-            <Link to="/login">
-              <button className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
-                Sign In
-              </button>
-            </Link>
-            <Link to="/signup">
-              <button className="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg hover:bg-gray-300 transition duration-300">
-                Register
-              </button>
-            </Link>
-          </div>
-        </div>
-      )}
+		  <AuthPrompt
+		    message="Already have an account?"
+		    onLogin={() => navigate('/login')}
+		    onRegister={() => navigate('/signup')}
+		  />
+		)}
     </section>
   );
 }

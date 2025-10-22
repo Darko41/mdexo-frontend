@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
-import { BACKEND_BASE_URL } from "../utils/api/api";
+import { AuthContext } from "../../context/AuthContext";
+import { BACKEND_BASE_URL } from "../../utils/api/api";
 
 export default function Header() {
     const { user, isAuthenticated, logout } = useContext(AuthContext);

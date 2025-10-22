@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { FaTimes, FaPlus, FaChevronDown, FaChevronUp, FaSearch } from 'react-icons/fa';
-import axios from 'axios';
+import API from '../../utils/api/api';
 import styles from './styles.module.css';
 import { useNavigate } from 'react-router-dom';
 
 const AdvancedSearchModal = ({ 
-  isOpen, 
-  onClose, 
-  onSearchResults, 
-  setIsLoading,
-  onError 
+  isOpen = false, 
+  onClose = () => {}, 
+  onSearchResults = () => {}, 
+  setIsLoading = () => {},
+  onError = () => {} 
 }) => {
   const [filters, setFilters] = useState({
     priceMin: '',
@@ -98,17 +98,20 @@ const AdvancedSearchModal = ({
       
       setIsLoadingFeatures(true);
       try {
-        const response = await axios.get('http://localhost:8080/api/real-estates/features');
+        // Use the API utility with the dedicated features endpoint
+        const response = await API.realEstates.features();
         console.log('Features response:', response.data);
         
         if (Array.isArray(response.data)) {
           setAvailableFeatures(response.data);
         } else {
           console.error('Expected array but got:', response.data);
+          // Fallback to default features
           setAvailableFeatures(['Parking', 'Garden', 'Pool', 'Elevator', 'AC']);
         }
       } catch (error) {
         console.error('Failed to fetch features:', error);
+        // Fallback to default features
         setAvailableFeatures(['Parking', 'Garden', 'Pool', 'Elevator', 'AC', 'Garage', 'Basement', 'Fireplace']);
         setError('Failed to load features. Using default features.');
       } finally {
@@ -233,7 +236,7 @@ const AdvancedSearchModal = ({
       console.error("Search error:", error);
       const errorMsg = "Search failed. Please check your filters.";
       setError(errorMsg);
-      if (onError) onError(errorMsg);
+      onError(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -531,19 +534,19 @@ const AdvancedSearchModal = ({
 
             {/* General Search */}
             <div className={styles.inputGroup}>
-			  <label className={styles.label}>
-			    Општа претрага
-			    <span className={styles.hint}> (наслов, опис, град, адреса)</span>
-			  </label>
-			  <input
-			    type="text"
-			    name="searchTerm"
-			    value={filters.searchTerm}
-			    onChange={handleFilterChange}
-			    className={styles.input}
-			    placeholder="Унесите кључне речи"
-			  />
-			</div>
+              <label className={styles.label}>
+                Општа претрага
+                <span className={styles.hint}> (наслов, опис, град, адреса)</span>
+              </label>
+              <input
+                type="text"
+                name="searchTerm"
+                value={filters.searchTerm}
+                onChange={handleFilterChange}
+                className={styles.input}
+                placeholder="Унесите кључне речи"
+              />
+            </div>
           </div>
           
           <div className={styles.modalFooter}>
@@ -583,11 +586,6 @@ AdvancedSearchModal.propTypes = {
   onSearchResults: PropTypes.func,
   setIsLoading: PropTypes.func.isRequired,
   onError: PropTypes.func
-};
-
-AdvancedSearchModal.defaultProps = {
-  onSearchResults: () => {},
-  onError: () => {}
 };
 
 export default AdvancedSearchModal;

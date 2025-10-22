@@ -1,8 +1,8 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { RealEstateCard, RealEstateCardSkeleton } from "../components/real-estate";
-import API from '../utils/api/api.js';
-import { AuthContext } from '../context/AuthContext';
+import { RealEstateCard, RealEstateCardSkeleton } from "../../components/real-estate";
+import API from '../../utils/api/api.js';
+import { AuthContext } from '../../context/AuthContext';
 
 export default function RealEstateList() {
 	const [realEstates, setRealEstates] = useState([]);

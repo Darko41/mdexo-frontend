@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import API from '../utils/api/api.js';
+import API from '../../utils/api/api.js';
 
 export default function RealEstateSlider() {
 	const [realEstates, setRealEstates] = useState([]);
