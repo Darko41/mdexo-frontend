@@ -1,12 +1,12 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { BACKEND_BASE_URL } from "../../utils/api/api";
 
 export default function Header() {
-    const { user, isAuthenticated, logout } = useContext(AuthContext);
+    const { user, isAuthenticated, logout, token } = useContext(AuthContext);
     const navigate = useNavigate();
-
+    const [isVerifying, setIsVerifying] = useState(false);
 
     const isAdmin = user?.roles?.includes("ROLE_ADMIN");
 
@@ -15,9 +15,43 @@ export default function Header() {
         navigate("/login");
     };
 
-    const handleAdminAccess = () => {
-    window.open(`${BACKEND_BASE_URL}/admin/login`, '_blank');
-};
+    const verifyAdminAccess = async () => {
+        try {
+            setIsVerifying(true);
+            const response = await fetch(`${BACKEND_BASE_URL}/api/admin/verify`, {
+                method: 'GET',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include' // Important for session cookies if using mixed auth
+            });
+            
+            if (response.ok) {
+                // Access verified - open admin dashboard
+                window.open(`${BACKEND_BASE_URL}/admin/dashboard`, '_blank');
+            } else {
+                alert('Admin access required');
+                console.error('Admin verification failed:', response.status);
+            }
+        } catch (error) {
+            console.error('Admin verification error:', error);
+            alert('Unable to verify admin access');
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
+    const handleAdminAccess = async () => {
+        // Quick client-side check first
+        if (!isAdmin) {
+            alert('Access denied');
+            return;
+        }
+        
+        // Backend verification before opening admin dashboard
+        await verifyAdminAccess();
+    };
 
     return (
         <header className="bg-white shadow p-4 flex justify-between items-center">
@@ -38,14 +72,19 @@ export default function Header() {
                 </Link>
 
                 {/* Admin Dashboard link */}
-				{isAdmin && (
-				    <button
-				        onClick={handleAdminAccess}
-				        className="text-green-600 hover:text-green-800 font-semibold bg-transparent border-none cursor-pointer"
-				    >
-				        Admin Dashboard
-				    </button>
-				)}
+                {isAdmin && (
+                    <button
+                        onClick={handleAdminAccess}
+                        disabled={isVerifying}
+                        className={`font-semibold bg-transparent border-none cursor-pointer ${
+                            isVerifying 
+                                ? 'text-gray-400 cursor-not-allowed' 
+                                : 'text-green-600 hover:text-green-800'
+                        }`}
+                    >
+                        {isVerifying ? 'Verifying...' : 'Admin Dashboard'}
+                    </button>
+                )}
             </div>
 
             {/* Right nav with login/signup or logout */}

@@ -19,13 +19,30 @@ export function AuthProvider({ children }) {
     loading: true,
   });
 
+  const logout = useCallback(() => {
+    // No API call needed for JWT logout
+    // Clear state
+    setAuthState({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      loading: false,
+    });
+  
+    // Clear storage
+    localStorage.removeItem("user");
+    localStorage.removeItem("jwtToken");
+  
+    // Clear axios header
+    delete axiosInstance.defaults.headers.common['Authorization'];
+  }, []);
+
   // Initialize auth state from storage
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         const token = localStorage.getItem("jwtToken");
         const userString = localStorage.getItem("user");
-
 
         if (token && userString) {
           const user = JSON.parse(userString);
@@ -65,60 +82,64 @@ export function AuthProvider({ children }) {
     };
 
     initializeAuth();
-  }, []);
+  }, []); // Remove logout from dependencies
 
-  const login = useCallback(async (userData, token) => {
-  try {
-    
-    // Decode token to verify
-    const decodedToken = jwtDecode(token);
-    const completeUserData = {
-      ...userData,
-      roles: userData.roles || decodedToken.roles || [],
+  // Add token expiration check (optional but recommended)
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      const token = authState.token;
+      if (token) {
+        try {
+          const decodedToken = jwtDecode(token);
+          if (decodedToken.exp * 1000 < Date.now()) {
+            console.log("🔄 Token expired - auto logging out");
+            logout();
+          }
+        } catch (error) {
+          console.error("❌ Token validation error:", error);
+          logout();
+        }
+      }
     };
 
-    // Update state
-    setAuthState({
-      user: completeUserData,
-      token,
-      isAuthenticated: true,
-      loading: false,
-    });
-
-    // Persist to storage
-    localStorage.setItem("user", JSON.stringify(completeUserData));
-    localStorage.setItem("jwtToken", token);
-
-    // Set axios headers
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // Check every minute
+    const interval = setInterval(checkTokenExpiration, 60000);
     
-    // Return a resolved promise to make await work
-    return Promise.resolve();
-    
-  } catch (error) {
-    console.error("❌ Login error:", error);
-    return Promise.reject(error);
-  }
-}, []);
+    return () => clearInterval(interval);
+  }, [authState.token, logout]); // Now logout is available
 
-  const logout = useCallback(async () => {
-	  // No API call needed for JWT logout
-	  // Clear state
-	  setAuthState({
-	    user: null,
-	    token: null,
-	    isAuthenticated: false,
-	    loading: false,
-	  });
-	
-	  // Clear storage
-	  localStorage.removeItem("user");
-	  localStorage.removeItem("jwtToken");
-	
-	  // Clear axios header
-	  delete axiosInstance.defaults.headers.common['Authorization'];
-	
-	}, []);
+  const login = useCallback(async (userData, token) => {
+    try {
+      // Decode token to verify
+      const decodedToken = jwtDecode(token);
+      const completeUserData = {
+        ...userData,
+        roles: userData.roles || decodedToken.roles || [],
+      };
+
+      // Update state
+      setAuthState({
+        user: completeUserData,
+        token,
+        isAuthenticated: true,
+        loading: false,
+      });
+
+      // Persist to storage
+      localStorage.setItem("user", JSON.stringify(completeUserData));
+      localStorage.setItem("jwtToken", token);
+
+      // Set axios headers
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      // Return a resolved promise to make await work
+      return Promise.resolve();
+      
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      return Promise.reject(error);
+    }
+  }, []);
 
   return (
     <AuthContext.Provider
