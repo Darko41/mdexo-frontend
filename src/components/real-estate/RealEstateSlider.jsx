@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import API from '../../utils/api/api.js';
-import styles from './styles.module.css';
 
 export default function RealEstateSlider() {
 	const [realEstates, setRealEstates] = useState([]);
@@ -22,7 +21,7 @@ export default function RealEstateSlider() {
 			setError(null);
 
 			try {
-				const response = await API.realEstates.search(); // no params here
+				const response = await API.realEstates.search();
 				setRealEstates(response.data.content || []);
 			} catch (error) {
 				setError("Failed to fetch real estate data.");
@@ -35,13 +34,41 @@ export default function RealEstateSlider() {
 		fetchRealEstates();
 	}, []);
 
+	// Helper function to calculate visible cards based on screen size
+	const getVisibleCards = useCallback(() => {
+		if (typeof window === 'undefined') return 5;
+		
+		const width = window.innerWidth;
+		if (width < 640) return 1;
+		if (width < 768) return 2;
+		if (width < 1024) return 3;
+		if (width < 1280) return 4;
+		return 5;
+	}, []);
+
+	const goToNext = useCallback(() => {
+		if (currentIndex < realEstates.length - getVisibleCards()) {
+			setCurrentIndex(prev => prev + 1);
+			setCurrentTranslate(0);
+			setPrevTranslate(0);
+		}
+	}, [currentIndex, realEstates.length, getVisibleCards]);
+
+	const goToPrev = useCallback(() => {
+		if (currentIndex > 0) {
+			setCurrentIndex(prev => prev - 1);
+			setCurrentTranslate(0);
+			setPrevTranslate(0);
+		}
+	}, [currentIndex]);
+
 	// Animation for smooth dragging
 	const animation = useCallback(() => {
 		if (sliderRef.current) {
-			sliderRef.current.style.transform = `translateX(${currentTranslate}px)`;
+			sliderRef.current.style.transform = `translateX(calc(${-currentIndex * 100}% + ${currentTranslate}px))`;
 		}
 		setAnimationID(requestAnimationFrame(animation));
-	}, [currentTranslate]);
+	}, [currentIndex, currentTranslate]);
 
 	useEffect(() => {
 		if (isDragging) {
@@ -86,18 +113,13 @@ export default function RealEstateSlider() {
 		setIsDragging(false);
 		
 		const movedBy = currentTranslate - prevTranslate;
-		const threshold = 100; // Minimum swipe distance to trigger slide change
+		const threshold = 100;
 
-		// If moved significantly to left, go to next
 		if (movedBy < -threshold) {
 			goToNext();
-		}
-		// If moved significantly to right, go to previous
-		else if (movedBy > threshold) {
+		} else if (movedBy > threshold) {
 			goToPrev();
-		}
-		// Otherwise, snap back to current position
-		else {
+		} else {
 			setCurrentTranslate(prevTranslate);
 		}
 
@@ -105,7 +127,7 @@ export default function RealEstateSlider() {
 			sliderRef.current.style.cursor = 'grab';
 			sliderRef.current.style.transition = 'transform 0.3s ease-out';
 		}
-	}, [isDragging, currentTranslate, prevTranslate]);
+	}, [isDragging, currentTranslate, prevTranslate, goToNext, goToPrev]); // Fixed: added goToNext and goToPrev
 
 	// Touch and mouse event handlers for swipe functionality
 	useEffect(() => {
@@ -142,41 +164,13 @@ export default function RealEstateSlider() {
 			slider.removeEventListener('mouseup', handleEnd);
 			slider.removeEventListener('mouseleave', handleEnd);
 		};
-	}, [realEstates.length, handleStart, handleMove, handleEnd]);
-
-	const goToNext = useCallback(() => {
-		if (currentIndex < realEstates.length - getVisibleCards()) {
-			setCurrentIndex(prev => prev + 1);
-			setCurrentTranslate(0);
-			setPrevTranslate(0);
-		}
-	}, [currentIndex, realEstates.length]);
-
-	const goToPrev = useCallback(() => {
-		if (currentIndex > 0) {
-			setCurrentIndex(prev => prev - 1);
-			setCurrentTranslate(0);
-			setPrevTranslate(0);
-		}
-	}, [currentIndex]);
-
-	// Helper function to calculate visible cards based on screen size
-	const getVisibleCards = () => {
-		if (typeof window === 'undefined') return 5;
-		
-		const width = window.innerWidth;
-		if (width < 640) return 1; // sm
-		if (width < 768) return 2; // md
-		if (width < 1024) return 3; // lg
-		if (width < 1280) return 4; // xl
-		return 5; // 2xl and above
-	};
+	}, [realEstates.length, handleStart, handleMove, handleEnd]); // Fixed: all dependencies are now included
 
 	// Calculate card width based on visible cards
-	const getCardWidth = () => {
+	const getCardWidth = useCallback(() => {
 		const visibleCards = getVisibleCards();
 		return 100 / visibleCards;
-	};
+	}, [getVisibleCards]);
 
 	// Reset translate when currentIndex changes (not during drag)
 	useEffect(() => {
@@ -205,19 +199,19 @@ export default function RealEstateSlider() {
 					>
 						{realEstates.map((estate) => (
 							<div
-							  key={estate.id}
-							  className="flex-shrink-0"
-							  style={{ width: `calc(${getCardWidth()}% - 1.5rem)` }}
+								key={estate.id}
+								className="flex-shrink-0"
+								style={{ width: `calc(${getCardWidth()}% - 1.5rem)` }}
 							>
-							  <div className={`${styles.card} h-full`}>
-							    <div className={`${styles.imageContainer} h-48`}>
-							      <img
-							        src={estate.imageUrl || 'https://via.placeholder.com/300'}
-							        alt={estate.title}
-							        className={styles.image}
-							        loading="lazy"
-							        draggable="false"
-							      />
+								<div className="bg-white rounded-xl shadow-md overflow-hidden h-full flex flex-col transition-transform duration-300 hover:scale-105">
+									<div className="relative h-48 overflow-hidden">
+										<img
+											src={estate.imageUrl || 'https://via.placeholder.com/300'}
+											alt={estate.title}
+											className="w-full h-full object-cover select-none"
+											loading="lazy"
+											draggable="false"
+										/>
 										<div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold shadow">
 											{estate.type || 'For Sale'}
 										</div>
