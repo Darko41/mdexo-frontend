@@ -63,7 +63,7 @@ export default function Header() {
                             <span className={styles.logoText}>RealEstate</span>
                         </Link>
 
-                        {/* Desktop Navigation */}
+                        {/* Desktop Navigation - Now visible on more screens */}
                         <nav className={styles.desktopNav}>
                             <Link to="/buy" className={styles.navLink}>
                                 Buy
@@ -88,12 +88,12 @@ export default function Header() {
                         </nav>
                     </div>
 
-                    {/* Desktop Auth Buttons */}
+                    {/* Desktop Auth Buttons - Now visible on more screens */}
                     <div className={styles.desktopAuth}>
                         {isAuthenticated ? (
                             <div className={styles.userSection}>
                                 <span className={styles.welcomeText}>
-                                    Welcome, {user?.firstName || user?.email?.split('@')[0] || 'User'}
+                                    Hi, {user?.firstName || user?.email?.split('@')[0] || 'User'}
                                 </span>
                                 <button
                                     onClick={handleLogout}
@@ -114,7 +114,7 @@ export default function Header() {
                         )}
                     </div>
 
-                    {/* Mobile menu button */}
+                    {/* Mobile menu button - Only on very small screens */}
                     <button
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         className={styles.mobileMenuButton}
@@ -129,7 +129,7 @@ export default function Header() {
                     </button>
                 </div>
 
-                {/* Mobile Navigation */}
+                {/* Mobile Navigation - Only on very small screens */}
                 {isMobileMenuOpen && (
                     <div className={styles.mobileMenu}>
                         <nav className={styles.mobileNav}>

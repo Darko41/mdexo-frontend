@@ -13,17 +13,40 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
   const [currentTranslate, setCurrentTranslate] = useState(0);
   const [prevTranslate, setPrevTranslate] = useState(0);
   const animationIDRef = useRef(null);
+  const [visibleCards, setVisibleCards] = useState(1);
+
+  // Calculate visible cards based on screen size
+  const calculateVisibleCards = useCallback(() => {
+    if (typeof window === 'undefined') return 1;
+    
+    const width = window.innerWidth;
+    if (width < 480) return 1;  // Very small phones
+    if (width < 640) return 1.5; // Small phones - show 1.5 cards for hint of next
+    if (width < 768) return 2;   // Phones
+    if (width < 1024) return 3;  // Tablets
+    if (width < 1280) return 4;  // Small desktop
+    return 5; // Large desktop
+  }, []);
+
+  // Update visible cards on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setVisibleCards(calculateVisibleCards());
+    };
+
+    handleResize(); // Initial calculation
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [calculateVisibleCards]);
 
   // Fetch data when the component mounts or when propRealEstates changes
   useEffect(() => {
-    // If realEstates are passed as prop, use them directly
     if (propRealEstates) {
       setRealEstates(propRealEstates);
       setLoading(false);
       return;
     }
 
-    // Otherwise fetch data as before
     const fetchRealEstates = async () => {
       setLoading(true);
       setError(null);
@@ -41,25 +64,14 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
     fetchRealEstates();
   }, [propRealEstates]);
 
-  // Helper function to calculate visible cards based on screen size
-  const getVisibleCards = useCallback(() => {
-    if (typeof window === 'undefined') return 5;
-    
-    const width = window.innerWidth;
-    if (width < 640) return 1;
-    if (width < 768) return 2;
-    if (width < 1024) return 3;
-    if (width < 1280) return 4;
-    return 5;
-  }, []);
-
   const goToNext = useCallback(() => {
-    if (currentIndex < realEstates.length - getVisibleCards()) {
-      setCurrentIndex(prev => prev + 1);
+    const maxIndex = Math.max(0, realEstates.length - Math.floor(visibleCards));
+    if (currentIndex < maxIndex) {
+      setCurrentIndex(prev => Math.min(prev + 1, maxIndex));
       setCurrentTranslate(0);
       setPrevTranslate(0);
     }
-  }, [currentIndex, realEstates.length, getVisibleCards]);
+  }, [currentIndex, realEstates.length, visibleCards]);
 
   const goToPrev = useCallback(() => {
     if (currentIndex > 0) {
@@ -69,13 +81,13 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
     }
   }, [currentIndex]);
 
-  // Animation for smooth dragging - fixed to prevent infinite loop
+  // Animation for smooth dragging
   const animation = useCallback(() => {
     if (sliderRef.current && isDragging) {
-      sliderRef.current.style.transform = `translateX(calc(${-currentIndex * 100}% + ${currentTranslate}px))`;
+      sliderRef.current.style.transform = `translateX(calc(${-currentIndex * (100 / visibleCards)}% + ${currentTranslate}px))`;
       animationIDRef.current = requestAnimationFrame(animation);
     }
-  }, [currentIndex, currentTranslate, isDragging]);
+  }, [currentIndex, currentTranslate, isDragging, visibleCards]);
 
   // Handle animation frame
   useEffect(() => {
@@ -111,10 +123,18 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
 
   const handleMove = useCallback((e) => {
     if (!isDragging) return;
+    
+    // Prevent default to stop page scroll on touch devices
     e.preventDefault();
+    
     const currentPosition = getPositionX(e);
     const diff = currentPosition - startPos;
-    setCurrentTranslate(prevTranslate + diff);
+    
+    // Calculate boundaries to prevent overscroll
+    const maxTranslate = 100; // Maximum drag distance in pixels
+    const boundedDiff = Math.max(Math.min(diff, maxTranslate), -maxTranslate);
+    
+    setCurrentTranslate(prevTranslate + boundedDiff);
   }, [isDragging, getPositionX, startPos, prevTranslate]);
 
   const handleEnd = useCallback(() => {
@@ -122,13 +142,29 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
     setIsDragging(false);
     
     const movedBy = currentTranslate - prevTranslate;
-    const threshold = 100;
+    const threshold = 50; // Reduced threshold for better sensitivity
+
+    // Calculate max index based on visible cards
+    const maxIndex = Math.max(0, realEstates.length - Math.floor(visibleCards));
 
     if (movedBy < -threshold) {
-      goToNext();
+      // Swipe left - go to next
+      if (currentIndex < maxIndex) {
+        goToNext();
+      } else {
+        // Snap back if at the end
+        setCurrentTranslate(prevTranslate);
+      }
     } else if (movedBy > threshold) {
-      goToPrev();
+      // Swipe right - go to previous
+      if (currentIndex > 0) {
+        goToPrev();
+      } else {
+        // Snap back if at the start
+        setCurrentTranslate(prevTranslate);
+      }
     } else {
+      // Not enough movement - snap back
       setCurrentTranslate(prevTranslate);
     }
 
@@ -136,7 +172,7 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
       sliderRef.current.style.cursor = 'grab';
       sliderRef.current.style.transition = 'transform 0.3s ease-out';
     }
-  }, [isDragging, currentTranslate, prevTranslate, goToNext, goToPrev]);
+  }, [isDragging, currentTranslate, prevTranslate, goToNext, goToPrev, currentIndex, realEstates.length, visibleCards]);
 
   // Touch and mouse event handlers for swipe functionality
   useEffect(() => {
@@ -144,7 +180,7 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
 
     const slider = sliderRef.current;
 
-    // Add event listeners for touch
+    // Add event listeners for touch with passive: false to prevent page scroll
     slider.addEventListener('touchstart', handleStart, { passive: false });
     slider.addEventListener('touchmove', handleMove, { passive: false });
     slider.addEventListener('touchend', handleEnd);
@@ -177,9 +213,8 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
 
   // Calculate card width based on visible cards
   const getCardWidth = useCallback(() => {
-    const visibleCards = getVisibleCards();
     return 100 / visibleCards;
-  }, [getVisibleCards]);
+  }, [visibleCards]);
 
   // Reset translate when currentIndex changes (not during drag)
   useEffect(() => {
@@ -189,119 +224,128 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
     }
   }, [currentIndex, isDragging]);
 
-  // Get a unique key for each estate - FIXED KEY ISSUE
+  // Get a unique key for each estate
   const getEstateKey = (estate, index) => {
     return estate.propertyId || estate.id || `estate-${index}`;
   };
 
   // Simple image URL getter - safe for S3
   const getImageUrl = (estate) => {
-    // Use imageUrl if available
     if (estate.imageUrl) {
       return estate.imageUrl;
     }
-    // Otherwise use first image from images array
     if (estate.images && estate.images.length > 0) {
       return estate.images[0];
     }
-    // Development fallback only
     if (import.meta.env.MODE === 'development') {
       return `https://picsum.photos/300/200?random=${getEstateKey(estate)}`;
     }
-    // Production: return empty string or a local placeholder
     return '/default-property.jpg';
   };
 
-  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
 
+  const maxIndex = Math.max(0, realEstates.length - Math.floor(visibleCards));
+  const canGoNext = currentIndex < maxIndex;
+  const canGoPrev = currentIndex > 0;
+
   return (
-    <section className="w-full py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <section className="w-full py-8 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">Featured Properties</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-gray-900">Featured Properties</h2>
 
         <div className="relative">
-          <div
-            ref={sliderRef}
-            className="flex gap-6 cursor-grab active:cursor-grabbing"
-            style={{
-              transform: `translateX(calc(${-currentIndex * 100}% + ${currentTranslate}px))`,
-              transition: isDragging ? 'none' : 'transform 0.3s ease-out'
-            }}
-          >
-            {realEstates.map((estate, index) => (
-              <div
-                key={getEstateKey(estate, index)} // FIXED: Using unique key
-                className="flex-shrink-0"
-                style={{ width: `calc(${getCardWidth()}% - 1.5rem)` }}
-              >
-                <div className="bg-white rounded-xl shadow-md overflow-hidden h-full flex flex-col transition-transform duration-300 hover:scale-105">
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={getImageUrl(estate)}
-                      alt={estate.title || 'Property image'}
-                      className="w-full h-full object-cover select-none"
-                      loading="lazy"
-                      draggable="false"
-                      onError={(e) => {
-                        // Simple fallback for broken images
-                        if (import.meta.env.MODE === 'development') {
-                          e.target.src = `https://picsum.photos/300/200?random=${getEstateKey(estate, index)}-fallback`;
-                        } else {
-                          e.target.src = '/default-property.jpg';
-                        }
-                      }}
-                    />
-                    <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold shadow">
-                      {estate.type || 'For Sale'}
+          {/* Slider Container with overflow hidden to prevent page scroll */}
+          <div className="overflow-hidden">
+            <div
+              ref={sliderRef}
+              className="flex cursor-grab active:cursor-grabbing transition-transform duration-300"
+              style={{
+                transform: `translateX(calc(${-currentIndex * (100 / visibleCards)}% + ${currentTranslate}px))`,
+                transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+              }}
+            >
+              {realEstates.map((estate, index) => (
+                <div
+                  key={getEstateKey(estate, index)}
+                  className="flex-shrink-0 px-2"
+                  style={{ width: `${getCardWidth()}%` }}
+                >
+                  <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col hover:scale-105">
+                    <div className="relative h-36 sm:h-40 md:h-48 overflow-hidden rounded-t-lg">
+                      <img
+                        src={getImageUrl(estate)}
+                        alt={estate.title || 'Property image'}
+                        className="w-full h-full object-cover select-none"
+                        loading="lazy"
+                        draggable="false"
+                        onError={(e) => {
+                          if (import.meta.env.MODE === 'development') {
+                            e.target.src = `https://picsum.photos/300/200?random=${getEstateKey(estate, index)}-fallback`;
+                          } else {
+                            e.target.src = '/default-property.jpg';
+                          }
+                        }}
+                      />
+                      <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold shadow">
+                        {estate.type || 'For Sale'}
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+                        <span className="text-white font-semibold text-sm">${estate.price?.toLocaleString() || '0'}</span>
+                      </div>
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                      <span className="text-white font-semibold">${estate.price?.toLocaleString() || '0'}</span>
-                    </div>
-                  </div>
-                  <div className="p-4 flex-grow">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{estate.title || 'Untitled Property'}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{estate.city || 'Unknown'}, {estate.state || 'Unknown'}</p>
-                    <p className="text-gray-700 text-sm mb-3 line-clamp-2">{estate.description || 'No description available'}</p>
-                    <div className="flex justify-between text-sm text-gray-500 mt-auto">
-                      <span>{estate.bedrooms || 'N/A'} beds</span>
-                      <span>{estate.bathrooms || 'N/A'} baths</span>
-                      <span>{estate.sqft || estate.sizeInSqMt || 'N/A'} {estate.sizeInSqMt ? 'm²' : 'sqft'}</span>
+                    <div className="p-3 flex-grow flex flex-col">
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 line-clamp-1">
+                        {estate.title || 'Untitled Property'}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-1">
+                        {estate.city || 'Unknown'}, {estate.state || 'Unknown'}
+                      </p>
+                      <p className="text-xs text-gray-700 mb-2 line-clamp-2 hidden sm:block">
+                        {estate.description || 'No description available'}
+                      </p>
+                      <div className="flex justify-between text-xs text-gray-500 mt-auto">
+                        <span>{estate.bedrooms || 'N/A'} beds</span>
+                        <span>{estate.bathrooms || 'N/A'} baths</span>
+                        <span>{estate.sqft || estate.sizeInSqMt || 'N/A'} {estate.sizeInSqMt ? 'm²' : 'sqft'}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          {currentIndex > 0 && (
+          {/* Navigation Buttons */}
+          {canGoPrev && (
             <button
               onClick={goToPrev}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none z-10"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 focus:outline-none z-10 transition-colors"
               aria-label="Previous properties"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           )}
 
-          {currentIndex < realEstates.length - getVisibleCards() && (
+          {canGoNext && (
             <button
               onClick={goToNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none z-10"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 focus:outline-none z-10 transition-colors"
               aria-label="Next properties"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
           )}
         </div>
 
-        <div className="text-center mt-8">
+        <div className="text-center mt-6">
           <Link to="/real-estates">
-            <button className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 px-8 rounded-lg hover:from-blue-700 hover:to-blue-900 transition duration-300 shadow-lg hover:shadow-xl font-medium">
+            <button className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-2 px-6 rounded-lg hover:from-blue-700 hover:to-blue-900 transition duration-300 shadow-lg hover:shadow-xl font-medium text-sm">
               View All Properties
             </button>
           </Link>
