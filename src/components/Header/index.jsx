@@ -2,11 +2,13 @@ import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { BACKEND_BASE_URL } from "../../utils/api/api";
+import styles from './styles.module.css';
 
 export default function Header() {
     const { user, isAuthenticated, logout, token } = useContext(AuthContext);
     const navigate = useNavigate();
     const [isVerifying, setIsVerifying] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const isAdmin = user?.roles?.includes("ROLE_ADMIN");
 
@@ -24,11 +26,10 @@ export default function Header() {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include' // Important for session cookies if using mixed auth
+                credentials: 'include'
             });
             
             if (response.ok) {
-                // Access verified - open admin dashboard
                 window.open(`${BACKEND_BASE_URL}/admin/dashboard`, '_blank');
             } else {
                 alert('Admin access required');
@@ -43,81 +44,170 @@ export default function Header() {
     };
 
     const handleAdminAccess = async () => {
-        // Quick client-side check first
         if (!isAdmin) {
             alert('Access denied');
             return;
         }
-        
-        // Backend verification before opening admin dashboard
         await verifyAdminAccess();
     };
 
     return (
-        <header className="bg-white shadow p-4 flex justify-between items-center">
-            {/* Left nav with logo + Buy, Rent, Sell links */}
-            <div className="flex items-center space-x-6">
-                <Link to="/" className="text-xl font-bold text-blue-600 hover:text-blue-800">
-                    MyApp
-                </Link>
+        <header className={styles.header}>
+            <div className={styles.container}>
+                <div className={styles.navContainer}>
+                    {/* Logo and main navigation */}
+                    <div className={styles.leftSection}>
+                        {/* Logo */}
+                        <Link to="/" className={styles.logo}>
+                            <span className={styles.logoIcon}>🏠</span>
+                            <span className={styles.logoText}>RealEstate</span>
+                        </Link>
 
-                <Link to="/buy" className="text-blue-600 hover:text-amber-300 transition-colors font-semibold">
-                    Buy
-                </Link>
-                <Link to="/rent" className="text-blue-600 hover:text-amber-300 transition-colors font-semibold">
-                    Rent
-                </Link>
-                <Link to="/sell" className="text-blue-600 hover:text-amber-300 transition-colors font-semibold">
-                    Sell
-                </Link>
+                        {/* Desktop Navigation */}
+                        <nav className={styles.desktopNav}>
+                            <Link to="/buy" className={styles.navLink}>
+                                Buy
+                            </Link>
+                            <Link to="/rent" className={styles.navLink}>
+                                Rent
+                            </Link>
+                            <Link to="/sell" className={styles.navLink}>
+                                Sell
+                            </Link>
 
-                {/* Admin Dashboard link */}
-                {isAdmin && (
+                            {/* Admin Dashboard */}
+                            {isAdmin && (
+                                <button
+                                    onClick={handleAdminAccess}
+                                    disabled={isVerifying}
+                                    className={`${styles.adminButton} ${isVerifying ? styles.adminButtonDisabled : ''}`}
+                                >
+                                    {isVerifying ? 'Verifying...' : 'Admin'}
+                                </button>
+                            )}
+                        </nav>
+                    </div>
+
+                    {/* Desktop Auth Buttons */}
+                    <div className={styles.desktopAuth}>
+                        {isAuthenticated ? (
+                            <div className={styles.userSection}>
+                                <span className={styles.welcomeText}>
+                                    Welcome, {user?.firstName || user?.email?.split('@')[0] || 'User'}
+                                </span>
+                                <button
+                                    onClick={handleLogout}
+                                    className={styles.logoutButton}
+                                >
+                                    Log Out
+                                </button>
+                            </div>
+                        ) : (
+                            <div className={styles.authButtons}>
+                                <Link to="/login" className={styles.loginButton}>
+                                    Log In
+                                </Link>
+                                <Link to="/signup" className={styles.signupButton}>
+                                    Sign Up
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Mobile menu button */}
                     <button
-                        onClick={handleAdminAccess}
-                        disabled={isVerifying}
-                        className={`font-semibold bg-transparent border-none cursor-pointer ${
-                            isVerifying 
-                                ? 'text-gray-400 cursor-not-allowed' 
-                                : 'text-green-600 hover:text-green-800'
-                        }`}
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className={styles.mobileMenuButton}
                     >
-                        {isVerifying ? 'Verifying...' : 'Admin Dashboard'}
+                        <svg className={styles.menuIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            {isMobileMenuOpen ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            )}
+                        </svg>
                     </button>
+                </div>
+
+                {/* Mobile Navigation */}
+                {isMobileMenuOpen && (
+                    <div className={styles.mobileMenu}>
+                        <nav className={styles.mobileNav}>
+                            <Link 
+                                to="/buy" 
+                                className={styles.mobileNavLink}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                Buy Properties
+                            </Link>
+                            <Link 
+                                to="/rent" 
+                                className={styles.mobileNavLink}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                Rent Properties
+                            </Link>
+                            <Link 
+                                to="/sell" 
+                                className={styles.mobileNavLink}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                Sell Properties
+                            </Link>
+
+                            {isAdmin && (
+                                <button
+                                    onClick={() => {
+                                        handleAdminAccess();
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    disabled={isVerifying}
+                                    className={`${styles.mobileAdminButton} ${isVerifying ? styles.mobileAdminButtonDisabled : ''}`}
+                                >
+                                    {isVerifying ? 'Verifying Admin Access...' : 'Admin Dashboard'}
+                                </button>
+                            )}
+
+                            {/* Mobile Auth Buttons */}
+                            <div className={styles.mobileAuthSection}>
+                                {isAuthenticated ? (
+                                    <div className={styles.mobileUserSection}>
+                                        <div className={styles.mobileWelcomeText}>
+                                            Welcome, {user?.firstName || user?.email?.split('@')[0] || 'User'}
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                handleLogout();
+                                                setIsMobileMenuOpen(false);
+                                            }}
+                                            className={styles.mobileLogoutButton}
+                                        >
+                                            Log Out
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className={styles.mobileAuthButtons}>
+                                        <Link 
+                                            to="/login" 
+                                            className={styles.mobileLoginButton}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                        >
+                                            Log In
+                                        </Link>
+                                        <Link 
+                                            to="/signup" 
+                                            className={styles.mobileSignupButton}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                        >
+                                            Sign Up
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+                        </nav>
+                    </div>
                 )}
             </div>
-
-            {/* Right nav with login/signup or logout */}
-            <nav className="space-x-4">
-                {isAuthenticated ? (
-                    <div className="flex items-center space-x-4">
-                        <span className="text-sm text-gray-600 hidden md:inline">
-                            Welcome, {user?.email || 'User'}
-                        </span>
-                        <button
-                            onClick={handleLogout}
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
-                        >
-                            Log Out
-                        </button>
-                    </div>
-                ) : (
-                    <div className="flex space-x-4">
-                        <Link 
-                            to="/login" 
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-                        >
-                            Log In
-                        </Link>
-                        <Link 
-                            to="/signup" 
-                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
-                        >
-                            Sign Up
-                        </Link>
-                    </div>
-                )}
-            </nav>
         </header>
     );
 }

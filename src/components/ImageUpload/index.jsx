@@ -290,8 +290,8 @@ const ImageUpload = ({ onImagesChange, existingImages = [] }) => {
         </div>
       )}
 
-      {/* CSS for drag and drop effects */}
-      <style jsx>{`
+      {/* CSS for drag and drop effects - FIXED: Remove style jsx */}
+      <style>{`
         .drag-item {
           transition: all 0.2s ease;
         }
