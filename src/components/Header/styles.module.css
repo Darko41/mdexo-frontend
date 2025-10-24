@@ -15,24 +15,53 @@
 }
 
 .navContainer {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  height: 3.5rem; /* Reduced height */
+  height: 3.5rem;
+  gap: 1rem;
 }
 
-/* Left Section */
-.leftSection {
+/* Left Navigation */
+.leftNav {
   display: flex;
   align-items: center;
-  gap: 1.5rem; /* Reduced gap */
+  gap: 1.5rem;
+  justify-self: start;
+}
+
+@media (max-width: 768px) {
+  .leftNav {
+    display: none;
+  }
+}
+
+.navLink {
+  color: #374151;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: #2563eb;
+  background: #f3f4f6;
+}
+
+/* Center Logo */
+.centerLogo {
+  justify-self: center;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.375rem; /* Reduced gap */
-  font-size: 1.25rem; /* Smaller font */
+  gap: 0.375rem;
+  font-size: 1.25rem;
   font-weight: bold;
   color: #2563eb;
   text-decoration: none;
@@ -44,40 +73,48 @@
 }
 
 .logoIcon {
-  font-size: 1.25rem; /* Smaller icon */
+  font-size: 1.25rem;
 }
 
 .logoText {
   display: inline;
 }
 
-/* Desktop Navigation - Now shows on smaller screens */
-.desktopNav {
-  display: flex;
-  align-items: center;
-  gap: 1rem; /* Reduced gap */
-}
-
-@media (max-width: 640px) {
-  .desktopNav {
-    display: none; /* Hide on very small screens */
+@media (max-width: 480px) {
+  .logoText {
+    display: none;
   }
 }
 
-.navLink {
-  color: #374151;
-  font-weight: 500;
-  text-decoration: none;
-  padding: 0.375rem 0.5rem; /* Smaller padding */
-  border-radius: 0.375rem;
-  font-size: 0.875rem; /* Smaller font */
-  transition: all 0.2s ease-in-out;
+/* Right Auth Section */
+.rightAuth {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-self: end;
+}
+
+@media (max-width: 768px) {
+  .rightAuth {
+    display: none;
+  }
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.welcomeText {
+  font-size: 0.75rem;
+  color: #6b7280;
   white-space: nowrap;
 }
 
-.navLink:hover {
-  color: #2563eb;
-  background: #f3f4f6;
+.authButtons {
+  display: flex;
+  gap: 0.5rem;
 }
 
 /* Admin Button */
@@ -90,7 +127,7 @@
   border-radius: 0.375rem;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  font-size: 0.875rem; /* Smaller font */
+  font-size: 0.875rem;
   white-space: nowrap;
 }
 
@@ -104,76 +141,31 @@
   cursor: not-allowed;
 }
 
-/* Desktop Auth - Now shows on smaller screens */
-.desktopAuth {
-  display: flex;
-}
-
-@media (max-width: 640px) {
-  .desktopAuth {
-    display: none; /* Hide on very small screens */
-  }
-}
-
-.userSection {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem; /* Reduced gap */
-}
-
-.welcomeText {
-  font-size: 0.75rem; /* Smaller font */
-  color: #6b7280;
-  white-space: nowrap;
-}
-
-.authButtons {
-  display: flex;
-  gap: 0.5rem; /* Reduced gap */
-}
-
-/* Buttons - Smaller */
-.loginButton {
-  background: white;
-  color: #2563eb;
-  border: 1px solid #2563eb;
-  padding: 0.375rem 0.75rem; /* Smaller padding */
-  border-radius: 0.375rem;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.75rem; /* Smaller font */
-  transition: all 0.2s ease-in-out;
-  white-space: nowrap;
-}
-
-.loginButton:hover {
-  background: #dbeafe;
-}
-
-.signupButton {
+/* Sign In Button */
+.signInButton {
   background: #2563eb;
   color: white;
-  padding: 0.375rem 0.75rem; /* Smaller padding */
+  padding: 0.5rem 1rem;
   border-radius: 0.375rem;
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.75rem; /* Smaller font */
+  font-size: 0.875rem;
   transition: background-color 0.2s ease-in-out;
   white-space: nowrap;
 }
 
-.signupButton:hover {
+.signInButton:hover {
   background: #1d4ed8;
 }
 
 .logoutButton {
   background: #ef4444;
   color: white;
-  padding: 0.375rem 0.75rem; /* Smaller padding */
+  padding: 0.375rem 0.75rem;
   border-radius: 0.375rem;
   border: none;
   font-weight: 500;
-  font-size: 0.75rem; /* Smaller font */
+  font-size: 0.75rem;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
   white-space: nowrap;
@@ -183,9 +175,9 @@
   background: #dc2626;
 }
 
-/* Mobile menu button - Only on very small screens */
+/* Mobile menu button */
 .mobileMenuButton {
-  display: none; /* Hidden by default */
+  display: none;
   padding: 0.375rem;
   border-radius: 0.375rem;
   color: #374151;
@@ -193,11 +185,16 @@
   border: none;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  justify-self: end;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .mobileMenuButton {
-    display: block; /* Only show on very small screens */
+    display: block;
+  }
+  
+  .navContainer {
+    grid-template-columns: 1fr auto 1fr;
   }
 }
 
@@ -207,26 +204,26 @@
 }
 
 .menuIcon {
-  height: 1.25rem; /* Smaller icon */
+  height: 1.25rem;
   width: 1.25rem;
 }
 
-/* Mobile Menu - Only on very small screens */
+/* Mobile Menu */
 .mobileMenu {
   border-top: 1px solid #e5e7eb;
   padding: 1rem 0;
 }
 
-@media (min-width: 641px) {
+@media (min-width: 769px) {
   .mobileMenu {
-    display: none; /* Hide on larger screens */
+    display: none;
   }
 }
 
 .mobileNav {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* Reduced gap */
+  gap: 0.75rem;
 }
 
 .mobileNavLink {
@@ -237,6 +234,7 @@
   border-radius: 0.5rem;
   transition: all 0.2s ease-in-out;
   font-size: 0.875rem;
+  text-align: center;
 }
 
 .mobileNavLink:hover {
@@ -252,10 +250,11 @@
   font-weight: 500;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   font-size: 0.875rem;
+  width: 100%;
 }
 
 .mobileAdminButton:hover:not(.mobileAdminButtonDisabled) {
@@ -285,44 +284,31 @@
 .mobileWelcomeText {
   font-size: 0.875rem;
   color: #6b7280;
-  padding: 0 1rem;
+  text-align: center;
+  padding: 0.5rem 0;
 }
 
 .mobileAuthButtons {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  align-items: center;
 }
 
-/* Mobile Buttons */
-.mobileLoginButton {
-  background: white;
-  color: #2563eb;
-  border: 1px solid #2563eb;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  text-decoration: none;
-  font-weight: 500;
-  text-align: center;
-  transition: all 0.2s ease-in-out;
-}
-
-.mobileLoginButton:hover {
-  background: #dbeafe;
-}
-
-.mobileSignupButton {
+.mobileSignInButton {
   background: #2563eb;
   color: white;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 2rem;
   border-radius: 0.5rem;
   text-decoration: none;
   font-weight: 500;
   text-align: center;
   transition: background-color 0.2s ease-in-out;
+  width: 100%;
+  max-width: 200px;
 }
 
-.mobileSignupButton:hover {
+.mobileSignInButton:hover {
   background: #1d4ed8;
 }
 
@@ -336,8 +322,26 @@
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
   text-align: center;
+  width: 100%;
 }
 
 .mobileLogoutButton:hover {
   background: #dc2626;
+}
+
+.signUpPrompt {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  padding: 0.5rem 0;
+}
+
+.signUpLink {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.signUpLink:hover {
+  text-decoration: underline;
 }

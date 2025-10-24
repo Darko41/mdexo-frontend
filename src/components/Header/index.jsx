@@ -55,43 +55,41 @@ export default function Header() {
         <header className={styles.header}>
             <div className={styles.container}>
                 <div className={styles.navContainer}>
-                    {/* Logo and main navigation */}
-                    <div className={styles.leftSection}>
-                        {/* Logo */}
+                    {/* Left: Navigation Links (Buy, Rent, Sell) */}
+                    <nav className={styles.leftNav}>
+                        <Link to="/buy" className={styles.navLink}>
+                            Buy
+                        </Link>
+                        <Link to="/rent" className={styles.navLink}>
+                            Rent
+                        </Link>
+                        <Link to="/sell" className={styles.navLink}>
+                            Sell
+                        </Link>
+                    </nav>
+
+                    {/* Center: Logo */}
+                    <div className={styles.centerLogo}>
                         <Link to="/" className={styles.logo}>
                             <span className={styles.logoIcon}>🏠</span>
                             <span className={styles.logoText}>RealEstate</span>
                         </Link>
-
-                        {/* Desktop Navigation - Now visible on more screens */}
-                        <nav className={styles.desktopNav}>
-                            <Link to="/buy" className={styles.navLink}>
-                                Buy
-                            </Link>
-                            <Link to="/rent" className={styles.navLink}>
-                                Rent
-                            </Link>
-                            <Link to="/sell" className={styles.navLink}>
-                                Sell
-                            </Link>
-
-                            {/* Admin Dashboard */}
-                            {isAdmin && (
-                                <button
-                                    onClick={handleAdminAccess}
-                                    disabled={isVerifying}
-                                    className={`${styles.adminButton} ${isVerifying ? styles.adminButtonDisabled : ''}`}
-                                >
-                                    {isVerifying ? 'Verifying...' : 'Admin'}
-                                </button>
-                            )}
-                        </nav>
                     </div>
 
-                    {/* Desktop Auth Buttons - Now visible on more screens */}
-                    <div className={styles.desktopAuth}>
+                    {/* Right: Auth Section */}
+                    <div className={styles.rightAuth}>
                         {isAuthenticated ? (
                             <div className={styles.userSection}>
+                                {/* Admin Dashboard for authenticated admin users */}
+                                {isAdmin && (
+                                    <button
+                                        onClick={handleAdminAccess}
+                                        disabled={isVerifying}
+                                        className={`${styles.adminButton} ${isVerifying ? styles.adminButtonDisabled : ''}`}
+                                    >
+                                        {isVerifying ? 'Verifying...' : 'Admin'}
+                                    </button>
+                                )}
                                 <span className={styles.welcomeText}>
                                     Hi, {user?.firstName || user?.email?.split('@')[0] || 'User'}
                                 </span>
@@ -104,11 +102,8 @@ export default function Header() {
                             </div>
                         ) : (
                             <div className={styles.authButtons}>
-                                <Link to="/login" className={styles.loginButton}>
-                                    Log In
-                                </Link>
-                                <Link to="/signup" className={styles.signupButton}>
-                                    Sign Up
+                                <Link to="/login" className={styles.signInButton}>
+                                    Sign In
                                 </Link>
                             </div>
                         )}
@@ -155,26 +150,25 @@ export default function Header() {
                                 Sell Properties
                             </Link>
 
-                            {isAdmin && (
-                                <button
-                                    onClick={() => {
-                                        handleAdminAccess();
-                                        setIsMobileMenuOpen(false);
-                                    }}
-                                    disabled={isVerifying}
-                                    className={`${styles.mobileAdminButton} ${isVerifying ? styles.mobileAdminButtonDisabled : ''}`}
-                                >
-                                    {isVerifying ? 'Verifying Admin Access...' : 'Admin Dashboard'}
-                                </button>
-                            )}
-
-                            {/* Mobile Auth Buttons */}
+                            {/* Mobile Auth Section */}
                             <div className={styles.mobileAuthSection}>
                                 {isAuthenticated ? (
                                     <div className={styles.mobileUserSection}>
                                         <div className={styles.mobileWelcomeText}>
                                             Welcome, {user?.firstName || user?.email?.split('@')[0] || 'User'}
                                         </div>
+                                        {isAdmin && (
+                                            <button
+                                                onClick={() => {
+                                                    handleAdminAccess();
+                                                    setIsMobileMenuOpen(false);
+                                                }}
+                                                disabled={isVerifying}
+                                                className={`${styles.mobileAdminButton} ${isVerifying ? styles.mobileAdminButtonDisabled : ''}`}
+                                            >
+                                                {isVerifying ? 'Verifying Admin Access...' : 'Admin Dashboard'}
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => {
                                                 handleLogout();
@@ -189,18 +183,21 @@ export default function Header() {
                                     <div className={styles.mobileAuthButtons}>
                                         <Link 
                                             to="/login" 
-                                            className={styles.mobileLoginButton}
+                                            className={styles.mobileSignInButton}
                                             onClick={() => setIsMobileMenuOpen(false)}
                                         >
-                                            Log In
+                                            Sign In
                                         </Link>
-                                        <Link 
-                                            to="/signup" 
-                                            className={styles.mobileSignupButton}
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                        >
-                                            Sign Up
-                                        </Link>
+                                        <div className={styles.signUpPrompt}>
+                                            Don't have an account?{' '}
+                                            <Link 
+                                                to="/signup" 
+                                                className={styles.signUpLink}
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                            >
+                                                Sign up
+                                            </Link>
+                                        </div>
                                     </div>
                                 )}
                             </div>
