@@ -56,7 +56,6 @@ export function AuthProvider({ children }) {
 
           // Set axios auth header
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          console.log("✅ Axios header set with token");
 
           setAuthState({
             user,

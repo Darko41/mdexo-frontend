@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import API from '../../utils/api/api.js';
+import styles from './styles.module.css';
 
 export default function RealEstateSlider() {
 	const [realEstates, setRealEstates] = useState([]);
@@ -12,6 +13,7 @@ export default function RealEstateSlider() {
 	const [startPos, setStartPos] = useState(0);
 	const [currentTranslate, setCurrentTranslate] = useState(0);
 	const [prevTranslate, setPrevTranslate] = useState(0);
+	const [animationID, setAnimationID] = useState(null);
 
 	// Fetch data when the component mounts
 	useEffect(() => {
@@ -33,53 +35,87 @@ export default function RealEstateSlider() {
 		fetchRealEstates();
 	}, []);
 
+	// Animation for smooth dragging
+	const animation = useCallback(() => {
+		if (sliderRef.current) {
+			sliderRef.current.style.transform = `translateX(${currentTranslate}px)`;
+		}
+		setAnimationID(requestAnimationFrame(animation));
+	}, [currentTranslate]);
+
+	useEffect(() => {
+		if (isDragging) {
+			setAnimationID(requestAnimationFrame(animation));
+		} else {
+			if (animationID) {
+				cancelAnimationFrame(animationID);
+			}
+		}
+
+		return () => {
+			if (animationID) {
+				cancelAnimationFrame(animationID);
+			}
+		};
+	}, [isDragging, animation, animationID]);
+
+	const getPositionX = useCallback((e) => {
+		return e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+	}, []);
+
+	const handleStart = useCallback((e) => {
+		setIsDragging(true);
+		setStartPos(getPositionX(e));
+		setPrevTranslate(currentTranslate);
+		if (sliderRef.current) {
+			sliderRef.current.style.cursor = 'grabbing';
+			sliderRef.current.style.transition = 'none';
+		}
+	}, [getPositionX, currentTranslate]);
+
+	const handleMove = useCallback((e) => {
+		if (!isDragging) return;
+		e.preventDefault();
+		const currentPosition = getPositionX(e);
+		const diff = currentPosition - startPos;
+		setCurrentTranslate(prevTranslate + diff);
+	}, [isDragging, getPositionX, startPos, prevTranslate]);
+
+	const handleEnd = useCallback(() => {
+		if (!isDragging) return;
+		setIsDragging(false);
+		
+		const movedBy = currentTranslate - prevTranslate;
+		const threshold = 100; // Minimum swipe distance to trigger slide change
+
+		// If moved significantly to left, go to next
+		if (movedBy < -threshold) {
+			goToNext();
+		}
+		// If moved significantly to right, go to previous
+		else if (movedBy > threshold) {
+			goToPrev();
+		}
+		// Otherwise, snap back to current position
+		else {
+			setCurrentTranslate(prevTranslate);
+		}
+
+		if (sliderRef.current) {
+			sliderRef.current.style.cursor = 'grab';
+			sliderRef.current.style.transition = 'transform 0.3s ease-out';
+		}
+	}, [isDragging, currentTranslate, prevTranslate]);
+
 	// Touch and mouse event handlers for swipe functionality
 	useEffect(() => {
 		if (!sliderRef.current || realEstates.length === 0) return;
 
 		const slider = sliderRef.current;
 
-		const getPositionX = (e) => {
-			return e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
-		};
-
-		const handleStart = (e) => {
-			setIsDragging(true);
-			setStartPos(getPositionX(e));
-			setPrevTranslate(currentTranslate);
-			slider.style.cursor = 'grabbing';
-			slider.style.transition = 'none';
-		};
-
-		const handleMove = (e) => {
-			if (!isDragging) return;
-			const currentPosition = getPositionX(e);
-			const diff = currentPosition - startPos;
-			setCurrentTranslate(prevTranslate + diff);
-		};
-
-		const handleEnd = () => {
-			setIsDragging(false);
-			const movedBy = currentTranslate - prevTranslate;
-
-			// If moved significantly to left, go to next
-			if (movedBy < -50 && currentIndex < realEstates.length - 5) {
-				goToNext();
-			}
-			// If moved significantly to right, go to previous
-			else if (movedBy > 50 && currentIndex > 0) {
-				goToPrev();
-			}
-
-			// Reset translate
-			setCurrentTranslate(0);
-			slider.style.cursor = 'grab';
-			slider.style.transition = 'transform 0.3s ease-out';
-		};
-
 		// Add event listeners for touch
-		slider.addEventListener('touchstart', handleStart);
-		slider.addEventListener('touchmove', handleMove);
+		slider.addEventListener('touchstart', handleStart, { passive: false });
+		slider.addEventListener('touchmove', handleMove, { passive: false });
 		slider.addEventListener('touchend', handleEnd);
 
 		// Add event listeners for mouse
@@ -87,6 +123,12 @@ export default function RealEstateSlider() {
 		slider.addEventListener('mousemove', handleMove);
 		slider.addEventListener('mouseup', handleEnd);
 		slider.addEventListener('mouseleave', handleEnd);
+
+		// Prevent image drag behavior
+		const images = slider.querySelectorAll('img');
+		images.forEach(img => {
+			img.addEventListener('dragstart', (e) => e.preventDefault());
+		});
 
 		return () => {
 			// Clean up touch listeners
@@ -100,19 +142,49 @@ export default function RealEstateSlider() {
 			slider.removeEventListener('mouseup', handleEnd);
 			slider.removeEventListener('mouseleave', handleEnd);
 		};
-	}, [currentIndex, isDragging, prevTranslate, realEstates.length, startPos]);
+	}, [realEstates.length, handleStart, handleMove, handleEnd]);
 
-	const goToNext = () => {
-		if (currentIndex < realEstates.length - 5) {
+	const goToNext = useCallback(() => {
+		if (currentIndex < realEstates.length - getVisibleCards()) {
 			setCurrentIndex(prev => prev + 1);
+			setCurrentTranslate(0);
+			setPrevTranslate(0);
 		}
-	};
+	}, [currentIndex, realEstates.length]);
 
-	const goToPrev = () => {
+	const goToPrev = useCallback(() => {
 		if (currentIndex > 0) {
 			setCurrentIndex(prev => prev - 1);
+			setCurrentTranslate(0);
+			setPrevTranslate(0);
 		}
+	}, [currentIndex]);
+
+	// Helper function to calculate visible cards based on screen size
+	const getVisibleCards = () => {
+		if (typeof window === 'undefined') return 5;
+		
+		const width = window.innerWidth;
+		if (width < 640) return 1; // sm
+		if (width < 768) return 2; // md
+		if (width < 1024) return 3; // lg
+		if (width < 1280) return 4; // xl
+		return 5; // 2xl and above
 	};
+
+	// Calculate card width based on visible cards
+	const getCardWidth = () => {
+		const visibleCards = getVisibleCards();
+		return 100 / visibleCards;
+	};
+
+	// Reset translate when currentIndex changes (not during drag)
+	useEffect(() => {
+		if (!isDragging) {
+			setCurrentTranslate(0);
+			setPrevTranslate(0);
+		}
+	}, [currentIndex, isDragging]);
 
 	if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
 	if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
@@ -125,25 +197,27 @@ export default function RealEstateSlider() {
 				<div className="relative">
 					<div
 						ref={sliderRef}
-						className="flex gap-6 overflow-hidden cursor-grab"
+						className="flex gap-6 cursor-grab active:cursor-grabbing"
 						style={{
-							transform: `translateX(${-currentIndex * 25}%)`,
+							transform: `translateX(calc(${-currentIndex * 100}% + ${currentTranslate}px))`,
 							transition: isDragging ? 'none' : 'transform 0.3s ease-out'
 						}}
 					>
 						{realEstates.map((estate) => (
 							<div
-								key={estate.id}
-								className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 transition-transform duration-300 hover:scale-105"
+							  key={estate.id}
+							  className="flex-shrink-0"
+							  style={{ width: `calc(${getCardWidth()}% - 1.5rem)` }}
 							>
-								<div className="bg-white rounded-xl shadow-md overflow-hidden h-full flex flex-col">
-									<div className="relative h-48 overflow-hidden">
-										<img
-											src={estate.imageUrl || 'https://via.placeholder.com/300'}
-											alt={estate.title}
-											className="w-full h-full object-cover"
-											loading="lazy"
-										/>
+							  <div className={`${styles.card} h-full`}>
+							    <div className={`${styles.imageContainer} h-48`}>
+							      <img
+							        src={estate.imageUrl || 'https://via.placeholder.com/300'}
+							        alt={estate.title}
+							        className={styles.image}
+							        loading="lazy"
+							        draggable="false"
+							      />
 										<div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold shadow">
 											{estate.type || 'For Sale'}
 										</div>
@@ -169,7 +243,7 @@ export default function RealEstateSlider() {
 					{currentIndex > 0 && (
 						<button
 							onClick={goToPrev}
-							className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none"
+							className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none z-10"
 							aria-label="Previous properties"
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,10 +252,10 @@ export default function RealEstateSlider() {
 						</button>
 					)}
 
-					{currentIndex < realEstates.length - 5 && (
+					{currentIndex < realEstates.length - getVisibleCards() && (
 						<button
 							onClick={goToNext}
-							className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none"
+							className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none z-10"
 							aria-label="Next properties"
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">

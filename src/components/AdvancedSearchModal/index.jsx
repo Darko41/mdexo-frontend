@@ -32,7 +32,7 @@ const AdvancedSearchModal = ({
   const [featureWarning, setFeatureWarning] = useState('');
   const [featureSearch, setFeatureSearch] = useState('');
 
-  const propertyTypes = ['APARTMENT', 'HOUSE', 'LAND', 'COMMERCIAL'];
+  const propertyTypes = ['APARTMENT', 'HOUSE', 'CONDO', 'LAND', 'GARRAGE', 'COMMERCIAL', 'OTHER'];
   const listingTypes = ['SALE', 'RENT'];
   
   const navigate = useNavigate();
@@ -320,26 +320,29 @@ const AdvancedSearchModal = ({
             
             {/* Property Type */}
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Тип некретнине</h3>
-              <div className={styles.selectGroup}>
-                <select
-                  name="propertyType"
-                  value={filters.propertyType}
-                  onChange={handleFilterChange}
-                  className={styles.select}
-                >
-                  <option value="">Сви типови</option>
-                  {propertyTypes.map(type => (
-                    <option key={type} value={type}>
-                      {type === 'APARTMENT' && 'Апартман'}
-                      {type === 'HOUSE' && 'Кућа'}
-                      {type === 'LAND' && 'Земљиште'}
-                      {type === 'COMMERCIAL' && 'Комерцијални'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+			  <h3 className={styles.sectionTitle}>Тип некретнине</h3>
+			  <div className={styles.selectGroup}>
+			    <select
+			      name="propertyType"
+			      value={filters.propertyType}
+			      onChange={handleFilterChange}
+			      className={styles.select}
+			    >
+			      <option value="">Сви типови</option>
+			      {propertyTypes.map(type => (
+			        <option key={type} value={type}>
+			          {type === 'APARTMENT' && 'Апартман'}
+			          {type === 'HOUSE' && 'Кућа'}
+			          {type === 'CONDO' && 'Кондо'}
+			          {type === 'LAND' && 'Земљиште'}
+			          {type === 'GARRAGE' && 'Гаража'}
+			          {type === 'COMMERCIAL' && 'Комерцијални'}
+			          {type === 'OTHER' && 'Остало'}
+			        </option>
+			      ))}
+			    </select>
+			  </div>
+			</div>
             
             {/* Listing Type */}
             <div className={styles.section}>
