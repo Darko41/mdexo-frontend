@@ -55,18 +55,35 @@ export default function Header() {
         <header className={styles.header}>
             <div className={styles.container}>
                 <div className={styles.navContainer}>
-                    {/* Left: Navigation Links (Buy, Rent, Sell) */}
-                    <nav className={styles.leftNav}>
-                        <Link to="/buy" className={styles.navLink}>
-                            Buy
-                        </Link>
-                        <Link to="/rent" className={styles.navLink}>
-                            Rent
-                        </Link>
-                        <Link to="/sell" className={styles.navLink}>
-                            Sell
-                        </Link>
-                    </nav>
+                    {/* Left: Navigation Links (Buy, Rent, Sell) on desktop, Burger on mobile */}
+                    <div className={styles.leftSection}>
+                        {/* Desktop Navigation */}
+                        <nav className={styles.leftNav}>
+                            <Link to="/buy" className={styles.navLink}>
+                                Buy
+                            </Link>
+                            <Link to="/rent" className={styles.navLink}>
+                                Rent
+                            </Link>
+                            <Link to="/sell" className={styles.navLink}>
+                                Sell
+                            </Link>
+                        </nav>
+
+                        {/* Mobile menu button */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className={styles.mobileMenuButton}
+                        >
+                            <svg className={styles.menuIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                {isMobileMenuOpen ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                )}
+                            </svg>
+                        </button>
+                    </div>
 
                     {/* Center: Logo */}
                     <div className={styles.centerLogo}>
@@ -76,7 +93,7 @@ export default function Header() {
                         </Link>
                     </div>
 
-                    {/* Right: Auth Section */}
+                    {/* Right: Auth Section - ALWAYS VISIBLE */}
                     <div className={styles.rightAuth}>
                         {isAuthenticated ? (
                             <div className={styles.userSection}>
@@ -108,23 +125,9 @@ export default function Header() {
                             </div>
                         )}
                     </div>
-
-                    {/* Mobile menu button - Only on very small screens */}
-                    <button
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className={styles.mobileMenuButton}
-                    >
-                        <svg className={styles.menuIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            {isMobileMenuOpen ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                            )}
-                        </svg>
-                    </button>
                 </div>
 
-                {/* Mobile Navigation - Only on very small screens */}
+                {/* Mobile Navigation - Only navigation links */}
                 {isMobileMenuOpen && (
                     <div className={styles.mobileMenu}>
                         <nav className={styles.mobileNav}>
@@ -149,58 +152,6 @@ export default function Header() {
                             >
                                 Sell Properties
                             </Link>
-
-                            {/* Mobile Auth Section */}
-                            <div className={styles.mobileAuthSection}>
-                                {isAuthenticated ? (
-                                    <div className={styles.mobileUserSection}>
-                                        <div className={styles.mobileWelcomeText}>
-                                            Welcome, {user?.firstName || user?.email?.split('@')[0] || 'User'}
-                                        </div>
-                                        {isAdmin && (
-                                            <button
-                                                onClick={() => {
-                                                    handleAdminAccess();
-                                                    setIsMobileMenuOpen(false);
-                                                }}
-                                                disabled={isVerifying}
-                                                className={`${styles.mobileAdminButton} ${isVerifying ? styles.mobileAdminButtonDisabled : ''}`}
-                                            >
-                                                {isVerifying ? 'Verifying Admin Access...' : 'Admin Dashboard'}
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => {
-                                                handleLogout();
-                                                setIsMobileMenuOpen(false);
-                                            }}
-                                            className={styles.mobileLogoutButton}
-                                        >
-                                            Log Out
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className={styles.mobileAuthButtons}>
-                                        <Link 
-                                            to="/login" 
-                                            className={styles.mobileSignInButton}
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                        >
-                                            Sign In
-                                        </Link>
-                                        <div className={styles.signUpPrompt}>
-                                            Don't have an account?{' '}
-                                            <Link 
-                                                to="/signup" 
-                                                className={styles.signUpLink}
-                                                onClick={() => setIsMobileMenuOpen(false)}
-                                            >
-                                                Sign up
-                                            </Link>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
                         </nav>
                     </div>
                 )}
