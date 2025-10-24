@@ -1,18 +1,17 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from '../../utils/api/api';
-import { RealEstateCard } from "../../components/real-estate";
 import { AuthContext } from '../../context/AuthContext';
 import { FaChartLine, FaStar, FaClock, FaHeadset } from "react-icons/fa";
 import styles from './styles.module.css';
 import CTA from "../../components/CTA";
 import AuthPrompt from "../../components/AuthPrompt";
+import { RealEstateSlider } from "../../components/real-estate";
 
 export default function BuyingPage() {
   const [realEstates, setRealEstates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(0); // Add this for slider
   const navigate = useNavigate();
 
   // Use AuthContext to check authentication
@@ -39,19 +38,6 @@ export default function BuyingPage() {
 
     fetchProperties();
   }, []);
-
-  // Add slider navigation functions (same as RentingPage)
-  const goToNext = () => {
-    if (currentIndex < realEstates.length - 5) {
-      setCurrentIndex(prev => prev + 1);
-    }
-  };
-
-  const goToPrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-    }
-  };
 
   const handleCreateListingClick = () => {
     if (!isAuthenticated) {
@@ -110,69 +96,14 @@ export default function BuyingPage() {
     );
   }
 
-  const featuredProperties = realEstates.slice(0, 10); // Limit to featured properties for slider
-
   return (
     <section className={styles.container}>
-      {/* Properties for Sale Section - Updated to use slider */}
+      {/* Properties for Sale Section - Using RealEstateSlider */}
       <div className={styles.propertiesSection}>
         <h2 className={styles.sectionTitle}>Properties For Sale</h2>
         
-        {featuredProperties.length > 0 ? (
-          <div className="relative"> {/* Using Tailwind classes like RentingPage */}
-            <div className="flex gap-6 overflow-hidden">
-              {featuredProperties.map((estate) => (
-                <div 
-                  key={estate.propertyId || estate.id}
-                  className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 transition-transform duration-300"
-                  style={{
-                    transform: `translateX(${-currentIndex * 100}%)`
-                  }}
-                >
-                  <RealEstateCard property={estate} />
-                </div>
-              ))}
-            </div>
-
-            {/* Slider Navigation Buttons - Same as RentingPage */}
-            {featuredProperties.length > 5 && (
-              <>
-                <button
-                  onClick={goToPrev}
-                  disabled={currentIndex === 0}
-                  className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none transition-colors ${
-                    currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  aria-label="Previous properties"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button
-                  onClick={goToNext}
-                  disabled={currentIndex >= featuredProperties.length - 5}
-                  className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none transition-colors ${
-                    currentIndex >= featuredProperties.length - 5 ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  aria-label="Next properties"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </>
-            )}
-
-            {/* Browse All Button */}
-            <div className="text-center mt-8">
-              <Link to="/real-estates">
-                <button className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
-                  Browse All Properties For Sale
-                </button>
-              </Link>
-            </div>
-          </div>
+        {realEstates.length > 0 ? (
+          <RealEstateSlider realEstates={realEstates} />
         ) : (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
@@ -187,32 +118,32 @@ export default function BuyingPage() {
       </div>
 
       <CTA
-      title={isAuthenticated ? 'Ready to sell your property?' : 'Want to sell your property with us?'}
-      description={isAuthenticated 
-        ? 'Create your listing now and reach thousands of potential buyers.'
-        : 'Join thousands of satisfied sellers who have successfully sold their properties through our platform. Get more visibility, serious buyers, and better offers.'
-      }
-      primaryButtonText={authLoading ? 'Loading...' : (isAuthenticated ? 'Create Sale Listing' : 'Create Your Sale Listing')}
-      secondaryButtonText="Learn How It Works"
-      onPrimaryClick={handleCreateListingClick}
-      onSecondaryClick={() => navigate('/how-it-works')}
-      disabled={authLoading}
-      stats={[
-        { icon: FaChartLine, number: '15,000+', label: 'Monthly Visitors' },
-        { icon: FaStar, number: '94%', label: 'Satisfaction Rate' },
-        { icon: FaClock, number: '18 Days', label: 'Average Listing Time' },
-        { icon: FaHeadset, number: '24/7', label: 'Support Available' }
-      ]}
-    />
+        title={isAuthenticated ? 'Ready to sell your property?' : 'Want to sell your property with us?'}
+        description={isAuthenticated 
+          ? 'Create your listing now and reach thousands of potential buyers.'
+          : 'Join thousands of satisfied sellers who have successfully sold their properties through our platform. Get more visibility, serious buyers, and better offers.'
+        }
+        primaryButtonText={authLoading ? 'Loading...' : (isAuthenticated ? 'Create Sale Listing' : 'Create Your Sale Listing')}
+        secondaryButtonText="Learn How It Works"
+        onPrimaryClick={handleCreateListingClick}
+        onSecondaryClick={() => navigate('/how-it-works')}
+        disabled={authLoading}
+        stats={[
+          { icon: FaChartLine, number: '15,000+', label: 'Monthly Visitors' },
+          { icon: FaStar, number: '94%', label: 'Satisfaction Rate' },
+          { icon: FaClock, number: '18 Days', label: 'Average Listing Time' },
+          { icon: FaHeadset, number: '24/7', label: 'Support Available' }
+        ]}
+      />
 
       {/* For Existing Users - Only show if not authenticated */}
       {!isAuthenticated && !authLoading && (
-      <AuthPrompt
-        message="Already have an account?"
-        onLogin={() => navigate('/login')}
-        onRegister={() => navigate('/signup')}
-      />
-    )}
+        <AuthPrompt
+          message="Already have an account?"
+          onLogin={() => navigate('/login')}
+          onRegister={() => navigate('/signup')}
+        />
+      )}
     </section>
   );
 }
