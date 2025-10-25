@@ -14,6 +14,7 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
   const [prevTranslate, setPrevTranslate] = useState(0);
   const animationIDRef = useRef(null);
   const [visibleCards, setVisibleCards] = useState(1);
+  const [loadedImages, setLoadedImages] = useState(new Set()); // Track loaded images
 
   // Calculate visible cards based on screen size
   const calculateVisibleCards = useCallback(() => {
@@ -229,19 +230,31 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
     return estate.propertyId || estate.id || `estate-${index}`;
   };
 
-  // Simple image URL getter - safe for S3
-  const getImageUrl = (estate) => {
+  // Improved image URL getter with caching
+  const getImageUrl = useCallback((estate) => {
     if (estate.imageUrl) {
       return estate.imageUrl;
     }
     if (estate.images && estate.images.length > 0) {
       return estate.images[0];
     }
-    if (import.meta.env.MODE === 'development') {
-      return `https://picsum.photos/300/200?random=${getEstateKey(estate)}`;
-    }
+    // Use a consistent fallback image to prevent blinking
     return '/default-property.jpg';
-  };
+  }, []);
+
+  // Handle image load
+  const handleImageLoad = useCallback((estateKey) => {
+    setLoadedImages(prev => new Set(prev).add(estateKey));
+  }, []);
+
+  // Handle image error - use a consistent fallback
+  const handleImageError = useCallback((e, estateKey) => {
+    // Only set fallback if not already set to prevent infinite loops
+    if (e.target.src !== '/default-property.jpg') {
+      e.target.src = '/default-property.jpg';
+      handleImageLoad(estateKey); // Mark as loaded even if it's fallback
+    }
+  }, [handleImageLoad]);
 
   if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
@@ -266,54 +279,56 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
                 transition: isDragging ? 'none' : 'transform 0.3s ease-out'
               }}
             >
-              {realEstates.map((estate, index) => (
-                <div
-                  key={getEstateKey(estate, index)}
-                  className="flex-shrink-0 px-2"
-                  style={{ width: `${getCardWidth()}%` }}
-                >
-                  <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col hover:scale-105">
-                    <div className="relative h-36 sm:h-40 md:h-48 overflow-hidden rounded-t-lg">
-                      <img
-                        src={getImageUrl(estate)}
-                        alt={estate.title || 'Property image'}
-                        className="w-full h-full object-cover select-none"
-                        loading="lazy"
-                        draggable="false"
-                        onError={(e) => {
-                          if (import.meta.env.MODE === 'development') {
-                            e.target.src = `https://picsum.photos/300/200?random=${getEstateKey(estate, index)}-fallback`;
-                          } else {
-                            e.target.src = '/default-property.jpg';
-                          }
-                        }}
-                      />
-                      <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold shadow">
-                        {estate.type || 'For Sale'}
+              {realEstates.map((estate, index) => {
+                const estateKey = getEstateKey(estate, index);
+                const imageUrl = getImageUrl(estate);
+                
+                return (
+                  <div
+                    key={estateKey}
+                    className="flex-shrink-0 px-2"
+                    style={{ width: `${getCardWidth()}%` }}
+                  >
+                    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col group">
+                      <div className="relative h-36 sm:h-40 md:h-48 overflow-hidden rounded-t-lg">
+                        <img
+                          src={imageUrl}
+                          alt={estate.title || 'Property image'}
+                          className="w-full h-full object-cover select-none transition-opacity duration-300"
+                          loading="lazy"
+                          draggable="false"
+                          onLoad={() => handleImageLoad(estateKey)}
+                          onError={(e) => handleImageError(e, estateKey)}
+                        />
+                        <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold shadow">
+                          {estate.listingType === 'FOR_RENT' ? 'For Rent' : 'For Sale'}
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+                          <span className="text-white font-semibold text-sm">
+                            {estate.price?.toLocaleString() || '0'} €
+                          </span>
+                        </div>
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                        <span className="text-white font-semibold text-sm">${estate.price?.toLocaleString() || '0'}</span>
-                      </div>
-                    </div>
-                    <div className="p-3 flex-grow flex flex-col">
-                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 line-clamp-1">
-                        {estate.title || 'Untitled Property'}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-1">
-                        {estate.city || 'Unknown'}, {estate.state || 'Unknown'}
-                      </p>
-                      <p className="text-xs text-gray-700 mb-2 line-clamp-2 hidden sm:block">
-                        {estate.description || 'No description available'}
-                      </p>
-                      <div className="flex justify-between text-xs text-gray-500 mt-auto">
-                        <span>{estate.bedrooms || 'N/A'} beds</span>
-                        <span>{estate.bathrooms || 'N/A'} baths</span>
-                        <span>{estate.sqft || estate.sizeInSqMt || 'N/A'} {estate.sizeInSqMt ? 'm²' : 'sqft'}</span>
+                      <div className="p-3 flex-grow flex flex-col">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 line-clamp-1">
+                          {estate.title || 'Untitled Property'}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-1">
+                          {estate.city || 'Unknown'}, {estate.state || 'Unknown'}
+                        </p>
+                        <p className="text-xs text-gray-700 mb-2 line-clamp-2 hidden sm:block">
+                          {estate.description || 'No description available'}
+                        </p>
+                        <div className="flex justify-between text-xs text-gray-500 mt-auto">
+                          <span>{estate.bedrooms || 'N/A'} beds</span>
+                          <span>{estate.bathrooms || 'N/A'} baths</span>
+                          <span>{estate.sizeInSqMt || 'N/A'} m²</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -321,7 +336,7 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
           {canGoPrev && (
             <button
               onClick={goToPrev}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 focus:outline-none z-10 transition-colors"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none z-10 transition-all duration-300 hover:scale-110"
               aria-label="Previous properties"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -333,7 +348,7 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
           {canGoNext && (
             <button
               onClick={goToNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 focus:outline-none z-10 transition-colors"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none z-10 transition-all duration-300 hover:scale-110"
               aria-label="Next properties"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -345,7 +360,7 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
 
         <div className="text-center mt-6">
           <Link to="/real-estates">
-            <button className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-2 px-6 rounded-lg hover:from-blue-700 hover:to-blue-900 transition duration-300 shadow-lg hover:shadow-xl font-medium text-sm">
+            <button className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 px-8 rounded-lg hover:from-blue-700 hover:to-blue-900 transition-all duration-300 shadow-lg hover:shadow-xl font-medium text-sm hover:scale-105">
               View All Properties
             </button>
           </Link>
