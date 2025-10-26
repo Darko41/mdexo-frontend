@@ -12,9 +12,20 @@ export default function Header() {
 
     const isAdmin = user?.roles?.includes("ROLE_ADMIN");
 
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
+    const handleLogout = async () => {
+        try {
+            // Call session logout endpoint to clear admin session
+            await fetch(`${BACKEND_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include' // Important for session cookies
+            });
+        } catch (error) {
+            console.log('Session logout completed (or failed silently)');
+        } finally {
+            // Always clear JWT and redirect
+            logout();
+            navigate("/login");
+        }
     };
 
     const verifyAdminAccess = async () => {

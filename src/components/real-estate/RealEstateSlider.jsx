@@ -14,7 +14,7 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
   const [prevTranslate, setPrevTranslate] = useState(0);
   const animationIDRef = useRef(null);
   const [visibleCards, setVisibleCards] = useState(1);
-  const [loadedImages, setLoadedImages] = useState(new Set()); // Track loaded images
+  const [imageCache, setImageCache] = useState(new Map()); // Cache image URLs
 
   // Calculate visible cards based on screen size
   const calculateVisibleCards = useCallback(() => {
@@ -230,31 +230,48 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
     return estate.propertyId || estate.id || `estate-${index}`;
   };
 
-  // Improved image URL getter with caching
-  const getImageUrl = useCallback((estate) => {
+  // Improved image URL getter with caching to prevent blinking
+  const getImageUrl = useCallback((estate, index) => {
+    const estateKey = getEstateKey(estate, index);
+    
+    // Return cached URL if exists
+    if (imageCache.has(estateKey)) {
+      return imageCache.get(estateKey);
+    }
+
+    let imageUrl;
+
+    // Determine the image URL
     if (estate.imageUrl) {
-      return estate.imageUrl;
+      imageUrl = estate.imageUrl;
+    } else if (estate.images && estate.images.length > 0) {
+      imageUrl = estate.images[0];
+    } else if (import.meta.env.MODE === 'development') {
+      // Use a FIXED random image per property to prevent blinking
+      // This ensures the same image is always returned for the same property
+      const randomSeed = estate.propertyId || estate.id || index;
+      imageUrl = `https://picsum.photos/300/200?random=${randomSeed}`;
+    } else {
+      imageUrl = '/default-property.jpg';
     }
-    if (estate.images && estate.images.length > 0) {
-      return estate.images[0];
-    }
-    // Use a consistent fallback image to prevent blinking
-    return '/default-property.jpg';
-  }, []);
 
-  // Handle image load
-  const handleImageLoad = useCallback((estateKey) => {
-    setLoadedImages(prev => new Set(prev).add(estateKey));
-  }, []);
+    // Cache the URL
+    setImageCache(prev => new Map(prev).set(estateKey, imageUrl));
+    
+    return imageUrl;
+  }, [imageCache]);
 
-  // Handle image error - use a consistent fallback
+  // Handle image error with caching
   const handleImageError = useCallback((e, estateKey) => {
+    const fallbackUrl = '/default-property.jpg';
+    
     // Only set fallback if not already set to prevent infinite loops
-    if (e.target.src !== '/default-property.jpg') {
-      e.target.src = '/default-property.jpg';
-      handleImageLoad(estateKey); // Mark as loaded even if it's fallback
+    if (e.target.src !== fallbackUrl) {
+      // Cache the fallback URL
+      setImageCache(prev => new Map(prev).set(estateKey, fallbackUrl));
+      e.target.src = fallbackUrl;
     }
-  }, [handleImageLoad]);
+  }, []);
 
   if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
@@ -281,7 +298,7 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
             >
               {realEstates.map((estate, index) => {
                 const estateKey = getEstateKey(estate, index);
-                const imageUrl = getImageUrl(estate);
+                const imageUrl = getImageUrl(estate, index);
                 
                 return (
                   <div
@@ -289,15 +306,14 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
                     className="flex-shrink-0 px-2"
                     style={{ width: `${getCardWidth()}%` }}
                   >
-                    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col group">
+                    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col group hover:scale-105">
                       <div className="relative h-36 sm:h-40 md:h-48 overflow-hidden rounded-t-lg">
                         <img
                           src={imageUrl}
                           alt={estate.title || 'Property image'}
-                          className="w-full h-full object-cover select-none transition-opacity duration-300"
+                          className="w-full h-full object-cover select-none"
                           loading="lazy"
                           draggable="false"
-                          onLoad={() => handleImageLoad(estateKey)}
                           onError={(e) => handleImageError(e, estateKey)}
                         />
                         <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold shadow">

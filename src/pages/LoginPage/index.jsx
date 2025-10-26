@@ -14,8 +14,8 @@ export default function LoginPage() {
 
   const { login } = useContext(AuthContext);
 
-  // Get the return URL from location state, default to '/create-listing'
-  const from = location.state?.from || '/create-listing';
+  // Get the return URL from location state, default to home
+  const from = location.state?.from || '/';
   const message = location.state?.message;
 
   const handleSubmit = async (e) => {
