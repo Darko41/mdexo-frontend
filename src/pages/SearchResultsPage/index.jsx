@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FaSlidersH, FaArrowLeft, FaHome } from 'react-icons/fa';
+import { FaSlidersH, FaArrowLeft, FaHome, FaBuilding, FaFire, FaCalendarAlt, FaRulerCombined } from 'react-icons/fa';
 import API from '../../utils/api/api';
 import { RealEstateCard, RealEstateCardSkeleton } from '../../components/real-estate';
 import AdvancedSearchModal from "../../components/AdvancedSearchModal";
@@ -15,7 +15,7 @@ export default function SearchResultsPage() {
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
 
   useEffect(() => {
-    // Parse query parameters from URL
+    // Parse query parameters from URL including new fields
     const params = new URLSearchParams(location.search);
     const searchData = {
       searchTerm: params.get('searchTerm') || '',
@@ -26,7 +26,26 @@ export default function SearchResultsPage() {
       features: params.getAll('features') || [],
       city: params.get('city') || null,
       state: params.get('state') || null,
-      zipCode: params.get('zipCode') || null
+      zipCode: params.get('zipCode') || null,
+      
+      // 🆕 NEW: Additional search parameters
+      roomCount: params.get('roomCount') || null,
+      roomCountMin: params.get('roomCountMin') || null,
+      roomCountMax: params.get('roomCountMax') || null,
+      floor: params.get('floor') || null,
+      floorMin: params.get('floorMin') || null,
+      floorMax: params.get('floorMax') || null,
+      totalFloors: params.get('totalFloors') || null,
+      totalFloorsMin: params.get('totalFloorsMin') || null,
+      totalFloorsMax: params.get('totalFloorsMax') || null,
+      constructionYear: params.get('constructionYear') || null,
+      constructionYearMin: params.get('constructionYearMin') || null,
+      constructionYearMax: params.get('constructionYearMax') || null,
+      heatingType: params.get('heatingType') || null,
+      propertyCondition: params.get('propertyCondition') || null,
+      sizeInSqMt: params.get('sizeInSqMt') || null,
+      sizeInSqMtMin: params.get('sizeInSqMtMin') || null,
+      sizeInSqMtMax: params.get('sizeInSqMtMax') || null
     };
     setSearchParams(searchData);
     fetchSearchResults(searchData);
@@ -70,6 +89,78 @@ export default function SearchResultsPage() {
     setError("Došlo je do greške pri напредној претрази. Pokušajte ponovo.");
   };
 
+  // 🆕 NEW: Format room count for display
+  const formatRoomCount = (roomCount) => {
+    if (!roomCount) return null;
+    
+    if (roomCount === 0.5) {
+      return 'Студио';
+    }
+    
+    if (Number.isInteger(roomCount)) {
+      return `${roomCount} ${roomCount === 1 ? 'соба' : 'собе'}`;
+    }
+    
+    return `${roomCount} собе`;
+  };
+
+  // 🆕 NEW: Format floor for display
+  const formatFloor = (floor, totalFloors) => {
+    if (floor === undefined || totalFloors === undefined) return null;
+    
+    if (floor === 0) {
+      return 'Приземље';
+    }
+    
+    if (floor < 0) {
+      return `${Math.abs(floor)}. подрум`;
+    }
+    
+    return `${floor}. спрат од ${totalFloors}`;
+  };
+
+  // 🆕 NEW: Format heating type for display
+  const formatHeatingType = (heatingType) => {
+    const heatingTypes = {
+      CENTRAL: 'Централно грејање',
+      DISTRICT: 'Даљинско грејање',
+      ELECTRIC: 'Електрично грејање',
+      GAS: 'Гасно грејање',
+      HEAT_PUMP: 'Топлотна пумпа',
+      SOLAR: 'Соларно грејање',
+      WOOD_PELLET: 'Пелет',
+      OIL: 'Нафта',
+      NONE: 'Без грејања',
+      OTHER: 'Друго'
+    };
+    
+    return heatingTypes[heatingType] || null;
+  };
+
+  // 🆕 NEW: Format property condition for display
+  const formatPropertyCondition = (condition) => {
+    const conditions = {
+      NEW_CONSTRUCTION: 'Нова градња',
+      RENOVATED: 'Реновирано',
+      MODERNIZED: 'Модернизовано',
+      GOOD: 'Добро стање',
+      NEEDS_RENOVATION: 'Потребно реновирање',
+      ORIGINAL: 'Оригинално стање',
+      LUXURY: 'Луксузно',
+      SHELL: 'Груба градња',
+      OTHER: 'Друго'
+    };
+    
+    return conditions[condition] || null;
+  };
+
+  // 🆕 NEW: Calculate property age
+  const getPropertyAge = (constructionYear) => {
+    if (!constructionYear) return null;
+    const currentYear = new Date().getFullYear();
+    return currentYear - constructionYear;
+  };
+
   // Helper function to display search criteria
   const getSearchCriteriaText = () => {
     const criteria = [];
@@ -96,7 +187,80 @@ export default function SearchResultsPage() {
       criteria.push(`цена: ${priceRange.join(' - ')}`);
     }
 
+    // 🆕 NEW: Additional search criteria
+    if (searchParams.roomCount) {
+      criteria.push(`собе: ${formatRoomCount(parseFloat(searchParams.roomCount))}`);
+    } else if (searchParams.roomCountMin || searchParams.roomCountMax) {
+      const roomRange = [];
+      if (searchParams.roomCountMin) roomRange.push(`од ${formatRoomCount(parseFloat(searchParams.roomCountMin))}`);
+      if (searchParams.roomCountMax) roomRange.push(`до ${formatRoomCount(parseFloat(searchParams.roomCountMax))}`);
+      criteria.push(`собе: ${roomRange.join(' - ')}`);
+    }
+
+    if (searchParams.floor || searchParams.floorMin || searchParams.floorMax) {
+      const floorRange = [];
+      if (searchParams.floor) {
+        floorRange.push(`${searchParams.floor}. спрат`);
+      } else {
+        if (searchParams.floorMin) floorRange.push(`од ${searchParams.floorMin}. спрата`);
+        if (searchParams.floorMax) floorRange.push(`до ${searchParams.floorMax}. спрата`);
+      }
+      if (floorRange.length > 0) {
+        criteria.push(`спрат: ${floorRange.join(' - ')}`);
+      }
+    }
+
+    if (searchParams.constructionYear || searchParams.constructionYearMin || searchParams.constructionYearMax) {
+      const yearRange = [];
+      if (searchParams.constructionYear) {
+        yearRange.push(`${searchParams.constructionYear}. год`);
+      } else {
+        if (searchParams.constructionYearMin) yearRange.push(`од ${searchParams.constructionYearMin}. год`);
+        if (searchParams.constructionYearMax) yearRange.push(`до ${searchParams.constructionYearMax}. год`);
+      }
+      if (yearRange.length > 0) {
+        criteria.push(`година: ${yearRange.join(' - ')}`);
+      }
+    }
+
+    if (searchParams.heatingType) {
+      criteria.push(`грејање: ${formatHeatingType(searchParams.heatingType)}`);
+    }
+
+    if (searchParams.propertyCondition) {
+      criteria.push(`стање: ${formatPropertyCondition(searchParams.propertyCondition)}`);
+    }
+
+    if (searchParams.sizeInSqMt || searchParams.sizeInSqMtMin || searchParams.sizeInSqMtMax) {
+      const sizeRange = [];
+      if (searchParams.sizeInSqMt) {
+        sizeRange.push(`${searchParams.sizeInSqMt} m²`);
+      } else {
+        if (searchParams.sizeInSqMtMin) sizeRange.push(`од ${searchParams.sizeInSqMtMin} m²`);
+        if (searchParams.sizeInSqMtMax) sizeRange.push(`до ${searchParams.sizeInSqMtMax} m²`);
+      }
+      if (sizeRange.length > 0) {
+        criteria.push(`површина: ${sizeRange.join(' - ')}`);
+      }
+    }
+
     return criteria.length > 0 ? criteria.join(' • ') : 'Сви огласи';
+  };
+
+  // 🆕 NEW: Enhanced RealEstateCard wrapper to pass additional props
+  const EnhancedRealEstateCard = ({ property, onClick }) => {
+    return (
+      <RealEstateCard 
+        property={property} 
+        onClick={onClick}
+        // Pass additional formatting functions as props if needed
+        formatRoomCount={formatRoomCount}
+        formatFloor={formatFloor}
+        formatHeatingType={formatHeatingType}
+        formatPropertyCondition={formatPropertyCondition}
+        getPropertyAge={getPropertyAge}
+      />
+    );
   };
 
   if (error) {
@@ -198,7 +362,7 @@ export default function SearchResultsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {results.map(property => (
-              <RealEstateCard 
+              <EnhancedRealEstateCard 
                 key={property.propertyId || property.id} 
                 property={property} 
                 onClick={() => navigate(`/property/${property.propertyId || property.id}`)}
@@ -214,6 +378,8 @@ export default function SearchResultsPage() {
           onSearchResults={handleAdvancedSearchResults}
           onError={handleAdvancedSearchError}
           setIsLoading={setLoading}
+          // 🆕 NEW: Pass additional search parameters to modal
+          initialSearchParams={searchParams}
         />
       </div>
     </div>

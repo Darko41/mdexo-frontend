@@ -9,7 +9,11 @@ import {
   FaUsers,
   FaExpand,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaFire,
+  FaBuilding,
+  FaHome,
+  FaCalendarAlt
 } from 'react-icons/fa';
 import { GiCommercialAirplane } from 'react-icons/gi';
 import { MdApartment, MdLandscape } from 'react-icons/md';
@@ -70,6 +74,96 @@ export default function PropertyDetailsPage() {
 
     fetchProperty();
   }, [id]);
+
+  // 🆕 NEW: Format room count display
+  const formatRoomCount = (roomCount) => {
+    if (!roomCount) return null;
+    
+    if (roomCount === 0.5) {
+      return 'Студио';
+    }
+    
+    if (Number.isInteger(roomCount)) {
+      return `${roomCount} ${roomCount === 1 ? 'соба' : 'собе'}`;
+    }
+    
+    return `${roomCount} собе`;
+  };
+
+  // 🆕 NEW: Format floor display
+  const formatFloor = (floor, totalFloors) => {
+    if (floor === undefined || totalFloors === undefined) return null;
+    
+    if (floor === 0) {
+      return 'Приземље';
+    }
+    
+    if (floor < 0) {
+      return `${Math.abs(floor)}. подрум`;
+    }
+    
+    return `${floor}. спрат од ${totalFloors}`;
+  };
+
+  // 🆕 NEW: Format heating type for display
+  const formatHeatingType = (heatingType) => {
+    const heatingTypes = {
+      CENTRAL: 'Централно грејање',
+      DISTRICT: 'Даљинско грејање',
+      ELECTRIC: 'Електрично грејање',
+      GAS: 'Гасно грејање',
+      HEAT_PUMP: 'Топлотна пумпа',
+      SOLAR: 'Соларно грејање',
+      WOOD_PELLET: 'Пелет',
+      OIL: 'Нафта',
+      NONE: 'Без грејања',
+      OTHER: 'Друго'
+    };
+    
+    return heatingTypes[heatingType] || null;
+  };
+
+  // 🆕 NEW: Format property condition for display
+  const formatPropertyCondition = (condition) => {
+    const conditions = {
+      NEW_CONSTRUCTION: 'Нова градња',
+      RENOVATED: 'Реновирано',
+      MODERNIZED: 'Модернизовано',
+      GOOD: 'Добро стање',
+      NEEDS_RENOVATION: 'Потребно реновирање',
+      ORIGINAL: 'Оригинално стање',
+      LUXURY: 'Луксузно',
+      SHELL: 'Груба градња',
+      OTHER: 'Друго'
+    };
+    
+    return conditions[condition] || null;
+  };
+
+  // 🆕 NEW: Calculate property age
+  const getPropertyAge = (constructionYear) => {
+    if (!constructionYear) return null;
+    const currentYear = new Date().getFullYear();
+    return currentYear - constructionYear;
+  };
+
+  // 🆕 NEW: Get heating icon
+  const getHeatingIcon = (heatingType) => {
+    const heatingIcons = {
+      CENTRAL: '🔥',
+      DISTRICT: '🏭',
+      ELECTRIC: '⚡',
+      GAS: '⛽',
+      HEAT_PUMP: '🌡️',
+      SOLAR: '☀️',
+      WOOD_PELLET: '🪵',
+      OIL: '🛢️',
+      NONE: '❄️',
+      OTHER: '🏠'
+    };
+    
+    return heatingIcons[heatingType] || '🔥';
+  };
 
   // Touch and mouse event handlers for gallery swipe
   const getPositionX = useCallback((e) => {
@@ -230,16 +324,16 @@ export default function PropertyDetailsPage() {
   }, [property?.images]);
 
   const getPropertyTypeIcon = () => {
-    if (!property) return null;
-    
-    switch(property.propertyType) {
-      case 'APARTMENT': return <MdApartment className="mr-1" />;
-      case 'HOUSE': return <BsHouseDoor className="mr-1" />;
-      case 'LAND': return <MdLandscape className="mr-1" />;
-      case 'COMMERCIAL': return <GiCommercialAirplane className="mr-1" />;
-      default: return null;
-    }
-  };
+  if (!property) return null;
+  
+  switch(property.propertyType) {
+    case 'APARTMENT': return <MdApartment className="w-4 h-4" />;
+    case 'HOUSE': return <BsHouseDoor className="w-4 h-4" />;
+    case 'LAND': return <MdLandscape className="w-4 h-4" />;
+    case 'COMMERCIAL': return <GiCommercialAirplane className="w-4 h-4" />;
+    default: return null;
+  }
+};
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('de-DE', {
@@ -495,28 +589,63 @@ export default function PropertyDetailsPage() {
         className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors group"
       >
         <FaArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" />
-        Back to Results
+        Назад на резултате
       </button>
 
       {/* Property Header */}
       <div className="mb-6">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{property.title}</h1>
+        
+        {/* 🆕 NEW: Enhanced Location Display */}
         <div className="flex items-center text-gray-600 mb-4">
           <FaMapMarkerAlt className="mr-2 text-red-500" />
-          <span className="text-lg">{property.address}, {property.city}, {property.state} {property.zipCode}</span>
+          <span className="text-lg">
+            {property.municipality || property.address}
+            {property.city && `, ${property.city}`}
+            {property.state && `, ${property.state}`}
+            {property.zipCode && ` ${property.zipCode}`}
+          </span>
         </div>
-        <div className="flex flex-wrap gap-3">
+        
+        {/* 🆕 NEW: Enhanced Property Badges */}
+        <div className="flex flex-wrap gap-3 mb-4">
           <span className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
             {getPropertyTypeIcon()}
             {property.propertyType?.toLowerCase().replace(/_/g, ' ') || 'Unknown'}
           </span>
           <span className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold">
-            {property.listingType === 'FOR_SALE' ? 'For Sale' : 'For Rent'}
+            {property.listingType === 'FOR_SALE' ? 'За продају' : 'За изнајмљивање'}
           </span>
           {property.sizeInSqMt && (
             <span className="inline-flex items-center bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-sm font-semibold">
               <FaRulerCombined className="mr-1" />
               {property.sizeInSqMt} m²
+            </span>
+          )}
+          {/* 🆕 NEW: Room Count Badge */}
+          {property.roomCount && (
+            <span className="inline-flex items-center bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold">
+              <FaHome className="mr-1" />
+              {formatRoomCount(property.roomCount)}
+            </span>
+          )}
+          {/* 🆕 NEW: Floor Badge */}
+          {(property.floor !== undefined && property.totalFloors !== undefined) && (
+            <span className="inline-flex items-center bg-teal-100 text-teal-800 px-4 py-2 rounded-full text-sm font-semibold">
+              <FaBuilding className="mr-1" />
+              {formatFloor(property.floor, property.totalFloors)}
+            </span>
+          )}
+          {/* 🆕 NEW: Construction Year Badge */}
+          {property.constructionYear && (
+            <span className="inline-flex items-center bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-semibold">
+              <FaCalendarAlt className="mr-1" />
+              Год. {property.constructionYear}
+              {getPropertyAge(property.constructionYear) && (
+                <span className="ml-1 opacity-75">
+                  ({getPropertyAge(property.constructionYear)} год.)
+                </span>
+              )}
             </span>
           )}
         </div>
@@ -528,34 +657,121 @@ export default function PropertyDetailsPage() {
       {/* Fullscreen Gallery Modal */}
       <FullscreenGallery />
 
-      {/* Rest of your existing content remains the same */}
+      {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           {/* Price Section */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl mb-6 border border-blue-100">
             <h2 className="text-2xl font-bold mb-2">
-              {property.listingType === 'FOR_SALE' ? 'Sale Price' : 'Monthly Rent'}:{' '}
+              {property.listingType === 'FOR_SALE' ? 'Цена продаје' : 'Месечна кирија'}:{' '}
               <span className="text-blue-600">
                 {formatPrice(property.price)}
               </span>
             </h2>
             {property.listingType === 'FOR_RENT' && (
-              <p className="text-gray-600">Security deposit may be required</p>
+              <p className="text-gray-600">Може бити потребан депозит</p>
             )}
+          </div>
+
+          {/* 🆕 NEW: Enhanced Property Details Section */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">Детаљи о некретнини</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Basic Details */}
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <FaHome className="text-gray-500 mr-3 w-5 h-5" />
+                  <div>
+                    <p className="text-sm text-gray-500">Број соба</p>
+                    <p className="font-medium text-gray-900">
+                      {formatRoomCount(property.roomCount) || 'Није наведено'}
+                    </p>
+                  </div>
+                </div>
+                
+                {(property.floor !== undefined && property.totalFloors !== undefined) && (
+                  <div className="flex items-center">
+                    <FaBuilding className="text-gray-500 mr-3 w-5 h-5" />
+                    <div>
+                      <p className="text-sm text-gray-500">Спрат</p>
+                      <p className="font-medium text-gray-900">
+                        {formatFloor(property.floor, property.totalFloors)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {property.constructionYear && (
+                  <div className="flex items-center">
+                    <FaCalendarAlt className="text-gray-500 mr-3 w-5 h-5" />
+                    <div>
+                      <p className="text-sm text-gray-500">Година изградње</p>
+                      <p className="font-medium text-gray-900">
+                        {property.constructionYear}
+                        {getPropertyAge(property.constructionYear) && (
+                          <span className="text-gray-600 ml-2">
+                            ({getPropertyAge(property.constructionYear)} година)
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Additional Details */}
+              <div className="space-y-4">
+                {property.heatingType && (
+                  <div className="flex items-center">
+                    <FaFire className="text-gray-500 mr-3 w-5 h-5" />
+                    <div>
+                      <p className="text-sm text-gray-500">Грејање</p>
+                      <p className="font-medium text-gray-900">
+                        {formatHeatingType(property.heatingType)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {property.propertyCondition && (
+                  <div className="flex items-center">
+                    <svg className="text-gray-500 mr-3 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-gray-500">Стање</p>
+                      <p className="font-medium text-gray-900">
+                        {formatPropertyCondition(property.propertyCondition)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {property.sizeInSqMt && (
+                  <div className="flex items-center">
+                    <FaRulerCombined className="text-gray-500 mr-3 w-5 h-5" />
+                    <div>
+                      <p className="text-sm text-gray-500">Површина</p>
+                      <p className="font-medium text-gray-900">{property.sizeInSqMt} m²</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Description */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">Description</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">Опис</h2>
             <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-              {property.description || 'No description provided.'}
+              {property.description || 'Нема описа.'}
             </p>
           </div>
 
           {/* Features */}
           {property.features?.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">Features & Amenities</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">Карактеристике</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {property.features.map((feature, index) => (
                   <div key={index} className="flex items-center group">
@@ -572,12 +788,12 @@ export default function PropertyDetailsPage() {
           {/* Owner Information */}
           {property.ownerEmail && (
             <div className="bg-gray-50 p-6 rounded-2xl mb-6 border border-gray-200">
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">Property Owner</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">Власник некретнине</h2>
               <div className="flex items-center">
                 <FaUser className="text-gray-500 mr-4 w-6 h-6" />
                 <div>
                   <p className="font-medium text-gray-900">{property.ownerEmail}</p>
-                  <p className="text-gray-600 text-sm">Contact for more information</p>
+                  <p className="text-gray-600 text-sm">Контактирајте за више информација</p>
                 </div>
               </div>
             </div>
@@ -587,69 +803,93 @@ export default function PropertyDetailsPage() {
         {/* Right Column - Key Details */}
         <div>
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 sticky top-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-900">Property Details</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900">Информације о огласу</h2>
             
             <div className="space-y-4">
-              {/* Basic Details */}
-              <div className="flex items-center">
-                {getPropertyTypeIcon()}
-                <div>
-                  <p className="text-sm text-gray-500">Property Type</p>
-                  <p className="font-medium text-gray-900">{property.propertyType?.toLowerCase().replace(/_/g, ' ') || 'Unknown'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <svg className="text-gray-500 mr-3 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <div>
-                  <p className="text-sm text-gray-500">Listing Type</p>
-                  <p className="font-medium text-gray-900">{property.listingType === 'FOR_SALE' ? 'For Sale' : 'For Rent'}</p>
-                </div>
-              </div>
-
-              {/* Size */}
-              {property.sizeInSqMt && (
-                <div className="flex items-center">
-                  <FaRulerCombined className="text-gray-500 mr-3 w-5 h-5" />
-                  <div>
-                    <p className="text-sm text-gray-500">Size</p>
-                    <p className="font-medium text-gray-900">{property.sizeInSqMt} m²</p>
-                  </div>
-                </div>
-              )}
-              
-              {/* Date Information */}
-              <div className="flex items-center">
-                <BsCalendarDate className="text-gray-500 mr-3 w-5 h-5" />
-                <div>
-                  <p className="text-sm text-gray-500">Listed On</p>
-                  <p className="font-medium text-gray-900">{formatDate(property.createdAt)}</p>
-                </div>
-              </div>
-
-              {property.updatedAt && (
-                <div className="flex items-center">
-                  <BsCalendarDate className="text-gray-500 mr-3 w-5 h-5" />
-                  <div>
-                    <p className="text-sm text-gray-500">Last Updated</p>
-                    <p className="font-medium text-gray-900">{formatDate(property.updatedAt)}</p>
-                  </div>
-                </div>
-              )}
-            </div>
+			  {/* Basic Details */}
+			  <div className="flex items-center">
+			    <div className="text-gray-500 mr-3 w-5 h-5 flex items-center justify-center">
+			      {getPropertyTypeIcon()}
+			    </div>
+			    <div>
+			      <p className="text-sm text-gray-500">Тип некретнине</p>
+			      <p className="font-medium text-gray-900">{property.propertyType?.toLowerCase().replace(/_/g, ' ') || 'Unknown'}</p>
+			    </div>
+			  </div>
+			
+			  <div className="flex items-center">
+			    <svg className="text-gray-500 mr-3 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+			      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+			    </svg>
+			    <div>
+			      <p className="text-sm text-gray-500">Тип огласа</p>
+			      <p className="font-medium text-gray-900">{property.listingType === 'FOR_SALE' ? 'За продају' : 'За изнајмљивање'}</p>
+			    </div>
+			  </div>
+			
+			  {/* 🆕 NEW: Enhanced Details */}
+			  {property.roomCount && (
+			    <div className="flex items-center">
+			      <FaHome className="text-gray-500 mr-3 w-5 h-5" />
+			      <div>
+			        <p className="text-sm text-gray-500">Број соба</p>
+			        <p className="font-medium text-gray-900">{formatRoomCount(property.roomCount)}</p>
+			      </div>
+			    </div>
+			  )}
+			
+			  {/* Size */}
+			  {property.sizeInSqMt && (
+			    <div className="flex items-center">
+			      <FaRulerCombined className="text-gray-500 mr-3 w-5 h-5" />
+			      <div>
+			        <p className="text-sm text-gray-500">Површина</p>
+			        <p className="font-medium text-gray-900">{property.sizeInSqMt} m²</p>
+			      </div>
+			    </div>
+			  )}
+			  
+			  {/* 🆕 NEW: Heating Type */}
+			  {property.heatingType && (
+			    <div className="flex items-center">
+			      <FaFire className="text-gray-500 mr-3 w-5 h-5" />
+			      <div>
+			        <p className="text-sm text-gray-500">Грејање</p>
+			        <p className="font-medium text-gray-900">{formatHeatingType(property.heatingType)}</p>
+			      </div>
+			    </div>
+			  )}
+			  
+			  {/* Date Information */}
+			  <div className="flex items-center">
+			    <BsCalendarDate className="text-gray-500 mr-3 w-5 h-5" />
+			    <div>
+			      <p className="text-sm text-gray-500">Објављено</p>
+			      <p className="font-medium text-gray-900">{formatDate(property.createdAt)}</p>
+			    </div>
+			  </div>
+			
+			  {property.updatedAt && (
+			    <div className="flex items-center">
+			      <BsCalendarDate className="text-gray-500 mr-3 w-5 h-5" />
+			      <div>
+			        <p className="text-sm text-gray-500">Ажурирано</p>
+			        <p className="font-medium text-gray-900">{formatDate(property.updatedAt)}</p>
+			      </div>
+			    </div>
+			  )}
+			</div>
 
             <hr className="my-6 border-gray-200" />
 
             {/* Contact Button */}
             <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg">
-              Contact Agent
+              Контактирајте
             </button>
 
             {/* Schedule Tour Button */}
             <button className="w-full mt-3 bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg">
-              Schedule a Tour
+              Закажите обилазак
             </button>
           </div>
         </div>
@@ -662,9 +902,16 @@ export default function PropertyDetailsPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <p className="font-medium text-lg">Property Location</p>
-          <p className="mt-1">{property.address}, {property.city}, {property.state} {property.zipCode}</p>
-          <p className="mt-3 text-sm">Map integration would display here</p>
+          <p className="font-medium text-lg">Локација некретнине</p>
+          <p className="mt-1">
+            {property.municipality || property.address}, {property.city}, {property.state} {property.zipCode}
+          </p>
+          <p className="mt-3 text-sm">
+            {property.latitude && property.longitude 
+              ? `Координате: ${property.latitude.toFixed(6)}, ${property.longitude.toFixed(6)}`
+              : 'Мапа ће бити приказана овде'
+            }
+          </p>
         </div>
       </div>
     </div>

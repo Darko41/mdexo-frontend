@@ -19,6 +19,33 @@ const ListingType = {
 	FOR_LEASE: 'FOR_LEASE'
 };
 
+// 🆕 NEW: Heating Type enum
+const HeatingType = {
+	CENTRAL: 'CENTRAL',
+	DISTRICT: 'DISTRICT',
+	ELECTRIC: 'ELECTRIC',
+	GAS: 'GAS',
+	HEAT_PUMP: 'HEAT_PUMP',
+	SOLAR: 'SOLAR',
+	WOOD_PELLET: 'WOOD_PELLET',
+	OIL: 'OIL',
+	NONE: 'NONE',
+	OTHER: 'OTHER'
+};
+
+// 🆕 NEW: Property Condition enum
+const PropertyCondition = {
+	NEW_CONSTRUCTION: 'NEW_CONSTRUCTION',
+	RENOVATED: 'RENOVATED',
+	MODERNIZED: 'MODERNIZED',
+	GOOD: 'GOOD',
+	NEEDS_RENOVATION: 'NEEDS_RENOVATION',
+	ORIGINAL: 'ORIGINAL',
+	LUXURY: 'LUXURY',
+	SHELL: 'SHELL',
+	OTHER: 'OTHER'
+};
+
 export default function CreateListingForm() {
 	const navigate = useNavigate();
 	const imageUploadRef = useRef();
@@ -34,6 +61,16 @@ export default function CreateListingForm() {
 		zipCode: '',
 		sizeInSqMt: '',
 		features: [],
+		// 🆕 NEW: Add all the new fields
+		roomCount: '',
+		floor: '',
+		totalFloors: '',
+		constructionYear: '',
+		municipality: '',
+		heatingType: '',
+		propertyCondition: '',
+		latitude: '',
+		longitude: ''
 	});
 	const [newFeature, setNewFeature] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,6 +146,16 @@ export default function CreateListingForm() {
 	      zipCode: formData.zipCode,
 	      sizeInSqMt: formData.sizeInSqMt ? parseInt(formData.sizeInSqMt) : null,
 	      features: formData.features,
+	      // 🆕 NEW: Include all new fields in the request
+	      roomCount: formData.roomCount ? parseFloat(formData.roomCount) : null,
+	      floor: formData.floor ? parseInt(formData.floor) : null,
+	      totalFloors: formData.totalFloors ? parseInt(formData.totalFloors) : null,
+	      constructionYear: formData.constructionYear ? parseInt(formData.constructionYear) : null,
+	      municipality: formData.municipality || null,
+	      heatingType: formData.heatingType || null,
+	      propertyCondition: formData.propertyCondition || null,
+	      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+	      longitude: formData.longitude ? parseFloat(formData.longitude) : null
 	    };
 	    
 	    submitData.append('realEstate', new Blob([JSON.stringify(realEstateData)], {
@@ -144,6 +191,9 @@ export default function CreateListingForm() {
 	const formatEnumDisplay = (value) => {
 		return value.toLowerCase().replace(/_/g, ' ');
 	};
+
+	// 🆕 NEW: Helper function to get current year
+	const getCurrentYear = () => new Date().getFullYear();
 
 	// Check if form is ready for submission
 	const isFormValid = () => {
@@ -204,6 +254,134 @@ export default function CreateListingForm() {
 						className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
 						placeholder="Describe your property..."
 					/>
+				</div>
+
+				{/* 🆕 NEW: Property Details Section */}
+				<div className="border-t border-gray-200 pt-6">
+					<h3 className="text-lg font-medium text-gray-900 mb-4">Property Details</h3>
+					
+					{/* Room Count, Floor, Total Floors - Compact Row */}
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+						<div>
+							<label htmlFor="roomCount" className="block text-sm font-medium text-gray-700 mb-1">
+								Number of Rooms
+							</label>
+							<select
+								id="roomCount"
+								name="roomCount"
+								value={formData.roomCount}
+								onChange={handleChange}
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+							>
+								<option value="">Select rooms</option>
+								<option value="0.5">Studio (0.5)</option>
+								<option value="1">1 room</option>
+								<option value="1.5">1.5 rooms</option>
+								<option value="2">2 rooms</option>
+								<option value="2.5">2.5 rooms</option>
+								<option value="3">3 rooms</option>
+								<option value="3.5">3.5 rooms</option>
+								<option value="4">4 rooms</option>
+								<option value="4.5">4.5 rooms</option>
+								<option value="5">5+ rooms</option>
+							</select>
+						</div>
+
+						<div>
+							<label htmlFor="floor" className="block text-sm font-medium text-gray-700 mb-1">
+								Floor
+							</label>
+							<input
+								type="number"
+								id="floor"
+								name="floor"
+								value={formData.floor}
+								onChange={handleChange}
+								min="-5"
+								max="200"
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="0 (ground floor)"
+							/>
+							<p className="text-xs text-gray-500 mt-1">Use negative for basement (-1, -2)</p>
+						</div>
+
+						<div>
+							<label htmlFor="totalFloors" className="block text-sm font-medium text-gray-700 mb-1">
+								Total Floors in Building
+							</label>
+							<input
+								type="number"
+								id="totalFloors"
+								name="totalFloors"
+								value={formData.totalFloors}
+								onChange={handleChange}
+								min="1"
+								max="200"
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="Total floors"
+							/>
+						</div>
+					</div>
+
+					{/* Construction Year, Heating Type, Property Condition - Compact Row */}
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div>
+							<label htmlFor="constructionYear" className="block text-sm font-medium text-gray-700 mb-1">
+								Construction Year
+							</label>
+							<input
+								type="number"
+								id="constructionYear"
+								name="constructionYear"
+								value={formData.constructionYear}
+								onChange={handleChange}
+								min="1500"
+								max={getCurrentYear()}
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="e.g., 1999"
+							/>
+						</div>
+
+						<div>
+							<label htmlFor="heatingType" className="block text-sm font-medium text-gray-700 mb-1">
+								Heating Type
+							</label>
+							<select
+								id="heatingType"
+								name="heatingType"
+								value={formData.heatingType}
+								onChange={handleChange}
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+							>
+								<option value="">Select heating</option>
+								{Object.values(HeatingType).map(type => (
+									<option key={type} value={type}>
+										{formatEnumDisplay(type)}
+									</option>
+								))}
+							</select>
+						</div>
+
+						<div>
+							<label htmlFor="propertyCondition" className="block text-sm font-medium text-gray-700 mb-1">
+								Property Condition
+							</label>
+							<select
+								id="propertyCondition"
+								name="propertyCondition"
+								value={formData.propertyCondition}
+								onChange={handleChange}
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+							>
+								<option value="">Select condition</option>
+								{Object.values(PropertyCondition).map(condition => (
+									<option key={condition} value={condition}>
+										{formatEnumDisplay(condition)}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
 				</div>
 
 				{/* Property Type, Listing Type, and Price - Compact Row */}
@@ -270,139 +448,207 @@ export default function CreateListingForm() {
 					</div>
 				</div>
 
-				{/* Address, Size, and Features - 3-column Row */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div>
-						<label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-							Address*
+				{/* 🆕 NEW: Location Section with Municipality */}
+				<div className="border-t border-gray-200 pt-6">
+					<h3 className="text-lg font-medium text-gray-900 mb-4">Location Details</h3>
+					
+					{/* Municipality - Full Width */}
+					<div className="mb-4">
+						<label htmlFor="municipality" className="block text-sm font-medium text-gray-700 mb-1">
+							Municipality (for privacy)
 						</label>
 						<input
 							type="text"
-							id="address"
-							name="address"
-							value={formData.address}
+							id="municipality"
+							name="municipality"
+							value={formData.municipality}
 							onChange={handleChange}
-							required
 							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							placeholder="Full street address"
+							placeholder="Enter municipality (optional, for privacy)"
 						/>
+						<p className="text-xs text-gray-500 mt-1">
+							This will be shown instead of exact address for privacy
+						</p>
 					</div>
 
-					<div>
-						<label htmlFor="sizeInSqMt" className="block text-sm font-medium text-gray-700 mb-1">
-							Size (m²)
-						</label>
-						<input
-							type="number"
-							id="sizeInSqMt"
-							name="sizeInSqMt"
-							value={formData.sizeInSqMt}
-							onChange={handleChange}
-							min="0"
-							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							placeholder="Square meters"
-						/>
-					</div>
-
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-1">
-							Features (max 10)
-						</label>
-						<div className="flex gap-2">
+					{/* Address, Size, and Features - 3-column Row */}
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div>
+							<label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+								Address*
+							</label>
 							<input
 								type="text"
-								value={newFeature}
-								onChange={(e) => setNewFeature(e.target.value)}
-								className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
-								placeholder="Add feature..."
-								onKeyPress={(e) => {
-									if (e.key === 'Enter') {
-										e.preventDefault();
-										handleAddFeature();
-									}
-								}}
+								id="address"
+								name="address"
+								value={formData.address}
+								onChange={handleChange}
+								required
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="Full street address"
 							/>
-							<button
-								type="button"
-								onClick={handleAddFeature}
-								disabled={!newFeature || formData.features.length >= 10}
-								className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
-							>
-								Add
-							</button>
 						</div>
-					</div>
-				</div>
 
-				{/* Features Display */}
-				{formData.features.length > 0 && (
-					<div className="flex flex-wrap gap-2">
-						{formData.features.map((feature, index) => (
-							<div key={index} className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-								<span>{feature}</span>
+						<div>
+							<label htmlFor="sizeInSqMt" className="block text-sm font-medium text-gray-700 mb-1">
+								Size (m²)
+							</label>
+							<input
+								type="number"
+								id="sizeInSqMt"
+								name="sizeInSqMt"
+								value={formData.sizeInSqMt}
+								onChange={handleChange}
+								min="0"
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="Square meters"
+							/>
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-1">
+								Features (max 10)
+							</label>
+							<div className="flex gap-2">
+								<input
+									type="text"
+									value={newFeature}
+									onChange={(e) => setNewFeature(e.target.value)}
+									className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+									placeholder="Add feature..."
+									onKeyPress={(e) => {
+										if (e.key === 'Enter') {
+											e.preventDefault();
+											handleAddFeature();
+										}
+									}}
+								/>
 								<button
 									type="button"
-									onClick={() => handleRemoveFeature(index)}
-									className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+									onClick={handleAddFeature}
+									disabled={!newFeature || formData.features.length >= 10}
+									className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
 								>
-									×
+									Add
 								</button>
 							</div>
-						))}
-					</div>
-				)}
-				{formData.features.length >= 10 && (
-					<p className="text-sm text-gray-500">Maximum 10 features reached</p>
-				)}
-
-				{/* Location Details - Compact Row */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div>
-						<label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-							City*
-						</label>
-						<input
-							type="text"
-							id="city"
-							name="city"
-							value={formData.city}
-							onChange={handleChange}
-							required
-							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							placeholder="City"
-						/>
+						</div>
 					</div>
 
-					<div>
-						<label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-							State*
-						</label>
-						<input
-							type="text"
-							id="state"
-							name="state"
-							value={formData.state}
-							onChange={handleChange}
-							required
-							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							placeholder="State"
-						/>
+					{/* Features Display */}
+					{formData.features.length > 0 && (
+						<div className="flex flex-wrap gap-2 mt-2">
+							{formData.features.map((feature, index) => (
+								<div key={index} className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+									<span>{feature}</span>
+									<button
+										type="button"
+										onClick={() => handleRemoveFeature(index)}
+										className="ml-2 text-blue-600 hover:text-blue-800 font-bold"
+									>
+										×
+									</button>
+								</div>
+							))}
+						</div>
+					)}
+					{formData.features.length >= 10 && (
+						<p className="text-sm text-gray-500 mt-2">Maximum 10 features reached</p>
+					)}
+
+					{/* City, State, ZIP Code - Compact Row */}
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+						<div>
+							<label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+								City*
+							</label>
+							<input
+								type="text"
+								id="city"
+								name="city"
+								value={formData.city}
+								onChange={handleChange}
+								required
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="City"
+							/>
+						</div>
+
+						<div>
+							<label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+								State*
+							</label>
+							<input
+								type="text"
+								id="state"
+								name="state"
+								value={formData.state}
+								onChange={handleChange}
+								required
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="State"
+							/>
+						</div>
+
+						<div>
+							<label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">
+								ZIP Code*
+							</label>
+							<input
+								type="text"
+								id="zipCode"
+								name="zipCode"
+								value={formData.zipCode}
+								onChange={handleChange}
+								required
+								className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+								placeholder="ZIP Code"
+							/>
+						</div>
 					</div>
 
-					<div>
-						<label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">
-							ZIP Code*
-						</label>
-						<input
-							type="text"
-							id="zipCode"
-							name="zipCode"
-							value={formData.zipCode}
-							onChange={handleChange}
-							required
-							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-							placeholder="ZIP Code"
-						/>
+					{/* 🆕 NEW: Coordinates Section */}
+					<div className="border-t border-gray-200 pt-4 mt-4">
+						<h4 className="text-md font-medium text-gray-900 mb-3">Geographic Coordinates (Optional)</h4>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<div>
+								<label htmlFor="latitude" className="block text-sm font-medium text-gray-700 mb-1">
+									Latitude
+								</label>
+								<input
+									type="number"
+									id="latitude"
+									name="latitude"
+									value={formData.latitude}
+									onChange={handleChange}
+									step="0.000001"
+									min="-90"
+									max="90"
+									className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+									placeholder="e.g., 44.786568"
+								/>
+							</div>
+							<div>
+								<label htmlFor="longitude" className="block text-sm font-medium text-gray-700 mb-1">
+									Longitude
+								</label>
+								<input
+									type="number"
+									id="longitude"
+									name="longitude"
+									value={formData.longitude}
+									onChange={handleChange}
+									step="0.000001"
+									min="-180"
+									max="180"
+									className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+									placeholder="e.g., 20.448921"
+								/>
+							</div>
+						</div>
+						<p className="text-xs text-gray-500 mt-2">
+							Coordinates will be automatically generated from address if not provided. Used for map display and location-based search.
+						</p>
 					</div>
 				</div>
 
