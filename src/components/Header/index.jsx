@@ -5,7 +5,14 @@ import { BACKEND_BASE_URL } from "../../utils/api/api";
 import styles from './styles.module.css';
 
 export default function Header() {
-    const { user, isAuthenticated, logout, token } = useContext(AuthContext);
+    const { 
+        user, 
+        isAuthenticated, 
+        logout, 
+        userProfile, 
+        isProfileComplete 
+    } = useContext(AuthContext);
+    
     const navigate = useNavigate();
     const [isVerifying, setIsVerifying] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -20,7 +27,7 @@ export default function Header() {
                 credentials: 'include' // Important for session cookies
             });
         } catch (error) {
-            console.log('Session logout completed (or failed silently)');
+            // Silent error handling
         } finally {
             // Always clear JWT and redirect
             logout();
@@ -34,7 +41,7 @@ export default function Header() {
             const response = await fetch(`${BACKEND_BASE_URL}/api/admin/verify`, {
                 method: 'GET',
                 headers: { 
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${user?.token}`,
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include'
@@ -44,10 +51,8 @@ export default function Header() {
                 window.open(`${BACKEND_BASE_URL}/admin/dashboard`, '_blank');
             } else {
                 alert('Admin access required');
-                console.error('Admin verification failed:', response.status);
             }
         } catch (error) {
-            console.error('Admin verification error:', error);
             alert('Unable to verify admin access');
         } finally {
             setIsVerifying(false);
@@ -61,6 +66,23 @@ export default function Header() {
         }
         await verifyAdminAccess();
     };
+
+    // Enhanced welcome message with profile data
+    const getWelcomeName = () => {
+        // Priority: Profile name → Email username → Fallback
+        if (userProfile?.firstName) {
+            return userProfile.firstName;
+        }
+        
+        if (user?.email) {
+            return user.email.split('@')[0];
+        }
+        
+        return 'User';
+    };
+
+    // Check if user has incomplete profile
+    const hasIncompleteProfile = !isProfileComplete();
 
     return (
         <header className={styles.header}>
@@ -118,9 +140,21 @@ export default function Header() {
                                         {isVerifying ? 'Verifying...' : 'Admin'}
                                     </button>
                                 )}
-                                <span className={styles.welcomeText}>
-                                    Hi, {user?.firstName || user?.email?.split('@')[0] || 'User'}
-                                </span>
+                                
+                                {/* Profile link/indicator */}
+                                <Link 
+                                    to="/profile" 
+                                    className={styles.profileLink}
+                                    title={hasIncompleteProfile ? "Complete your profile" : "View profile"}
+                                >
+                                    <span className={styles.welcomeText}>
+                                        Hi, {getWelcomeName()}
+                                    </span>
+                                    {hasIncompleteProfile && (
+                                        <span className={styles.incompleteProfileBadge}>!</span>
+                                    )}
+                                </Link>
+                                
                                 <button
                                     onClick={handleLogout}
                                     className={styles.logoutButton}
@@ -163,6 +197,20 @@ export default function Header() {
                             >
                                 Sell Properties
                             </Link>
+                            
+                            {/* Add profile link to mobile menu */}
+                            {isAuthenticated && (
+                                <Link 
+                                    to="/profile" 
+                                    className={styles.mobileNavLink}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    My Profile
+                                    {hasIncompleteProfile && (
+                                        <span className={styles.mobileBadge}>!</span>
+                                    )}
+                                </Link>
+                            )}
                         </nav>
                     </div>
                 )}

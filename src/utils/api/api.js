@@ -30,29 +30,6 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-// Response interceptor to detect redirects and HTML responses
-/*
-api.interceptors.response.use(
-  (response) => {
-    // Check if response is HTML (redirect happened but axios followed it)
-    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('user');
-      throw new Error('Authentication failed');
-    }
-    return response;
-  },
-  (error) => {
-    // Clear tokens on auth errors but don't redirect
-    if (error.response?.status === 302 || error.response?.status === 401) {
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('user');
-    }
-    return Promise.reject(error);
-  }
-);
-*/
-
 const API = {
   realEstates: {
     search: (params) => api.get('/api/real-estates/search', { params }),
@@ -97,6 +74,17 @@ const API = {
       return Promise.resolve();
     }
   },
+  // 🆕 User Profile Endpoints
+  users: {
+    getProfile: (userId) => api.get(`/api/users/${userId}/profile`),
+    updateProfile: (userId, data) => api.put(`/api/users/${userId}/profile`, data),
+    createProfile: (userId, data) => api.post(`/api/users/${userId}/profile`, data),
+    getByEmail: (email) => api.get(`/api/users/by-email/${email}`),
+  },
+  // 🆕 Contact Endpoint (moved from auth to root level)
+  contact: {
+    send: (data) => api.post('/api/contact/send', data),
+  }
 };
 
 export const axiosInstance = api;

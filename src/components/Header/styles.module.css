@@ -347,3 +347,40 @@
     display: none;
   }
 }
+
+
+/* Add to your styles.module.css */
+
+.profileLink {
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+}
+
+.incompleteProfileBadge {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background: #ff4444;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobileBadge {
+    margin-left: 8px;
+    background: #ff4444;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
