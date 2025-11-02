@@ -29,7 +29,12 @@ export function AuthProvider({ children }) {
   const profileLoadingRef = useRef(false);
   const initializedRef = useRef(false);
 
-  // Load user profile from API - FIXED: Remove dependencies that cause loops
+  // Helper to validate user ID
+  const isValidUserId = useCallback((userId) => {
+    return typeof userId === 'number' && !isNaN(userId) && userId > 0;
+  }, []);
+
+  // Load user profile from API
   const loadUserProfile = useCallback(async (force = false) => {
     if (!authState.isAuthenticated || !authState.user?.id || !authState.token) {
       return null;
@@ -41,7 +46,7 @@ export function AuthProvider({ children }) {
     }
 
     const userId = authState.user.id;
-    if (typeof userId !== 'number' || isNaN(userId)) {
+    if (!isValidUserId(userId)) {
       return null;
     }
 
@@ -73,12 +78,13 @@ export function AuthProvider({ children }) {
         }));
         return emptyProfile;
       }
+      
       console.error('Error loading user profile:', error);
       return null;
     } finally {
       profileLoadingRef.current = false;
     }
-  }, [authState.isAuthenticated, authState.user?.id, authState.token]); // Limited dependencies
+  }, [authState.isAuthenticated, authState.user, authState.token, isValidUserId]);
 
   // Update user profile locally after changes
   const updateUserProfile = useCallback((profileData) => {
@@ -107,20 +113,20 @@ export function AuthProvider({ children }) {
       const userData = userResponse.data;
       
       // Refresh profile data
-      await loadUserProfile(true); // Force refresh
+      const profileData = await loadUserProfile(true); // Force refresh
       
       // Update user data
       setAuthState(prev => ({
         ...prev,
         user: {
           ...userData,
-          profile: prev.userProfile
+          profile: profileData || prev.userProfile
         }
       }));
 
       localStorage.setItem("user", JSON.stringify({
         ...userData,
-        profile: authState.userProfile
+        profile: profileData || authState.userProfile
       }));
 
     } catch (error) {
@@ -150,9 +156,18 @@ export function AuthProvider({ children }) {
     initializedRef.current = false;
   }, []);
 
-  // Initialize auth state from storage - FIXED: Run only once
+  // Check if token is expired
+  const isTokenExpired = useCallback((token) => {
+    try {
+      const decodedToken = jwtDecode(token);
+      return decodedToken.exp * 1000 < Date.now();
+    } catch {
+      return true;
+    }
+  }, []);
+
+  // Initialize auth state from storage
   useEffect(() => {
-    // Prevent multiple initializations
     if (initializedRef.current) return;
     
     const initializeAuth = async () => {
@@ -162,14 +177,13 @@ export function AuthProvider({ children }) {
         const userString = localStorage.getItem("user");
 
         if (token && userString) {
-          const user = JSON.parse(userString);
-          
           // Verify token expiration
-          const decodedToken = jwtDecode(token);
-          if (decodedToken.exp * 1000 < Date.now()) {
+          if (isTokenExpired(token)) {
             throw new Error("Token expired");
           }
 
+          const user = JSON.parse(userString);
+          
           // Set axios auth header
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
@@ -181,47 +195,27 @@ export function AuthProvider({ children }) {
             userProfile: user.profile || null,
           });
 
-          // Load fresh profile data from API after a delay
-          // This prevents immediate re-renders that could cause loops
-          setTimeout(async () => {
-            if (user.id && typeof user.id === 'number') {
-              await loadUserProfile();
-            }
-          }, 1000);
+          // Load fresh profile data from API
+          if (isValidUserId(user.id)) {
+            setTimeout(() => loadUserProfile(), 1000);
+          }
         } else {
           setAuthState(prev => ({ ...prev, loading: false }));
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        localStorage.removeItem("jwtToken");
-        localStorage.removeItem("user");
-        delete axiosInstance.defaults.headers.common['Authorization'];
-        setAuthState({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          loading: false,
-          userProfile: null,
-        });
+        logout();
       }
     };
 
     initializeAuth();
-  }, []); // EMPTY dependency array - runs only once
+  }, [isTokenExpired, isValidUserId, loadUserProfile, logout]);
 
-  // Add token expiration check
+  // Token expiration check
   useEffect(() => {
     const checkTokenExpiration = () => {
-      const token = authState.token;
-      if (token) {
-        try {
-          const decodedToken = jwtDecode(token);
-          if (decodedToken.exp * 1000 < Date.now()) {
-            logout();
-          }
-        } catch (error) {
-          logout();
-        }
+      if (authState.token && isTokenExpired(authState.token)) {
+        logout();
       }
     };
 
@@ -229,14 +223,18 @@ export function AuthProvider({ children }) {
     const interval = setInterval(checkTokenExpiration, 60000);
     
     return () => clearInterval(interval);
-  }, [authState.token, logout]);
+  }, [authState.token, isTokenExpired, logout]);
 
   const login = useCallback(async (userData, token) => {
     try {
-      // Decode token to verify
+      // Verify token
+      if (isTokenExpired(token)) {
+        throw new Error("Token is expired");
+      }
+      
       const decodedToken = jwtDecode(token);
       
-      // Ensure we have a proper user ID - extract from token or use provided
+      // Ensure we have a proper user ID
       const userId = userData.id || decodedToken.userId || decodedToken.sub;
       if (!userId) {
         throw new Error("No user ID found in token");
@@ -264,48 +262,57 @@ export function AuthProvider({ children }) {
       // Set axios headers
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      // Load user profile after login with delay to prevent loops
-      setTimeout(async () => {
-        if (userId && typeof userId === 'number') {
-          await loadUserProfile();
-        }
-      }, 500);
+      // Load user profile after login
+      if (isValidUserId(userId)) {
+        setTimeout(() => loadUserProfile(), 500);
+      }
       
       return Promise.resolve();
       
     } catch (error) {
       console.error('Login error:', error);
+      logout(); // Clean up on login failure
       return Promise.reject(error);
     }
-  }, [loadUserProfile]);
+  }, [isTokenExpired, isValidUserId, loadUserProfile, logout]);
 
   // Helper function to check if profile is complete
   const isProfileComplete = useCallback(() => {
-    if (!authState.userProfile) return false;
+    const profile = authState.userProfile;
+    if (!profile) return false;
     
-    return (
-      authState.userProfile.firstName &&
-      authState.userProfile.lastName &&
-      authState.userProfile.phone
-    );
+    return !!(profile.firstName && profile.lastName && profile.phone);
   }, [authState.userProfile]);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = React.useMemo(() => ({
+    user: authState.user,
+    token: authState.token,
+    isAuthenticated: authState.isAuthenticated,
+    loading: authState.loading,
+    userProfile: authState.userProfile,
+    login,
+    logout,
+    loadUserProfile,
+    updateUserProfile,
+    refreshUserData,
+    isProfileComplete,
+  }), [
+    authState.user,
+    authState.token,
+    authState.isAuthenticated,
+    authState.loading,
+    authState.userProfile,
+    login,
+    logout,
+    loadUserProfile,
+    updateUserProfile,
+    refreshUserData,
+    isProfileComplete,
+  ]);
+
   return (
-    <AuthContext.Provider
-      value={{
-        user: authState.user,
-        token: authState.token,
-        isAuthenticated: authState.isAuthenticated,
-        loading: authState.loading,
-        userProfile: authState.userProfile,
-        login,
-        logout,
-        loadUserProfile,
-        updateUserProfile,
-        refreshUserData,
-        isProfileComplete,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

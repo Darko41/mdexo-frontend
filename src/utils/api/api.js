@@ -1,10 +1,6 @@
 import axios from 'axios';
 
-const isDevelopment = import.meta.env.MODE === 'development';
-
-export const BACKEND_BASE_URL = isDevelopment
-  ? "http://localhost:8080"
-  : "https://mdexo-backend.onrender.com";
+export const BACKEND_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL;
 
 const api = axios.create({
   baseURL: BACKEND_BASE_URL,
@@ -29,6 +25,21 @@ api.interceptors.request.use((config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+// Response interceptor to handle token expiration and other errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('user');
+      // Optional: redirect to login page
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 const API = {
   realEstates: {
@@ -74,14 +85,14 @@ const API = {
       return Promise.resolve();
     }
   },
-  // 🆕 User Profile Endpoints
+  // User Profile Endpoints
   users: {
     getProfile: (userId) => api.get(`/api/users/${userId}/profile`),
     updateProfile: (userId, data) => api.put(`/api/users/${userId}/profile`, data),
     createProfile: (userId, data) => api.post(`/api/users/${userId}/profile`, data),
     getByEmail: (email) => api.get(`/api/users/by-email/${email}`),
   },
-  // 🆕 Contact Endpoint (moved from auth to root level)
+  // Contact Endpoint (moved from auth to root level)
   contact: {
     send: (data) => api.post('/api/contact/send', data),
   }
