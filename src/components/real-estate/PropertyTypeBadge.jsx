@@ -1,6 +1,10 @@
 import PropTypes from 'prop-types';
 
-export default function PropertyTypeBadge({ type, showText = true, additionalInfo = null }) {
+export default function PropertyTypeBadge({ 
+  type, 
+  showText = true, 
+  additionalInfo = null 
+}) {
   const typeConfig = {
     HOUSE: { icon: '🏠', color: 'bg-green-100 text-green-800', label: 'House' },
     APARTMENT: { icon: '🏢', color: 'bg-purple-100 text-purple-800', label: 'Apartment' },
@@ -18,7 +22,7 @@ export default function PropertyTypeBadge({ type, showText = true, additionalInf
     const parts = [];
     
     // Room count
-    if (info.roomCount) {
+    if (info.roomCount !== undefined && info.roomCount !== null) {
       if (info.roomCount === 0.5) {
         parts.push('Studio');
       } else {
@@ -27,7 +31,8 @@ export default function PropertyTypeBadge({ type, showText = true, additionalInf
     }
     
     // Floor information
-    if (info.floor !== undefined && info.totalFloors !== undefined) {
+    if (info.floor !== undefined && info.floor !== null && 
+        info.totalFloors !== undefined && info.totalFloors !== null) {
       if (info.floor === 0) {
         parts.push('Ground floor');
       } else if (info.floor < 0) {
@@ -75,6 +80,7 @@ export default function PropertyTypeBadge({ type, showText = true, additionalInf
     return heatingIcons[heatingType] || '🔥';
   };
 
+  // Safe type handling
   const config = typeConfig[type] || typeConfig.OTHER;
   const additionalText = formatAdditionalInfo(additionalInfo);
   const conditionBadge = additionalInfo?.propertyCondition ? getConditionBadge(additionalInfo.propertyCondition) : null;
@@ -104,7 +110,10 @@ export default function PropertyTypeBadge({ type, showText = true, additionalInf
 
       {/* Heating Icon (if available) */}
       {heatingIcon && (
-        <span className="inline-flex items-center text-xs opacity-70" title={additionalInfo.heatingType?.replace(/_/g, ' ').toLowerCase()}>
+        <span 
+          className="inline-flex items-center text-xs opacity-70" 
+          title={additionalInfo.heatingType?.replace(/_/g, ' ').toLowerCase()}
+        >
           {heatingIcon}
         </span>
       )}
@@ -137,10 +146,4 @@ PropertyTypeBadge.propTypes = {
     propertyCondition: PropTypes.string,
     heatingType: PropTypes.string
   })
-};
-
-// Default props
-PropertyTypeBadge.defaultProps = {
-  showText: true,
-  additionalInfo: null
 };

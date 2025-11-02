@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import API from '../../utils/api/api.js';
+import { getPropertyImageUrl, handleImageError } from '../../utils/imageUtils';
 
 export default function RealEstateSlider({ realEstates: propRealEstates }) {
   const [realEstates, setRealEstates] = useState([]);
@@ -230,48 +231,30 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
     return estate.propertyId || estate.id || `estate-${index}`;
   };
 
-  // Improved image URL getter with caching to prevent blinking
   const getImageUrl = useCallback((estate, index) => {
-    const estateKey = getEstateKey(estate, index);
-    
-    // Return cached URL if exists
-    if (imageCache.has(estateKey)) {
-      return imageCache.get(estateKey);
-    }
+  const estateKey = getEstateKey(estate, index);
+  
+  // Return cached URL if exists
+  if (imageCache.has(estateKey)) {
+    return imageCache.get(estateKey);
+  }
 
-    let imageUrl;
+  const imageUrl = getPropertyImageUrl(estate, index);
 
-    // Determine the image URL
-    if (estate.imageUrl) {
-      imageUrl = estate.imageUrl;
-    } else if (estate.images && estate.images.length > 0) {
-      imageUrl = estate.images[0];
-    } else if (import.meta.env.MODE === 'development') {
-      // Use a FIXED random image per property to prevent blinking
-      // This ensures the same image is always returned for the same property
-      const randomSeed = estate.propertyId || estate.id || index;
-      imageUrl = `https://picsum.photos/300/200?random=${randomSeed}`;
-    } else {
-      imageUrl = '/default-property.jpg';
-    }
-
-    // Cache the URL
-    setImageCache(prev => new Map(prev).set(estateKey, imageUrl));
-    
-    return imageUrl;
-  }, [imageCache]);
+  // Cache the URL
+  setImageCache(prev => new Map(prev).set(estateKey, imageUrl));
+  
+  return imageUrl;
+}, [imageCache]);
 
   // Handle image error with caching
   const handleImageError = useCallback((e, estateKey) => {
-    const fallbackUrl = '/default-property.jpg';
-    
-    // Only set fallback if not already set to prevent infinite loops
-    if (e.target.src !== fallbackUrl) {
-      // Cache the fallback URL
-      setImageCache(prev => new Map(prev).set(estateKey, fallbackUrl));
-      e.target.src = fallbackUrl;
-    }
-  }, []);
+  const fallbackUrl = getPropertyImageUrl({}); // Get default fallback
+  handleImageError(e, fallbackUrl);
+  
+  // Update cache with fallback
+  setImageCache(prev => new Map(prev).set(estateKey, fallbackUrl));
+}, []);
 
   if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;

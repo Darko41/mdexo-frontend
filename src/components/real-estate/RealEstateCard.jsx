@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import PropertyTypeBadge from './PropertyTypeBadge';
 import styles from './styles.module.css';
+import { getPropertyImageUrl, handleImageError } from '../../utils/imageUtils';
 
 export default function RealEstateCard({ property }) {
   const formatPrice = (price) => {
@@ -82,9 +83,7 @@ export default function RealEstateCard({ property }) {
     return conditions[condition] || null;
   };
 
-  const mainImage = property.images?.length > 0 
-    ? property.images[0] 
-    : '/default-property.jpg';
+  const mainImage = getPropertyImageUrl(property);
 
   const listingTypeText = {
     SALE: 'За продају',
@@ -113,11 +112,12 @@ export default function RealEstateCard({ property }) {
         className={`${styles.imageContainer} h-48 block`}
       >
         <img
-          src={mainImage}
-          className={styles.image}
-          loading="lazy"
-          alt={property.title}
-        />
+		  src={mainImage}
+		  className={styles.image}
+		  loading="lazy"
+		  alt={property.title}
+		  onError={(e) => handleImageError(e)}
+		/>
         
         {/* Top Badges Container */}
         <div className="absolute top-0 left-0 right-0 flex justify-between items-start p-2">
