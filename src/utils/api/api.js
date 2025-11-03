@@ -50,9 +50,9 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       
       // Only redirect if we're not already on a login page
-      if (!window.location.pathname.includes('/auth/login') && 
-          !window.location.pathname.includes('/login')) {
-        window.location.href = '/auth/login';
+      // Use /login (frontend) not /auth/login (admin)
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);
@@ -88,7 +88,6 @@ const API = {
     delete: (id) => api.delete(`/api/real-estates/${id}`)
   },
   auth: {
-    getCurrentUser: () => api.get('/api/auth/me'), // Fixed endpoint to match your backend
     login: (credentials) => {
       return api.post('/api/auth/authenticate', credentials, {
         headers: {
@@ -113,7 +112,7 @@ const API = {
     createProfile: (userId, data) => api.post(`/api/users/${userId}/profile`, data),
     getByEmail: (email) => api.get(`/api/users/by-email/${email}`),
   },
-  // Contact Endpoint (moved from auth to root level)
+  // Contact Endpoint
   contact: {
     send: (data) => api.post('/api/contact/send', data),
   },

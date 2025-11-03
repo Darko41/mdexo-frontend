@@ -176,18 +176,6 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Check auth status with server
-  const checkAuthStatus = useCallback(async () => {
-    if (!authState.token) return false;
-    
-    try {
-      const response = await axiosInstance.get('/api/auth/me');
-      return response.status === 200;
-    } catch (error) {
-      return false;
-    }
-  }, [authState.token]);
-
   // Initialize auth state from storage
   useEffect(() => {
     if (initializedRef.current) return;
@@ -247,13 +235,13 @@ export function AuthProvider({ children }) {
     return () => clearInterval(interval);
   }, [authState.token, isTokenExpired, logout]);
 
-  // Cross-tab logout listener and session monitoring
+  // Cross-tab logout listener (SIMPLIFIED - no API calls)
   useEffect(() => {
     const handleStorageChange = (e) => {
       // Listen for logout signal from other tabs
       if (e.key === 'logout') {
         console.log('Logout signal received from other tab');
-        logout(true); // Pass true to indicate this is from storage event
+        logout(true);
       }
       
       // Listen for token removal from other tabs
@@ -269,17 +257,16 @@ export function AuthProvider({ children }) {
       }
     };
 
-    const handleVisibilityChange = async () => {
-      // When user switches back to this tab, check if session is still valid
-      if (!document.hidden && authState.isAuthenticated) {
+    const handleVisibilityChange = () => {
+      // When user switches back to this tab, check token expiration locally
+      if (!document.hidden && authState.isAuthenticated && authState.token) {
         try {
-          const isStillAuthenticated = await checkAuthStatus();
-          if (!isStillAuthenticated) {
-            console.log('Session expired while tab was inactive');
+          if (isTokenExpired(authState.token)) {
+            console.log('Token expired while tab was inactive');
             logout();
           }
         } catch (error) {
-          console.log('Error checking auth status on tab switch');
+          console.log('Error checking token on tab switch');
         }
       }
     };
@@ -293,26 +280,7 @@ export function AuthProvider({ children }) {
       window.removeEventListener('storage', handleStorageChange);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [authState.isAuthenticated, logout, checkAuthStatus]);
-
-  // Periodic session check (optional - for extra security)
-  useEffect(() => {
-    if (!authState.isAuthenticated) return;
-
-    const sessionCheckInterval = setInterval(async () => {
-      try {
-        const isStillAuthenticated = await checkAuthStatus();
-        if (!isStillAuthenticated) {
-          console.log('Session expired during periodic check');
-          logout();
-        }
-      } catch (error) {
-        console.log('Error during periodic session check');
-      }
-    }, 30000); // Check every 30 seconds
-
-    return () => clearInterval(sessionCheckInterval);
-  }, [authState.isAuthenticated, checkAuthStatus, logout]);
+  }, [authState.isAuthenticated, authState.token, isTokenExpired, logout]);
 
   const login = useCallback(async (userData, token) => {
     try {

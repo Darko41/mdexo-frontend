@@ -20,30 +20,18 @@ export default function Header() {
     const isAdmin = user?.roles?.includes("ROLE_ADMIN");
 
     const handleLogout = async () => {
-    try {
-        // Call logout endpoint to invalidate server session
-        await fetch(`${BACKEND_BASE_URL}/auth/logout`, {
-            method: 'POST',
-            credentials: 'include' // Important for session cookies
-        });
-    } catch (error) {
-        console.log('Logout API call failed, continuing with client-side cleanup');
-    } finally {
-        // Client-side cleanup
-        logout();
-        
-        // Clear any remaining localStorage/sessionStorage
-        localStorage.clear();
-        sessionStorage.clear();
-        
-        // Force reload any open admin tabs/windows
-        if (window.opener && !window.opener.closed) {
-            window.opener.location.reload();
-        }
-        
-        navigate("/login");
-    }
-};
+	    try {
+	        await fetch(`${BACKEND_BASE_URL}/auth/logout`, {
+	            method: 'POST',
+	            credentials: 'include'
+	        });
+	    } catch (error) {
+	        // Silent error handling
+	    } finally {
+	        logout();
+	        navigate("/login"); // Redirect to frontend login
+	    }
+	};
 
     const handleAdminAccess = () => {
 	  if (!isAdmin) {
@@ -53,7 +41,6 @@ export default function Header() {
 	  
 	  // Use the correct backend URL from your api.js
 	  const adminUrl = `${BACKEND_BASE_URL}/admin/dashboard`;
-	  console.log('Opening admin dashboard:', adminUrl); // Debug log
 	  window.open(adminUrl, '_blank');
 	};
 
