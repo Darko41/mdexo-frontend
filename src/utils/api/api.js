@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-export const BACKEND_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL;
+export const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
+console.log('Backend Base URL:', BACKEND_BASE_URL);
+console.log('All env vars:', import.meta.env);
 
 const api = axios.create({
   baseURL: BACKEND_BASE_URL,

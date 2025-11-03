@@ -21,15 +21,13 @@ export default function Header() {
 
     const handleLogout = async () => {
         try {
-            // Call session logout endpoint to clear admin session
             await fetch(`${BACKEND_BASE_URL}/auth/logout`, {
                 method: 'POST',
-                credentials: 'include' // Important for session cookies
+                credentials: 'include'
             });
         } catch (error) {
             // Silent error handling
         } finally {
-            // Always clear JWT and redirect
             logout();
             navigate("/login");
         }
@@ -67,9 +65,7 @@ export default function Header() {
         await verifyAdminAccess();
     };
 
-    // Enhanced welcome message with profile data
     const getWelcomeName = () => {
-        // Priority: Profile name → Email username → Fallback
         if (userProfile?.firstName) {
             return userProfile.firstName;
         }
@@ -81,14 +77,13 @@ export default function Header() {
         return 'User';
     };
 
-    // Check if user has incomplete profile
     const hasIncompleteProfile = !isProfileComplete();
 
     return (
         <header className={styles.header}>
             <div className={styles.container}>
                 <div className={styles.navContainer}>
-                    {/* Left: Navigation Links (Buy, Rent, Sell) on desktop, Burger on mobile */}
+                    {/* Left: Navigation Links */}
                     <div className={styles.leftSection}>
                         {/* Desktop Navigation */}
                         <nav className={styles.leftNav}>
@@ -118,19 +113,24 @@ export default function Header() {
                         </button>
                     </div>
 
-                    {/* Center: Logo */}
+                    {/* Center: Logo - BIGGER SIZE */}
                     <div className={styles.centerLogo}>
                         <Link to="/" className={styles.logo}>
-                            <span className={styles.logoIcon}>🏠</span>
-                            <span className={styles.logoText}>RealEstate</span>
+                            <img 
+                                src="/cover.png" 
+                                alt="RealEstate Logo" 
+                                className={styles.logoImage}
+                                onError={(e) => {
+                                    e.target.src = "/default.png";
+                                }}
+                            />
                         </Link>
                     </div>
 
-                    {/* Right: Auth Section - ALWAYS VISIBLE */}
+                    {/* Right: Auth Section */}
                     <div className={styles.rightAuth}>
                         {isAuthenticated ? (
                             <div className={styles.userSection}>
-                                {/* Admin Dashboard for authenticated admin users */}
                                 {isAdmin && (
                                     <button
                                         onClick={handleAdminAccess}
@@ -141,7 +141,6 @@ export default function Header() {
                                     </button>
                                 )}
                                 
-                                {/* Profile link/indicator */}
                                 <Link 
                                     to="/profile" 
                                     className={styles.profileLink}
@@ -172,7 +171,7 @@ export default function Header() {
                     </div>
                 </div>
 
-                {/* Mobile Navigation - Only navigation links */}
+                {/* Mobile Navigation */}
                 {isMobileMenuOpen && (
                     <div className={styles.mobileMenu}>
                         <nav className={styles.mobileNav}>
@@ -198,7 +197,6 @@ export default function Header() {
                                 Sell Properties
                             </Link>
                             
-                            {/* Add profile link to mobile menu */}
                             {isAuthenticated && (
                                 <Link 
                                     to="/profile" 
