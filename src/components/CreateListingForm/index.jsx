@@ -35,15 +35,15 @@ const HeatingType = {
 
 // 🆕 NEW: Property Condition enum
 const PropertyCondition = {
-	NEW_CONSTRUCTION: 'NEW_CONSTRUCTION',
-	RENOVATED: 'RENOVATED',
-	MODERNIZED: 'MODERNIZED',
-	GOOD: 'GOOD',
-	NEEDS_RENOVATION: 'NEEDS_RENOVATION',
-	ORIGINAL: 'ORIGINAL',
-	LUXURY: 'LUXURY',
+	NEW_CONSTRUCTION: 'Новоградња',
+	RENOVATED: 'Реновирано',
+	MODERNIZED: 'Модернизовано',
+	GOOD: 'У добром стању',
+	NEEDS_RENOVATION: 'Потребно реновирање',
+	ORIGINAL: 'У оригиналном стању',
+	LUXURY: 'Лукс',
 	SHELL: 'SHELL',
-	OTHER: 'OTHER'
+	OTHER: 'Друго'
 };
 
 export default function CreateListingForm() {
@@ -61,7 +61,6 @@ export default function CreateListingForm() {
 		zipCode: '',
 		sizeInSqMt: '',
 		features: [],
-		// 🆕 NEW: Add all the new fields
 		roomCount: '',
 		floor: '',
 		totalFloors: '',

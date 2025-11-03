@@ -142,12 +142,9 @@ export default function RealEstateCard({ property }) {
       {/* Content Section */}
       <div className={`${styles.content} flex-grow flex flex-col`}>
         {/* Property Title */}
-        <Link 
-          to={`/property/${property.propertyId}`}
-          className={`${styles.title} hover:text-blue-600 transition-colors line-clamp-2`}
-        >
-          {property.title}
-        </Link>
+        <span className={`${styles.title} line-clamp-2`}>
+		  {property.title}
+		</span>
         
         {/* 🆕 NEW: Property Details Row */}
         <div className="flex flex-wrap gap-2 mb-2">

@@ -1,9 +1,20 @@
 import axios from 'axios';
 
-export const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_URL;
+// Validate and set the backend URL
+const getBackendBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_BACKEND_URL;
+  
+  if (!envUrl || envUrl === 'undefined') {
+    console.warn('VITE_BACKEND_URL is not set, falling back to localhost');
+    return 'http://localhost:8080';
+  }
+  
+  return envUrl;
+};
 
-console.log('Backend Base URL:', BACKEND_BASE_URL);
-console.log('All env vars:', import.meta.env);
+export const BACKEND_BASE_URL = getBackendBaseUrl();
+
+console.log('Backend URL:', BACKEND_BASE_URL); // Debug log
 
 const api = axios.create({
   baseURL: BACKEND_BASE_URL,
@@ -37,8 +48,12 @@ api.interceptors.response.use(
       // Token expired or invalid
       localStorage.removeItem('jwtToken');
       localStorage.removeItem('user');
-      // Optional: redirect to login page
-      window.location.href = '/login';
+      
+      // Only redirect if we're not already on a login page
+      if (!window.location.pathname.includes('/auth/login') && 
+          !window.location.pathname.includes('/login')) {
+        window.location.href = '/auth/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -73,7 +88,7 @@ const API = {
     delete: (id) => api.delete(`/api/real-estates/${id}`)
   },
   auth: {
-    getCurrentUser: () => api.get('/api/auth/current-user'),
+    getCurrentUser: () => api.get('/api/auth/me'), // Fixed endpoint to match your backend
     login: (credentials) => {
       return api.post('/api/auth/authenticate', credentials, {
         headers: {
@@ -83,9 +98,12 @@ const API = {
     },
     register: (userData) => api.post('/api/users/register', userData),
     logout: () => {
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('user');
-      return Promise.resolve();
+      // Call server logout endpoint first
+      return api.post('/auth/logout').finally(() => {
+        // Always clear local storage
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('user');
+      });
     }
   },
   // User Profile Endpoints
@@ -98,6 +116,10 @@ const API = {
   // Contact Endpoint (moved from auth to root level)
   contact: {
     send: (data) => api.post('/api/contact/send', data),
+  },
+  // Admin endpoints
+  admin: {
+    verify: () => api.get('/api/admin/verify'),
   }
 };
 

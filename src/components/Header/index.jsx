@@ -20,50 +20,42 @@ export default function Header() {
     const isAdmin = user?.roles?.includes("ROLE_ADMIN");
 
     const handleLogout = async () => {
-        try {
-            await fetch(`${BACKEND_BASE_URL}/auth/logout`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-        } catch (error) {
-            // Silent error handling
-        } finally {
-            logout();
-            navigate("/login");
+    try {
+        // Call logout endpoint to invalidate server session
+        await fetch(`${BACKEND_BASE_URL}/auth/logout`, {
+            method: 'POST',
+            credentials: 'include' // Important for session cookies
+        });
+    } catch (error) {
+        console.log('Logout API call failed, continuing with client-side cleanup');
+    } finally {
+        // Client-side cleanup
+        logout();
+        
+        // Clear any remaining localStorage/sessionStorage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Force reload any open admin tabs/windows
+        if (window.opener && !window.opener.closed) {
+            window.opener.location.reload();
         }
-    };
+        
+        navigate("/login");
+    }
+};
 
-    const verifyAdminAccess = async () => {
-        try {
-            setIsVerifying(true);
-            const response = await fetch(`${BACKEND_BASE_URL}/api/admin/verify`, {
-                method: 'GET',
-                headers: { 
-                    'Authorization': `Bearer ${user?.token}`,
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            });
-            
-            if (response.ok) {
-                window.open(`${BACKEND_BASE_URL}/admin/dashboard`, '_blank');
-            } else {
-                alert('Admin access required');
-            }
-        } catch (error) {
-            alert('Unable to verify admin access');
-        } finally {
-            setIsVerifying(false);
-        }
-    };
-
-    const handleAdminAccess = async () => {
-        if (!isAdmin) {
-            alert('Access denied');
-            return;
-        }
-        await verifyAdminAccess();
-    };
+    const handleAdminAccess = () => {
+	  if (!isAdmin) {
+	    alert('Access denied');
+	    return;
+	  }
+	  
+	  // Use the correct backend URL from your api.js
+	  const adminUrl = `${BACKEND_BASE_URL}/admin/dashboard`;
+	  console.log('Opening admin dashboard:', adminUrl); // Debug log
+	  window.open(adminUrl, '_blank');
+	};
 
     const getWelcomeName = () => {
         if (userProfile?.firstName) {
@@ -134,10 +126,9 @@ export default function Header() {
                                 {isAdmin && (
                                     <button
                                         onClick={handleAdminAccess}
-                                        disabled={isVerifying}
-                                        className={`${styles.adminButton} ${isVerifying ? styles.adminButtonDisabled : ''}`}
+                                        className={styles.adminButton}
                                     >
-                                        {isVerifying ? 'Verifying...' : 'Admin'}
+                                        Admin
                                     </button>
                                 )}
                                 
@@ -196,6 +187,18 @@ export default function Header() {
                             >
                                 Sell Properties
                             </Link>
+                            
+                            {isAuthenticated && isAdmin && (
+                                <button
+                                    onClick={() => {
+                                        handleAdminAccess();
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className={styles.mobileAdminButton}
+                                >
+                                    Admin Dashboard
+                                </button>
+                            )}
                             
                             {isAuthenticated && (
                                 <Link 

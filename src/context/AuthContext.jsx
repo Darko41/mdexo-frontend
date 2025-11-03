@@ -134,7 +134,7 @@ export function AuthProvider({ children }) {
     }
   }, [authState.isAuthenticated, authState.user?.id, authState.userProfile, loadUserProfile]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback((fromStorageEvent = false) => {
     // Clear state
     setAuthState({
       user: null,
@@ -151,6 +151,16 @@ export function AuthProvider({ children }) {
     // Clear axios header
     delete axiosInstance.defaults.headers.common['Authorization'];
     
+    // Only trigger storage event if this is a direct logout (not from storage event)
+    if (!fromStorageEvent) {
+      // Signal other tabs about logout
+      localStorage.setItem('logout', Date.now().toString());
+      // Remove the logout signal after a short delay
+      setTimeout(() => {
+        localStorage.removeItem('logout');
+      }, 100);
+    }
+    
     // Reset refs
     profileLoadingRef.current = false;
     initializedRef.current = false;
@@ -165,6 +175,18 @@ export function AuthProvider({ children }) {
       return true;
     }
   }, []);
+
+  // Check auth status with server
+  const checkAuthStatus = useCallback(async () => {
+    if (!authState.token) return false;
+    
+    try {
+      const response = await axiosInstance.get('/api/auth/me');
+      return response.status === 200;
+    } catch (error) {
+      return false;
+    }
+  }, [authState.token]);
 
   // Initialize auth state from storage
   useEffect(() => {
@@ -225,6 +247,73 @@ export function AuthProvider({ children }) {
     return () => clearInterval(interval);
   }, [authState.token, isTokenExpired, logout]);
 
+  // Cross-tab logout listener and session monitoring
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      // Listen for logout signal from other tabs
+      if (e.key === 'logout') {
+        console.log('Logout signal received from other tab');
+        logout(true); // Pass true to indicate this is from storage event
+      }
+      
+      // Listen for token removal from other tabs
+      if (e.key === 'jwtToken' && !e.newValue && e.oldValue) {
+        console.log('Token removed from other tab');
+        logout(true);
+      }
+      
+      // Listen for user removal from other tabs
+      if (e.key === 'user' && !e.newValue && e.oldValue) {
+        console.log('User data removed from other tab');
+        logout(true);
+      }
+    };
+
+    const handleVisibilityChange = async () => {
+      // When user switches back to this tab, check if session is still valid
+      if (!document.hidden && authState.isAuthenticated) {
+        try {
+          const isStillAuthenticated = await checkAuthStatus();
+          if (!isStillAuthenticated) {
+            console.log('Session expired while tab was inactive');
+            logout();
+          }
+        } catch (error) {
+          console.log('Error checking auth status on tab switch');
+        }
+      }
+    };
+
+    // Set up event listeners
+    window.addEventListener('storage', handleStorageChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Clean up event listeners
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [authState.isAuthenticated, logout, checkAuthStatus]);
+
+  // Periodic session check (optional - for extra security)
+  useEffect(() => {
+    if (!authState.isAuthenticated) return;
+
+    const sessionCheckInterval = setInterval(async () => {
+      try {
+        const isStillAuthenticated = await checkAuthStatus();
+        if (!isStillAuthenticated) {
+          console.log('Session expired during periodic check');
+          logout();
+        }
+      } catch (error) {
+        console.log('Error during periodic session check');
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(sessionCheckInterval);
+  }, [authState.isAuthenticated, checkAuthStatus, logout]);
+
   const login = useCallback(async (userData, token) => {
     try {
       // Verify token
@@ -261,6 +350,9 @@ export function AuthProvider({ children }) {
 
       // Set axios headers
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      // Clear any previous logout signals
+      localStorage.removeItem('logout');
       
       // Load user profile after login
       if (isValidUserId(userId)) {

@@ -12,6 +12,7 @@ import BuyingPage from "./pages/BuyingPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
 import PropertyDetailsPage from "./pages/PropertyDetailsPage";
 import SignUpPage from "./pages/SignUpPage";
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -27,7 +28,18 @@ function App() {
             <Route path="/help" element={<HelpPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/buy" element={<BuyingPage />} />
-            <Route path="/create-listing" element={<CreateListingForm />} />
+            
+            {/* Protected Routes - Only accessible when authenticated */}
+            <Route 
+              path="/create-listing" 
+              element={
+                <ProtectedRoute>
+                  <CreateListingForm />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Public Routes */}
             <Route path="/search" element={<SearchResultsPage />} />
             <Route path="/property/:id" element={<PropertyDetailsPage />} />
             <Route path="/signup" element={<SignUpPage />} />
