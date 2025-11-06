@@ -13,6 +13,7 @@ import SearchResultsPage from "./pages/SearchResultsPage";
 import PropertyDetailsPage from "./pages/PropertyDetailsPage";
 import SignUpPage from "./pages/SignUpPage";
 import ProtectedRoute from './components/ProtectedRoute';
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
             <Route path="/search" element={<SearchResultsPage />} />
             <Route path="/property/:id" element={<PropertyDetailsPage />} />
             <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </main>
       </Router>

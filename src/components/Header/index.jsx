@@ -1,7 +1,6 @@
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import { BACKEND_BASE_URL } from "../../utils/api/api";
 import styles from './styles.module.css';
 
 export default function Header() {
@@ -21,7 +20,7 @@ export default function Header() {
 
     const handleLogout = async () => {
 	    try {
-	        await fetch(`${BACKEND_BASE_URL}/auth/logout`, {
+	        await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/logout`, {
 	            method: 'POST',
 	            credentials: 'include'
 	        });
@@ -39,8 +38,7 @@ export default function Header() {
 	    return;
 	  }
 	  
-	  // Use the correct backend URL from your api.js
-	  const adminUrl = `${BACKEND_BASE_URL}/admin/dashboard`;
+	  const adminUrl = `${import.meta.env.VITE_BACKEND_URL}/admin/dashboard`;
 	  window.open(adminUrl, '_blank');
 	};
 
