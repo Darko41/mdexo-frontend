@@ -35,15 +35,15 @@ const HeatingType = {
 
 // 🆕 NEW: Property Condition enum
 const PropertyCondition = {
-	NEW_CONSTRUCTION: 'Новоградња',
-	RENOVATED: 'Реновирано',
-	MODERNIZED: 'Модернизовано',
-	GOOD: 'У добром стању',
-	NEEDS_RENOVATION: 'Потребно реновирање',
-	ORIGINAL: 'У оригиналном стању',
-	LUXURY: 'Лукс',
-	SHELL: 'SHELL',
-	OTHER: 'Друго'
+	  NEW_CONSTRUCTION: 'NEW_CONSTRUCTION',
+	  RENOVATED: 'RENOVATED',
+	  MODERNIZED: 'MODERNIZED',
+	  GOOD: 'GOOD',
+	  NEEDS_RENOVATION: 'NEEDS_RENOVATION',
+	  ORIGINAL: 'ORIGINAL',
+	  LUXURY: 'LUXURY',
+	  SHELL: 'SHELL',
+	  OTHER: 'OTHER'
 };
 
 export default function CreateListingForm() {
@@ -188,8 +188,38 @@ export default function CreateListingForm() {
 
 	// Helper function to format enum values for display
 	const formatEnumDisplay = (value) => {
-		return value.toLowerCase().replace(/_/g, ' ');
+	  const displayMap = {
+	    // Property Condition
+	    'NEW_CONSTRUCTION': 'Новоградња',
+	    'RENOVATED': 'Реновирано',
+	    'MODERNIZED': 'Модернизовано', 
+	    'GOOD': 'У добром стању',
+	    'NEEDS_RENOVATION': 'Потребно реновирање',
+	    'ORIGINAL': 'У оригиналном стању',
+	    'LUXURY': 'Лукс',
+	    'SHELL': 'Shell',
+	    
+	    // Heating Type
+	    'CENTRAL': 'Централно грејање',
+	    'DISTRICT': 'Дистриктно грејање',
+	    'ELECTRIC': 'Електрично грејање',
+	    'GAS': 'Гасно грејање',
+	    'HEAT_PUMP': 'Топлотна пумпа',
+	    'SOLAR': 'Соларно грејање',
+	    'WOOD_PELLET': 'Пелет грејање',
+	    'OIL': 'Грејање на уље',
+	    'NONE': 'Без грејања'
+	  };
+	  
+	  // Handle "OTHER" separately since it appears in both enums
+	  // or just use the same translation for both
+	  if (value === 'OTHER') {
+	    return 'Друго';
+	  }
+	  
+	  return displayMap[value] || value.toLowerCase().replace(/_/g, ' ');
 	};
+
 
 	// 🆕 NEW: Helper function to get current year
 	const getCurrentYear = () => new Date().getFullYear();
