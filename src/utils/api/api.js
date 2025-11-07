@@ -39,7 +39,12 @@ const API = {
     search: (params) => api.get('/api/real-estates/search', { params }),
     getById: (id) => api.get(`/api/real-estates/${id}`),
     features: () => api.get('/api/real-estates/features'),
-    create: (data) => api.post('/api/real-estates', data),
+    create: (data) => api.post('/api/real-estates', data), // For JSON-only
+    createWithImages: (formData) => api.post('/api/real-estates', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
     getMyProperties: () => api.get('/api/real-estates/my-properties'),
   },
   auth: {

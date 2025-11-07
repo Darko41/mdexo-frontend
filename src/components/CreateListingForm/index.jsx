@@ -114,22 +114,22 @@ export default function CreateListingForm() {
 	  
 	  try {
 	    setIsSubmitting(true);
-
+	
 	    // Validate required fields
 	    if (!formData.title || !formData.price || !formData.address || !formData.city || !formData.state || !formData.zipCode) {
 	      setError('Please fill in all required fields');
 	      setIsSubmitting(false);
 	      return;
 	    }
-
+	
 	    if (uploadedImages.length === 0) {
 	      setError('Please upload at least one image');
 	      setIsSubmitting(false);
 	      return;
 	    }
-
+	
 	    console.log('Starting bulk upload with', uploadedImages.length, 'images');
-
+	
 	    // Create FormData for bulk upload
 	    const submitData = new FormData();
 	    
@@ -145,7 +145,6 @@ export default function CreateListingForm() {
 	      zipCode: formData.zipCode,
 	      sizeInSqMt: formData.sizeInSqMt ? parseInt(formData.sizeInSqMt) : null,
 	      features: formData.features,
-	      // 🆕 NEW: Include all new fields in the request
 	      roomCount: formData.roomCount ? parseFloat(formData.roomCount) : null,
 	      floor: formData.floor ? parseInt(formData.floor) : null,
 	      totalFloors: formData.totalFloors ? parseInt(formData.totalFloors) : null,
@@ -157,20 +156,21 @@ export default function CreateListingForm() {
 	      longitude: formData.longitude ? parseFloat(formData.longitude) : null
 	    };
 	    
+	    // ✅ CORRECT: Append as 'realEstate' to match @RequestPart("realEstate")
 	    submitData.append('realEstate', new Blob([JSON.stringify(realEstateData)], {
 	      type: 'application/json'
 	    }));
-
-	    // Append all image files for bulk upload
+	
+	    // ✅ CORRECT: Append as 'images' to match @RequestPart("images")
 	    uploadedImages.forEach((imageFile, index) => {
 	      submitData.append('images', imageFile);
 	    });
-
+	
 	    console.log('Sending bulk upload request...');
 	    
-	    // Use the bulk upload endpoint
-	    const response = await API.realEstates.createWithFormData(submitData);
-
+	    // ✅ CORRECT: Use the new createWithImages method
+	    const response = await API.realEstates.createWithImages(submitData);
+	
 	    console.log('Listing created successfully:', response.data);
 	    navigate(`/property/${response.data.propertyId}`);
 	    
