@@ -549,3 +549,20 @@
     padding: 1.5rem 1rem;
   }
 }
+
+.leaseCard:hover {
+  border-color: #8b5cf6;
+}
+
+.leaseIcon {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+}
+
+.leaseLink {
+  color: #7c3aed;
+}
+
+.leaseLink:hover {
+  color: #6d28d9;
+}

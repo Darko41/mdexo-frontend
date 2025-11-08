@@ -60,8 +60,8 @@ export default function Header() {
                             <Link to="/rent" className={styles.navLink}>
                                 Rent
                             </Link>
-                            <Link to="/sell" className={styles.navLink}>
-                                Sell
+                            <Link to="/lease" className={styles.navLink}>
+                                Lease
                             </Link>
                         </nav>
 
@@ -156,11 +156,11 @@ export default function Header() {
                                 Rent Properties
                             </Link>
                             <Link 
-                                to="/sell" 
+                                to="/lease" 
                                 className={styles.mobileNavLink}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                Sell Properties
+                                Lease Properties
                             </Link>
                             
                             {isAuthenticated && isAdmin && (

@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaSlidersH, FaHome, FaKey, FaTag, FaSearch, FaChartLine, FaStar, FaClock, FaHeadset } from "react-icons/fa";
+import { FaSlidersH, FaHome, FaKey, FaTag, FaSearch, FaChartLine, FaStar, FaClock, FaHeadset, FaFileContract } from "react-icons/fa";
 import SearchBar from "../SearchBar";
 import AdvancedSearchModal from "../AdvancedSearchModal";
 import { RealEstateCard } from "../real-estate";
@@ -85,23 +85,23 @@ export default function Main() {
               </div>
             </div>
 
-            {/* Sell Card */}
+            {/* Lease Card */}
             <div 
-              onClick={() => navigate('/sell')}
-              className={`${styles.actionCard} ${styles.sellCard}`}
-            >
-              <div className={`${styles.iconContainer} ${styles.sellIcon}`}>
-                <FaTag className="text-white text-xl" />
-              </div>
-              <h3 className={styles.cardTitle}>Sell Property</h3>
-              <p className={styles.cardDescription}>List your property and reach thousands of buyers</p>
-              <div className={`${styles.cardLink} ${styles.sellLink}`}>
-                Start Selling
-                <svg className={styles.linkIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
+			  onClick={() => navigate('/lease')}
+			  className={`${styles.actionCard} ${styles.leaseCard}`}
+			>
+			  <div className={`${styles.iconContainer} ${styles.leaseIcon}`}>
+			    <FaFileContract className="text-white text-xl" />
+			  </div>
+			  <h3 className={styles.cardTitle}>Lease Property</h3>
+			  <p className={styles.cardDescription}>Commercial spaces and long-term lease options</p>
+			  <div className={`${styles.cardLink} ${styles.leaseLink}`}>
+			    Browse Leases
+			    <svg className={styles.linkIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+			    </svg>
+			  </div>
+			</div>
 
             {/* Browse All Card */}
             <div 
