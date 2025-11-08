@@ -29,130 +29,119 @@ export default function SignUpPage() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError(null);
-  setSuccess(null);
-  setIsSubmitting(true);
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setIsSubmitting(true);
 
-  // Validation 
-  if (!formData.email || !formData.password || !formData.confirmPassword) {
-    setError("Please fill in all required fields.");
-    setIsSubmitting(false);
-    return;
-  }
-
-  if (formData.password !== formData.confirmPassword) {
-    setError("Passwords do not match.");
-    setIsSubmitting(false);
-    return;
-  }
-
-  if (formData.password.length < 8) {
-    setError("Password must be at least 8 characters long.");
-    setIsSubmitting(false);
-    return;
-  }
-
-  try {
-    // 1. Register the user
-    await API.auth.register({
-      email: formData.email,
-      password: formData.password,
-      roles: formData.roles
-    });
-
-    // 2. Automatically log in
-    const loginResponse = await API.auth.login({
-      email: formData.email,
-      password: formData.password
-    });
-
-    if (!loginResponse.data?.token) {
-      throw new Error("Login after registration failed");
+    // Validation
+    if (!formData.email || !formData.password || !formData.confirmPassword) {
+      setError("Please fill in all required fields.");
+      setIsSubmitting(false);
+      return;
     }
 
-    const { token } = loginResponse.data;
-    const decodedToken = jwtDecode(token);
-    
-    // 🟡 DEBUG: Check what's in the JWT token
-    console.log("🔐 JWT Token contents:", decodedToken);
-    
-    // Extract user ID - try different possible fields
-    const userId = decodedToken.id || decodedToken.userId || decodedToken.sub;
-    const roles = decodedToken.roles || ["ROLE_USER"];
-    
-    console.log("🆔 Extracted userId:", userId, "Type:", typeof userId);
-    console.log("📧 User email:", formData.email);
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      setIsSubmitting(false);
+      return;
+    }
 
-    // 3. Update auth context
-    await new Promise(resolve => {
-      login({
-	  email: decodedToken.sub || formData.email,
-	  roles,
-	  id: userId
-	}, token);
-      setTimeout(resolve, 100);
-    });
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      setIsSubmitting(false);
+      return;
+    }
 
-    // 4. Create user profile if any profile data was provided
-    if (formData.firstName || formData.lastName || formData.phone) {
-      try {
-        // Try using the extracted userId first
-        if (userId && !isNaN(userId)) {
-          console.log("✅ Creating profile with numeric userId:", userId);
-          await API.users.updateProfile(userId, {
-            firstName: formData.firstName || '',
-            lastName: formData.lastName || '',
-            phone: formData.phone || ''
-          });
-        } else {
-          // Fallback: Get user by email to find the ID
-          console.log("🔄 Getting user by email to find ID...");
-          const userResponse = await API.users.getByEmail(formData.email);
-          const userData = userResponse.data;
-          if (userData && userData.id) {
-            console.log("✅ Found user ID:", userData.id);
-            await API.users.updateProfile(userData.id, {
-              firstName: formData.firstName || '',
-              lastName: formData.lastName || '',
-              phone: formData.phone || ''
-            });
-          } else {
-            console.warn("❌ Could not determine user ID for profile creation");
-          }
-        }
-        console.log("✅ User profile created successfully");
-      } catch (profileError) {
-        console.warn("⚠️ Profile creation failed, but user was registered:", profileError);
-        // Don't fail the entire registration if profile creation fails
+    try {
+      // 1. Register the user with basic info only (NEW ENDPOINT)
+      await API.auth.register({
+        email: formData.email,
+        password: formData.password
+      });
+
+      // 2. Automatically log in to get the token and user ID
+      const loginResponse = await API.auth.login({
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (!loginResponse.data?.token) {
+        throw new Error("Login after registration failed");
       }
-    }
 
-    // 5. Show success message and redirect
-    setSuccess("Registration successful! Redirecting...");
-    setTimeout(() => {
-      navigate("/", { replace: true });
-    }, 1500);
+      const { token } = loginResponse.data;
+      const decodedToken = jwtDecode(token);
+      
+      
+      // 3. Extract user ID reliably
+      let userId;
+      
+      // Try different possible fields for user ID
+      if (decodedToken.id) {
+        userId = decodedToken.id;
+      } else if (decodedToken.userId) {
+        userId = decodedToken.userId;
+      } else if (decodedToken.sub && !isNaN(decodedToken.sub)) {
+        userId = parseInt(decodedToken.sub);
+      } else {
+        // Fallback: Get user by ID from the token or current user endpoint
+        const userResponse = await API.users.getCurrent();
+        userId = userResponse.data.id;
+      }
+     
+      // 4. Update auth context
+      await new Promise(resolve => {
+        login({
+          email: formData.email,
+          roles: decodedToken.roles || ["ROLE_USER"],
+          id: userId
+        }, token);
+        setTimeout(resolve, 100);
+      });
 
-  } catch (error) {
-	  console.error("❌ Registration error:", error);
-	  
-	  let errorMessage = "Registration failed. Please try again.";
-	  if (error.response) {
-	    if (error.response.status === 400) {
-	      errorMessage = error.response.data?.message || "Invalid registration data.";
-	    } else if (error.response.status === 409) {
-	      errorMessage = "Email already exists. Please use a different email.";
-	    }
-	  } else if (error.message.includes("Network Error")) {
-	    errorMessage = "Network error. Please check your connection.";
+      // 5. Update user profile with the extracted user ID (NEW ENDPOINT)
+      if (formData.firstName || formData.lastName || formData.phone) {
+	  try {
+	    await API.users.update(userId, {
+	      profile: {
+	        firstName: formData.firstName || '',
+	        lastName: formData.lastName || '',
+	        phone: formData.phone || '',
+	        bio: ''
+	      }
+	    });
+	    // Success - no logging needed
+	  } catch (profileError) {
+	    // Silent failure - user can update profile later
 	  }
-	
-	  setError(errorMessage);
-	} finally {
-	  setIsSubmitting(false);
 	}
-};
+
+      // 6. Show success and redirect
+      setSuccess("Registration successful! Redirecting...");
+      setTimeout(() => {
+        navigate("/profile", { replace: true });
+      }, 1500);
+
+    } catch (error) {
+      console.error("❌ Registration error:", error);
+      
+      let errorMessage = "Registration failed. Please try again.";
+      if (error.response) {
+        if (error.response.status === 400) {
+          errorMessage = error.response.data?.message || "Invalid registration data.";
+        } else if (error.response.status === 409) {
+          errorMessage = "Email already exists. Please use a different email.";
+        }
+      } else if (error.message.includes("Network Error")) {
+        errorMessage = "Network error. Please check your connection.";
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 py-8">

@@ -12,8 +12,21 @@
 
 /* tailwind.css */
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 
+/* ===== APP LAYOUT ===== */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  width: 100%;
+}
+
+/* ===== EXISTING STYLES (keep your current styles) ===== */
 @layer base {
   /* You can add your custom base styles here (optional) */
 }
@@ -77,4 +90,15 @@ body {
 
 .image-grid-container::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
+}
+
+/* ===== RESPONSIVE FIXES ===== */
+@media (max-width: 768px) {
+  .real-estates-container {
+    padding: 10px;
+  }
+  
+  .real-estate-item {
+    padding: 15px;
+  }
 }

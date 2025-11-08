@@ -32,16 +32,6 @@ export default function Header() {
 	    }
 	};
 
-    const handleAdminAccess = () => {
-	  if (!isAdmin) {
-	    alert('Access denied');
-	    return;
-	  }
-	  
-	  const adminUrl = `${import.meta.env.VITE_BACKEND_URL}/admin/dashboard`;
-	  window.open(adminUrl, '_blank');
-	};
-
     const getWelcomeName = () => {
         if (userProfile?.firstName) {
             return userProfile.firstName;
@@ -109,12 +99,12 @@ export default function Header() {
                         {isAuthenticated ? (
                             <div className={styles.userSection}>
                                 {isAdmin && (
-                                    <button
-                                        onClick={handleAdminAccess}
+                                    <Link
+                                        to="/admin"
                                         className={styles.adminButton}
                                     >
-                                        Admin
-                                    </button>
+                                        Admin Panel
+                                    </Link>
                                 )}
                                 
                                 <Link 
@@ -174,15 +164,13 @@ export default function Header() {
                             </Link>
                             
                             {isAuthenticated && isAdmin && (
-                                <button
-                                    onClick={() => {
-                                        handleAdminAccess();
-                                        setIsMobileMenuOpen(false);
-                                    }}
+                                <Link
+                                    to="/admin"
                                     className={styles.mobileAdminButton}
+                                    onClick={() => setIsMobileMenuOpen(false)}
                                 >
-                                    Admin Dashboard
-                                </button>
+                                    Admin Panel
+                                </Link>
                             )}
                             
                             {isAuthenticated && (

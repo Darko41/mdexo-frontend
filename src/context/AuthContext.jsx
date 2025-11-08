@@ -35,56 +35,56 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Load user profile from API
-  const loadUserProfile = useCallback(async (force = false) => {
-    if (!authState.isAuthenticated || !authState.user?.id || !authState.token) {
-      return null;
-    }
+  // Replace the loadUserProfile function in AuthContext.jsx
+const loadUserProfile = useCallback(async (force = false) => {
+  if (!authState.isAuthenticated || !authState.user?.id || !authState.token) {
+    return null;
+  }
 
-    // Prevent concurrent profile loads
-    if (profileLoadingRef.current && !force) {
-      return null;
-    }
+  if (profileLoadingRef.current && !force) {
+    return null;
+  }
 
-    const userId = authState.user.id;
-    if (!isValidUserId(userId)) {
-      return null;
-    }
+  const userId = authState.user.id;
+  if (!isValidUserId(userId)) {
+    return null;
+  }
 
-    try {
-      profileLoadingRef.current = true;
-      const response = await axiosInstance.get(`/api/users/${userId}/profile`);
-      const profileData = response.data;
-      
-      setAuthState(prev => ({
-        ...prev,
-        userProfile: profileData
-      }));
-
-      // Update localStorage
-      const updatedUser = {
-        ...authState.user,
-        profile: profileData
-      };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-
-      return profileData;
-    } catch (error) {
-      // If profile doesn't exist, that's fine - return empty object
-      if (error.response?.status === 404) {
-        const emptyProfile = { firstName: null, lastName: null, phone: null, bio: null };
-        setAuthState(prev => ({
-          ...prev,
-          userProfile: emptyProfile
-        }));
-        return emptyProfile;
+  try {
+    profileLoadingRef.current = true;
+    
+    // Use the main user endpoint instead of profile endpoint
+    const response = await axiosInstance.get(`/api/users/${userId}`);
+    const userData = response.data;
+    const profileData = userData?.profile || { firstName: null, lastName: null, phone: null, bio: null };
+    
+    setAuthState(prev => ({
+      ...prev,
+      userProfile: profileData,
+      user: {
+        ...prev.user,
+        ...userData
       }
-      
-      console.error('Error loading user profile:', error);
-      return null;
-    } finally {
-      profileLoadingRef.current = false;
-    }
-  }, [authState.isAuthenticated, authState.user, authState.token, isValidUserId]);
+    }));
+
+    // Update localStorage
+    const updatedUser = {
+      ...authState.user,
+      ...userData,
+      profile: profileData
+    };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+
+    return profileData;
+  } catch (error) {
+    console.error('Error loading user profile:', error);
+    // DON'T logout on profile load failure - just return empty profile
+    const emptyProfile = { firstName: null, lastName: null, phone: null, bio: null };
+    return emptyProfile;
+  } finally {
+    profileLoadingRef.current = false;
+  }
+}, [authState.isAuthenticated, authState.user, authState.token, isValidUserId]);
 
   // Update user profile locally after changes
   const updateUserProfile = useCallback((profileData) => {
@@ -103,36 +103,37 @@ export function AuthProvider({ children }) {
 
   // Refresh both user data and profile
   const refreshUserData = useCallback(async () => {
-    if (!authState.isAuthenticated || !authState.user?.id) {
-      return;
-    }
+  if (!authState.isAuthenticated || !authState.user?.id) {
+    return;
+  }
 
-    try {
-      // Refresh user data
-      const userResponse = await axiosInstance.get(`/api/users/${authState.user.id}`);
-      const userData = userResponse.data;
-      
-      // Refresh profile data
-      const profileData = await loadUserProfile(true); // Force refresh
-      
-      // Update user data
-      setAuthState(prev => ({
-        ...prev,
-        user: {
-          ...userData,
-          profile: profileData || prev.userProfile
-        }
-      }));
-
-      localStorage.setItem("user", JSON.stringify({
+  try {
+    // Refresh user data using the working endpoint
+    const userResponse = await axiosInstance.get(`/api/users/${authState.user.id}`);
+    const userData = userResponse.data;
+    
+    // Extract profile from user data
+    const profileData = userData?.profile || authState.userProfile;
+    
+    // Update state
+    setAuthState(prev => ({
+      ...prev,
+      user: {
         ...userData,
-        profile: profileData || authState.userProfile
-      }));
+        profile: profileData
+      },
+      userProfile: profileData
+    }));
 
-    } catch (error) {
-      console.error('Error refreshing user data:', error);
-    }
-  }, [authState.isAuthenticated, authState.user?.id, authState.userProfile, loadUserProfile]);
+    localStorage.setItem("user", JSON.stringify({
+      ...userData,
+      profile: profileData
+    }));
+
+  } catch (error) {
+    console.error('Error refreshing user data:', error);
+  }
+}, [authState.isAuthenticated, authState.user?.id, authState.userProfile]);
 
   const logout = useCallback((fromStorageEvent = false) => {
     // Clear state

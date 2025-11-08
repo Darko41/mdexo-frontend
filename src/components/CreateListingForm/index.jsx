@@ -168,8 +168,8 @@ export default function CreateListingForm() {
 	
 	    console.log('Sending bulk upload request...');
 	    
-	    // ✅ CORRECT: Use the new createWithImages method
-	    const response = await API.realEstates.createWithImages(submitData);
+	    
+	    const response = await API.realEstates.create(submitData);
 	
 	    console.log('Listing created successfully:', response.data);
 	    navigate(`/property/${response.data.propertyId}`);

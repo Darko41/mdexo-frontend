@@ -1,0 +1,141 @@
+.userManagement {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.userManagement h2 {
+  color: #1e293b;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.statCard h3 {
+  margin: 0 0 0.5rem 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.statCard p {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.usersGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.userCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.userInfo h4 {
+  margin: 0 0 0.5rem 0;
+  color: #1e293b;
+}
+
+.email {
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+}
+
+.roles {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.roleBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.role_user {
+  background: #e0e7ff;
+  color: #667eea;
+}
+
+.role_agent {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.role_admin {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.userActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btnPrimary, .btnSecondary, .btnDanger {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.btnPrimary {
+  background: #667eea;
+  color: white;
+}
+
+.btnSecondary {
+  background: #10b981;
+  color: white;
+}
+
+.btnDanger {
+  background: #ef4444;
+  color: white;
+}
+
+.successMessage, .errorMessage {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.successMessage {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.errorMessage {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
