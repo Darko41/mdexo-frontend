@@ -69,16 +69,11 @@ export default function SearchResultsPage() {
       // Axios wraps the response data in response.data
       setResults(response.data.content || []);
     } catch (err) {
-      console.error('Search error:', err);
-      setError('Došlo je do greške pri pretrazi. Pokušajte ponovo.');
-      
-      if (err.response) {
-        console.error('Server responded with:', err.response.status);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+	  setError('Došlo je do greške pri pretrazi. Pokušajte ponovo.');
+	} finally {
+	  setLoading(false);
+	}
+	  };
 
   const handleAdvancedSearchResults = (results) => {
     setResults(results);

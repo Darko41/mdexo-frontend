@@ -67,16 +67,11 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
       navigate(`/search?${queryString}`);
       
     } catch (error) {
-      console.error("Search error details:", {
-        message: error.message,
-        config: error.config,
-        response: error.response
-      });
-      setError("Претрага није успела. Молимо покушајте поново.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+	  setError("Претрага није успела. Молимо покушајте поново.");
+	} finally {
+	  setIsLoading(false);
+	}
+	  };
 
   const hasAdvancedFilters = () => {
     return Object.values(advancedFilters).some(value => value !== '');

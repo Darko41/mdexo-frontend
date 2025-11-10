@@ -77,7 +77,6 @@ const loadUserProfile = useCallback(async (force = false) => {
 
     return profileData;
   } catch (error) {
-    console.error('Error loading user profile:', error);
     // DON'T logout on profile load failure - just return empty profile
     const emptyProfile = { firstName: null, lastName: null, phone: null, bio: null };
     return emptyProfile;
@@ -131,7 +130,7 @@ const loadUserProfile = useCallback(async (force = false) => {
     }));
 
   } catch (error) {
-    console.error('Error refreshing user data:', error);
+    // Error refreshing user data
   }
 }, [authState.isAuthenticated, authState.user?.id, authState.userProfile]);
 
@@ -214,7 +213,6 @@ const loadUserProfile = useCallback(async (force = false) => {
           setAuthState(prev => ({ ...prev, loading: false }));
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
         logout();
       }
     };
@@ -241,19 +239,16 @@ const loadUserProfile = useCallback(async (force = false) => {
     const handleStorageChange = (e) => {
       // Listen for logout signal from other tabs
       if (e.key === 'logout') {
-        console.log('Logout signal received from other tab');
         logout(true);
       }
       
       // Listen for token removal from other tabs
       if (e.key === 'jwtToken' && !e.newValue && e.oldValue) {
-        console.log('Token removed from other tab');
         logout(true);
       }
       
       // Listen for user removal from other tabs
       if (e.key === 'user' && !e.newValue && e.oldValue) {
-        console.log('User data removed from other tab');
         logout(true);
       }
     };
@@ -263,11 +258,10 @@ const loadUserProfile = useCallback(async (force = false) => {
       if (!document.hidden && authState.isAuthenticated && authState.token) {
         try {
           if (isTokenExpired(authState.token)) {
-            console.log('Token expired while tab was inactive');
             logout();
           }
         } catch (error) {
-          console.log('Error checking token on tab switch');
+          // Error checking token on tab switch
         }
       }
     };
@@ -331,7 +325,6 @@ const loadUserProfile = useCallback(async (force = false) => {
       return Promise.resolve();
       
     } catch (error) {
-      console.error('Login error:', error);
       logout(); // Clean up on login failure
       return Promise.reject(error);
     }

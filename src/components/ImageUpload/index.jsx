@@ -17,13 +17,11 @@ const ImageUpload = ({ onImagesChange, existingImages = [] }) => {
   const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB
 
   const updateParent = (imageList) => {
-    if (onImagesChange) {
-      const imageFiles = imageList.map(img => img.file);
-      console.log('🔄 ImageUpload: Sending files to parent:', imageFiles.length, 'files');
-      console.log('📁 Files:', imageFiles);
-      onImagesChange(imageFiles);
-    }
-  };
+  if (onImagesChange) {
+    const imageFiles = imageList.map(img => img.file);
+    onImagesChange(imageFiles);
+  }
+};
 
   const onDrop = useCallback((acceptedFiles) => {
     if (images.length + acceptedFiles.length > MAX_IMAGES) {

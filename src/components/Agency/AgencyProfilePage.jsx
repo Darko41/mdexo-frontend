@@ -29,30 +29,30 @@ export default function AgencyProfilePage() {
   }, [id]);
 
   const fetchAgencyData = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch agency details
-      const agencyResponse = await API.agencies.getById(id);
-      setAgency(agencyResponse.data);
-      
-      // Fetch agency members (agents)
-      const membersResponse = await API.agencies.getMemberships(id);
-      const activeAgents = membersResponse.data.filter(member => 
-        member.status === 'ACTIVE'
-      );
-      setAgents(activeAgents);
-      
-      // Fetch agency properties
-      const propertiesResponse = await API.agencies.getProperties(id);
-      setProperties(propertiesResponse.data || []);
-      
-    } catch (error) {
-      console.error('Error fetching agency data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    
+    // Fetch agency details
+    const agencyResponse = await API.agencies.getById(id);
+    setAgency(agencyResponse.data);
+    
+    // Fetch agency members (agents)
+    const membersResponse = await API.agencies.getMemberships(id);
+    const activeAgents = membersResponse.data.filter(member => 
+      member.status === 'ACTIVE'
+    );
+    setAgents(activeAgents);
+    
+    // Fetch agency properties
+    const propertiesResponse = await API.agencies.getProperties(id);
+    setProperties(propertiesResponse.data || []);
+    
+  } catch (error) {
+    // Error fetching agency data
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (loading) {
     return (

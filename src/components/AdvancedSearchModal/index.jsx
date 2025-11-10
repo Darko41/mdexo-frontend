@@ -136,17 +136,14 @@ const AdvancedSearchModal = ({
       try {
         // Use the API utility with the dedicated features endpoint
         const response = await API.realEstates.features();
-        console.log('Features response:', response.data);
         
         if (Array.isArray(response.data)) {
           setAvailableFeatures(response.data);
         } else {
-          console.error('Expected array but got:', response.data);
           // Fallback to default features
           setAvailableFeatures(['Parking', 'Garden', 'Pool', 'Elevator', 'AC']);
         }
       } catch (error) {
-        console.error('Failed to fetch features:', error);
         // Fallback to default features
         setAvailableFeatures(['Parking', 'Garden', 'Pool', 'Elevator', 'AC', 'Garage', 'Basement', 'Fireplace']);
         setError('Failed to load features. Using default features.');
@@ -309,14 +306,12 @@ const AdvancedSearchModal = ({
       });
 
       const queryString = searchParams.toString();
-      console.log('Search query:', queryString);
       
       // Navigate to search page
       navigate(`/search?${queryString}`);
       onClose();
 
     } catch (error) {
-      console.error("Search error:", error);
       const errorMsg = "Search failed. Please check your filters.";
       setError(errorMsg);
       onError(errorMsg);

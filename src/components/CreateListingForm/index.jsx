@@ -85,9 +85,6 @@ export default function CreateListingForm() {
 	};
 
 	const handleImagesChange = (imageFiles) => {
-		console.log('Image files updated:', imageFiles);
-		console.log('Number of images:', imageFiles.length);
-		console.log('First image type:', imageFiles[0]?.constructor.name);
 		setUploadedImages(imageFiles);
 	};
 
@@ -128,8 +125,6 @@ export default function CreateListingForm() {
 	      return;
 	    }
 	
-	    console.log('Starting bulk upload with', uploadedImages.length, 'images');
-	
 	    // Create FormData for bulk upload
 	    const submitData = new FormData();
 	    
@@ -160,22 +155,16 @@ export default function CreateListingForm() {
 	    submitData.append('realEstate', new Blob([JSON.stringify(realEstateData)], {
 	      type: 'application/json'
 	    }));
-	
+
 	    // ✅ CORRECT: Append as 'images' to match @RequestPart("images")
 	    uploadedImages.forEach((imageFile, index) => {
 	      submitData.append('images', imageFile);
 	    });
-	
-	    console.log('Sending bulk upload request...');
-	    
 	    
 	    const response = await API.realEstates.create(submitData);
-	
-	    console.log('Listing created successfully:', response.data);
 	    navigate(`/property/${response.data.propertyId}`);
 	    
 	  } catch (error) {
-	    console.error('Error creating listing:', error);
 	    setError(
 	      error.response?.data?.message || 
 	      error.message || 
@@ -220,13 +209,12 @@ export default function CreateListingForm() {
 	  return displayMap[value] || value.toLowerCase().replace(/_/g, ' ');
 	};
 
-
 	// 🆕 NEW: Helper function to get current year
 	const getCurrentYear = () => new Date().getFullYear();
 
 	// Check if form is ready for submission
 	const isFormValid = () => {
-	  const isValid = (
+	  return (
 	    formData.title &&
 	    formData.price &&
 	    formData.address &&
@@ -236,9 +224,6 @@ export default function CreateListingForm() {
 	    uploadedImages.length > 0 &&
 	    !isSubmitting
 	  );
-	  
-	  console.log('Form validation result:', isValid);
-	  return isValid;
 	};
 
 	return (

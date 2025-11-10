@@ -9,7 +9,6 @@ export default function UserRoleManagement() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-	  console.log('Users data:', users);
     fetchUsers();
   }, []);
 
@@ -36,14 +35,12 @@ export default function UserRoleManagement() {
 
   const promoteToAgencyAdmin = async (userId, agencyData) => {
   try {
-    console.log('🔄 Making API call with:', { userId, agencyData });
     
     const response = await API.agencies.promoteToAgencyAdmin(userId, agencyData);
     
     setMessage('User promoted to agency admin successfully');
     fetchUsers();
   } catch (error) {
-    console.error('Promotion error:', error);
     setError('Failed to promote user to agency admin: ' + (error.response?.data?.message || error.message));
   }
 };
@@ -83,89 +80,78 @@ export default function UserRoleManagement() {
       </div>
 
       <div className={styles.usersGrid}>
-		  {users.map(user => {
-		    console.log('User profile debug:', {
-		      id: user.id,
-		      email: user.email,
-		      profile: user.profile,
-		      firstName: user.profile?.firstName,
-		      lastName: user.profile?.lastName,
-		      companyName: user.profile?.companyName
-		    });
-		    
-		    return (
-		      <div key={user.id} className={styles.userCard}>
-		        <div className={styles.userInfo}>
-		          <h4>
-		            {user.profile?.firstName} {user.profile?.lastName}
-		            {user.profile?.companyName && (
-		              <span className={styles.company}> @ {user.profile.companyName}</span>
-		            )}
-		          </h4>
-		          <p className={styles.email}>{user.email}</p>
-		          
-		          <div className={styles.roles}>
-		            {user.roles?.map(role => (
-		              <span key={role} className={`${styles.roleBadge} ${styles[role.toLowerCase()]}`}>
-		                {role.replace('ROLE_', '')}
-		              </span>
-		            ))}
-		          </div>
-		
-		          {/* Show professional info for agents */}
-		          {user.roles?.includes('ROLE_AGENT') && user.profile && (
-		            <div className={styles.agentInfo}>
-		              <p><strong>Specialties:</strong> {user.profile.specialties || 'Not specified'}</p>
-		              <p><strong>Experience:</strong> {user.profile.yearsExperience || 'Not specified'}</p>
-		              {user.profile.licenseNumber && (
-		                <p><strong>License:</strong> {user.profile.licenseNumber}</p>
-		              )}
-		            </div>
-		          )}
-		        </div>
-		        
-		        <div className={styles.userActions}>
-		          {!user.roles?.includes('ROLE_AGENT') && (
-		            <button 
-		              onClick={() => promoteToAgent(user.id)}
-		              className={styles.btnPrimary}
-		            >
-		              Make Agent
-		            </button>
-		          )}
-		          
-		          {user.roles?.includes('ROLE_AGENT') && !user.roles?.includes('ROLE_AGENCY_ADMIN') && (
-		            <button 
-		              onClick={() => {
-					  const userName = user.profile?.firstName || user.email.split('@')[0];
-					  const agencyName = user.profile?.companyName || `${userName}'s Agency`;
-					  
-					  console.log('Creating agency with:', { userName, agencyName });
-					  
-					  promoteToAgencyAdmin(user.id, { 
-					    name: agencyName,
-					    description: `Professional real estate agency led by ${userName}`
-					  });
-					}}
-		              className={styles.btnSecondary}
-		            >
-		              Make Agency Admin
-		            </button>
-		          )}
-		
-		          {user.roles?.includes('ROLE_AGENT') && (
-		            <button 
-		              onClick={() => demoteFromAgent(user.id)}
-		              className={styles.btnDanger}
-		            >
-		              Remove Agent
-		            </button>
-		          )}
-		        </div>
-		      </div>
-		    );
-		  })}
-		</div>
+  {users.map(user => {
+    return (
+      <div key={user.id} className={styles.userCard}>
+        <div className={styles.userInfo}>
+          <h4>
+            {user.profile?.firstName} {user.profile?.lastName}
+            {user.profile?.companyName && (
+              <span className={styles.company}> @ {user.profile.companyName}</span>
+            )}
+          </h4>
+          <p className={styles.email}>{user.email}</p>
+          
+          <div className={styles.roles}>
+            {user.roles?.map(role => (
+              <span key={role} className={`${styles.roleBadge} ${styles[role.toLowerCase()]}`}>
+                {role.replace('ROLE_', '')}
+              </span>
+            ))}
+          </div>
+
+          {/* Show professional info for agents */}
+          {user.roles?.includes('ROLE_AGENT') && user.profile && (
+            <div className={styles.agentInfo}>
+              <p><strong>Specialties:</strong> {user.profile.specialties || 'Not specified'}</p>
+              <p><strong>Experience:</strong> {user.profile.yearsExperience || 'Not specified'}</p>
+              {user.profile.licenseNumber && (
+                <p><strong>License:</strong> {user.profile.licenseNumber}</p>
+              )}
+            </div>
+          )}
+        </div>
+        
+        <div className={styles.userActions}>
+          {!user.roles?.includes('ROLE_AGENT') && (
+            <button 
+              onClick={() => promoteToAgent(user.id)}
+              className={styles.btnPrimary}
+            >
+              Make Agent
+            </button>
+          )}
+          
+          {user.roles?.includes('ROLE_AGENT') && !user.roles?.includes('ROLE_AGENCY_ADMIN') && (
+            <button 
+              onClick={() => {
+                const userName = user.profile?.firstName || user.email.split('@')[0];
+                const agencyName = user.profile?.companyName || `${userName}'s Agency`;
+                
+                promoteToAgencyAdmin(user.id, { 
+                  name: agencyName,
+                  description: `Professional real estate agency led by ${userName}`
+                });
+              }}
+              className={styles.btnSecondary}
+            >
+              Make Agency Admin
+            </button>
+          )}
+
+          {user.roles?.includes('ROLE_AGENT') && (
+            <button 
+              onClick={() => demoteFromAgent(user.id)}
+              className={styles.btnDanger}
+            >
+              Remove Agent
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  })}
+</div>
     </div>
   );
 }

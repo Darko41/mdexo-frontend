@@ -34,7 +34,6 @@ export default function BuyingPage() {
       }
     } catch (error) {
       if (isMounted) {
-        console.error("Error fetching properties for sale:", error);
         setError("Failed to fetch properties for sale. Please try again later.");
       }
     } finally {

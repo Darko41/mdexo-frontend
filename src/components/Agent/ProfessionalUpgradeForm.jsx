@@ -31,39 +31,38 @@ export default function ProfessionalUpgradeForm({ onClose }) {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError('');
+  
+  try {
+    // Use the existing promotion endpoint
+    await API.users.requestAgentPromotion();
     
-    try {
-      // Use the existing promotion endpoint
-      await API.users.requestAgentPromotion();
-      
-      // Update user profile with professional info
-      await API.users.update(user.id, {
-        profile: {
-          ...formData,
-          // Convert specialties array to string for storage
-          specialties: formData.specialties.join(', ')
-        }
-      });
-      
-      setMessage('Congratulations! You are now a professional agent.');
-      
-      // Refresh user data to get new roles
-      await refreshUserData();
-      
-      // Close form after success
-      setTimeout(() => onClose(), 2000);
-      
-    } catch (error) {
-      console.error('Upgrade error:', error);
-      setError(error.response?.data?.message || 'Failed to upgrade account. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    // Update user profile with professional info
+    await API.users.update(user.id, {
+      profile: {
+        ...formData,
+        // Convert specialties array to string for storage
+        specialties: formData.specialties.join(', ')
+      }
+    });
+    
+    setMessage('Congratulations! You are now a professional agent.');
+    
+    // Refresh user data to get new roles
+    await refreshUserData();
+    
+    // Close form after success
+    setTimeout(() => onClose(), 2000);
+    
+  } catch (error) {
+    setError(error.response?.data?.message || 'Failed to upgrade account. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className={styles.modalOverlay}>

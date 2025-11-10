@@ -57,7 +57,6 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
         setRealEstates(response.data.content || []);
       } catch (error) {
         setError("Failed to fetch real estate data.");
-        console.error("Error fetching real estate data:", error);
       } finally {
         setLoading(false);
       }

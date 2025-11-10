@@ -21,6 +21,7 @@ export default function AgencyManagementDashboard() {
   const [agency, setAgency] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchAgencyData();
@@ -28,10 +29,12 @@ export default function AgencyManagementDashboard() {
 
   const fetchAgencyData = async () => {
     try {
+      setError(null); // Clear previous errors
+      setLoading(true);
       const response = await API.agencies.getById(id);
       setAgency(response.data);
     } catch (error) {
-      console.error('Error fetching agency data:', error);
+      setError('Failed to load agency data'); // Set error message
     } finally {
       setLoading(false);
     }
@@ -139,6 +142,8 @@ function OverviewTab({ agency }) {
     pendingApplications: 0,
     totalProperties: 0
   });
+  
+  const [error, setError] = useState(null); // Add local error state
 
   useEffect(() => {
     fetchStats();
@@ -146,7 +151,7 @@ function OverviewTab({ agency }) {
 
   const fetchStats = async () => {
     try {
-      // These would come from your API
+      setError(null); // Clear previous errors
       const membersResponse = await API.agencies.getMemberships(agency.id);
       const applicationsResponse = await API.agencies.getPendingMemberships(agency.id);
       
@@ -157,10 +162,10 @@ function OverviewTab({ agency }) {
         totalMembers: membersResponse.data.length,
         activeMembers: activeMembers.length,
         pendingApplications,
-        totalProperties: 0 // You would fetch this from properties API
+        totalProperties: 0 // TODO You would fetch this from properties API
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      setError('Failed to load statistics');
     }
   };
 
@@ -245,6 +250,7 @@ function OverviewTab({ agency }) {
 function MembersTab({ agencyId }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchMembers();
@@ -252,10 +258,12 @@ function MembersTab({ agencyId }) {
 
   const fetchMembers = async () => {
     try {
+      setError(null); // Clear previous errors
+      setLoading(true);
       const response = await API.agencies.getMemberships(agencyId);
       setMembers(response.data);
     } catch (error) {
-      console.error('Error fetching members:', error);
+      setError('Failed to load members');
     } finally {
       setLoading(false);
     }
@@ -266,7 +274,7 @@ function MembersTab({ agencyId }) {
       await API.agencies.updateMember(membershipId, { position: newPosition });
       fetchMembers(); // Refresh list
     } catch (error) {
-      console.error('Error updating member:', error);
+      setError('Failed to update member role');
     }
   };
 
@@ -279,7 +287,7 @@ function MembersTab({ agencyId }) {
       await API.agencies.removeMember(membershipId);
       fetchMembers(); // Refresh list
     } catch (error) {
-      console.error('Error removing member:', error);
+      setError('Failed to remove member');
     }
   };
 
@@ -369,6 +377,7 @@ function MembersTab({ agencyId }) {
 function ApplicationsTab({ agencyId }) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchApplications();
@@ -376,10 +385,12 @@ function ApplicationsTab({ agencyId }) {
 
   const fetchApplications = async () => {
     try {
+      setError(null);
+      setLoading(true);
       const response = await API.agencies.getPendingMemberships(agencyId);
       setApplications(response.data);
     } catch (error) {
-      console.error('Error fetching applications:', error);
+      setError('Failed to load applications');
     } finally {
       setLoading(false);
     }
@@ -387,6 +398,7 @@ function ApplicationsTab({ agencyId }) {
 
   const handleApplication = async (membershipId, action) => {
     try {
+      setError(null);
       if (action === 'approve') {
         await API.agencies.approveMembership(membershipId);
       } else {
@@ -394,7 +406,7 @@ function ApplicationsTab({ agencyId }) {
       }
       fetchApplications(); // Refresh list
     } catch (error) {
-      console.error('Error processing application:', error);
+      setError(`Failed to ${action} application`);
     }
   };
 
@@ -469,6 +481,7 @@ function ApplicationsTab({ agencyId }) {
 function PropertiesTab({ agencyId }) {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchProperties();
@@ -476,10 +489,12 @@ function PropertiesTab({ agencyId }) {
 
   const fetchProperties = async () => {
     try {
+      setError(null);
+      setLoading(true);
       const response = await API.agencies.getProperties(agencyId);
       setProperties(response.data || []);
     } catch (error) {
-      console.error('Error fetching properties:', error);
+      setError('Failed to load properties');
     } finally {
       setLoading(false);
     }
@@ -546,16 +561,19 @@ function SettingsTab({ agency, onUpdate }) {
     logo: agency.logo
   });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSave = async () => {
     try {
+      setError(null);
+      setSuccess(false);
       setSaving(true);
       await API.agencies.update(agency.id, formData);
       onUpdate(); // Refresh agency data
-      alert('Agency settings updated successfully!');
+      setSuccess(true);
     } catch (error) {
-      console.error('Error updating agency:', error);
-      alert('Failed to update agency settings.');
+      setError('Failed to update agency settings');
     } finally {
       setSaving(false);
     }

@@ -29,7 +29,6 @@ export default function RealEstateList() {
 				setRealEstates(realEstatesResponse.data.content || []);
 			} catch (error) {
 				setError("Failed to fetch real estate data.");
-				console.error("Error fetching data:", error);
 			} finally {
 				setLoading(false);
 			}
@@ -39,14 +38,14 @@ export default function RealEstateList() {
 	}, [isAuthenticated, user?.id]); // Added dependencies
 
 	const loadUserProfile = async () => {
-		if (!user?.id || !token) return;
-		
-		try {
-			const response = await API.users.getProfile(user.id);
-			setUserProfile(response.data);
-		} catch (error) {
-			console.error('Error loading user profile:', error);
-		}
+	  if (!user?.id || !token) return;
+	  
+	  try {
+	    const response = await API.users.getProfile(user.id);
+	    setUserProfile(response.data);
+	  } catch (error) {
+	    // Error handled silently - optional: add error state if needed
+	  }
 	};
 
 	const handleCreateListingClick = () => {

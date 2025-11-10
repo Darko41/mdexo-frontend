@@ -34,19 +34,14 @@ export default function RentingPage() {
       }
     } catch (error) {
       if (isMounted) {
-        console.error("Error fetching rental properties:", {
-          url: error.config?.url,
-          status: error.response?.status,
-          data: error.response?.data
-        });
-        setError("Failed to fetch rental properties. Please try again later.");
-      }
-    } finally {
-      if (isMounted) {
-        setLoading(false);
-      }
-    }
-  };
+	  setError("Failed to fetch rental properties. Please try again later.");
+	}
+	} finally {
+	if (isMounted) {
+	  setLoading(false);
+	}
+	    }
+	  };
 
   fetchProperties();
 

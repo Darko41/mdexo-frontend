@@ -124,7 +124,6 @@ export default function SignUpPage() {
       }, 1500);
 
     } catch (error) {
-      console.error("❌ Registration error:", error);
       
       let errorMessage = "Registration failed. Please try again.";
       if (error.response) {

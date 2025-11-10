@@ -28,72 +28,49 @@ export default function AgencyDirectoryPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-  let isMounted = true;
-  
-  const fetchAgencies = async () => {
-    try {
-      const response = await API.agencies.getAll();
-      if (isMounted) {
-        console.log('Agencies loaded:', response.data);
-        setAgencies(response.data);
+    let isMounted = true;
+    
+    const fetchAgencies = async () => {
+      try {
+        const response = await API.agencies.getAll();
+        if (isMounted) {
+          setAgencies(response.data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setError('Failed to load agencies');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      if (isMounted) {
-        console.error('Error fetching agencies:', error);
+    };
+
+    const fetchUserMemberships = async () => {
+      try {
+        const response = await API.agencies.getMyMemberships();
+        if (isMounted) {
+          setUserMemberships(response.data || []);
+        }
+      } catch (error) {
+        // Silently fail for memberships as it's not critical
       }
-    } finally {
-      if (isMounted) {
-        setLoading(false);
-      }
+    };
+
+    fetchAgencies();
+    if (user?.roles?.includes('ROLE_AGENT')) {
+      fetchUserMemberships();
     }
-  };
 
-  const fetchUserMemberships = async () => {
-    try {
-      const response = await API.agencies.getMyMemberships();
-      if (isMounted) {
-        setUserMemberships(response.data || []);
-      }
-    } catch (error) {
-      if (isMounted) {
-        console.error('Error fetching user memberships:', error);
-      }
-    }
-  };
-
-  fetchAgencies();
-  if (user?.roles?.includes('ROLE_AGENT')) {
-    fetchUserMemberships();
-  }
-
-  return () => {
-    isMounted = false;
-  };
-}, [user]);
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   useEffect(() => {
     filterAndSortAgencies();
   }, [agencies, searchTerm, sortBy]);
-
-  const fetchAgencies = async () => {
-    try {
-      const response = await API.agencies.getAll();
-      setAgencies(response.data);
-    } catch (error) {
-      console.error('Error fetching agencies:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUserMemberships = async () => {
-    try {
-      const response = await API.agencies.getMyMemberships();
-      setUserMemberships(response.data || []);
-    } catch (error) {
-      console.error('Error fetching user memberships:', error);
-    }
-  };
 
   const filterAndSortAgencies = () => {
     let filtered = agencies.filter(agency =>
@@ -120,9 +97,17 @@ export default function AgencyDirectoryPage() {
 
   const handleApplyToAgency = async (agencyId) => {
     try {
+      setError('');
       await API.agencies.apply(agencyId);
       setMessage('Application submitted successfully!');
-      fetchUserMemberships(); // Refresh memberships to show applied status
+      
+      // Refresh memberships to show applied status
+      try {
+        const response = await API.agencies.getMyMemberships();
+        setUserMemberships(response.data || []);
+      } catch (error) {
+        // Silently fail for membership refresh
+      }
     } catch (error) {
       setError('Failed to apply to agency: ' + (error.response?.data?.message || error.message));
     }
@@ -148,8 +133,29 @@ export default function AgencyDirectoryPage() {
           <p>Connect with professional agencies and their expert agents</p>
         </div>
 
-        {message && <div className={styles.successMessage}>{message}</div>}
-        {error && <div className={styles.errorMessage}>{error}</div>}
+        {message && (
+          <div className={styles.successMessage}>
+            {message}
+            <button 
+              onClick={() => setMessage('')}
+              className={styles.closeButton}
+            >
+              ×
+            </button>
+          </div>
+        )}
+        
+        {error && (
+          <div className={styles.errorMessage}>
+            {error}
+            <button 
+              onClick={() => setError('')}
+              className={styles.closeButton}
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         <div className={styles.searchSection}>
           <div className={styles.searchBar}>

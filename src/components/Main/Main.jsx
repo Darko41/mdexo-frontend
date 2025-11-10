@@ -24,7 +24,6 @@ export default function Main() {
 
   const handleError = (error) => {
     setError("Došlo je do greške pri pretrazi. Pokušajte ponovo.");
-    console.error(error);
     setSearchResults([]);
   };
 
