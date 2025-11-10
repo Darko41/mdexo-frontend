@@ -18,34 +18,42 @@ export default function RentingPage() {
   const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
 
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await API.realEstates.search({ 
-        listingType: 'FOR_RENT' 
-        // Add other filters if needed, like:
-        // status: 'ACTIVE',
-        // page: 0,
-        // size: 20
+  let isMounted = true;
+  
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await API.realEstates.search({ 
+        listingType: 'FOR_RENT'
       });
       
+      if (isMounted) {
         setRealEstates(response.data.content || []);
-      } catch (error) {
+      }
+    } catch (error) {
+      if (isMounted) {
         console.error("Error fetching rental properties:", {
           url: error.config?.url,
           status: error.response?.status,
           data: error.response?.data
         });
         setError("Failed to fetch rental properties. Please try again later.");
-      } finally {
+      }
+    } finally {
+      if (isMounted) {
         setLoading(false);
       }
-    };
+    }
+  };
 
-    fetchProperties();
-  }, []);
+  fetchProperties();
+
+  return () => {
+    isMounted = false;
+  };
+}, []);
 
   const handleCreateListingClick = () => {
     if (!isAuthenticated) {

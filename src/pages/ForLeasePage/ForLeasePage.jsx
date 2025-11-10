@@ -18,32 +18,37 @@ export default function ForLeasePage() {
   const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
  
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        console.log('Fetching lease properties...');
-        const response = await API.realEstates.search({ 
-          listingType: 'FOR_LEASE'
-        });
-        
-        console.log('Lease properties response:', response.data);
-        setRealEstates(response.data.content || []);
-      } catch (error) {
-        console.error("Error fetching lease properties:", {
-          url: error.config?.url,
-          status: error.response?.status,
-          data: error.response?.data
-        });
-        setError("Failed to fetch lease properties. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProperties();
-  }, []);
+	  let isMounted = true;
+	  
+	  const fetchProperties = async () => {
+	    try {
+	      setLoading(true);
+	      setError(null);
+	      
+	      const response = await API.realEstates.search({ 
+	        listingType: 'FOR_LEASE'
+	      });
+	      
+	      if (isMounted) {
+	        setRealEstates(response.data.content || []);
+	      }
+	    } catch (error) {
+	      if (isMounted) {
+	        setError("Failed to fetch lease properties. Please try again later.");
+	      }
+	    } finally {
+	      if (isMounted) {
+	        setLoading(false);
+	      }
+	    }
+	  };
+	
+	  fetchProperties();
+	
+	  return () => {
+	    isMounted = false;
+	  };
+	}, []);
 
   const handleCreateListingClick = () => {
     if (!isAuthenticated) {

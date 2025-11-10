@@ -54,7 +54,7 @@
   flex-wrap: wrap;
 }
 
-.agentBadge, .userBadge {
+.agentBadge, .userBadge, .agencyAdminBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -67,11 +67,61 @@
 .agentBadge {
   background: rgba(34, 197, 94, 0.2);
   border: 1px solid rgba(34, 197, 94, 0.5);
+  color: #166534;
 }
 
 .userBadge {
   background: rgba(59, 130, 246, 0.2);
   border: 1px solid rgba(59, 130, 246, 0.5);
+  color: #1e40af;
+}
+
+.agencyAdminBadge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+/* Enhanced Alert Styles */
+.success, .error {
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.success {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border-color: #10b981;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+}
+
+.error {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border-color: #ef4444;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+}
+
+.success:hover, .error:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.success:hover {
+  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.25);
+}
+
+.error:hover {
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.25);
 }
 
 /* Content Grid */
@@ -130,8 +180,13 @@
   font-size: 1.25rem;
 }
 
+.dangerIcon {
+  color: #ef4444;
+  font-size: 1.25rem;
+}
+
 /* Button Styles */
-.editBtn, .saveBtn, .cancelBtn, .primaryBtn, .ctaButton {
+.editBtn, .saveBtn, .cancelBtn, .primaryBtn, .ctaButton, .deleteAccountBtn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -182,6 +237,20 @@
 .ctaButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.deleteAccountBtn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  width: 100%;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.deleteAccountBtn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
 }
 
 .actionButtons {
@@ -343,29 +412,6 @@
   font-size: 1.25rem;
 }
 
-/* Status Messages */
-.success, .error {
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.success {
-  background: #d1fae5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
-}
-
-.error {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
 /* Loading & Error States */
 .loadingContainer, .errorContainer {
   text-align: center;
@@ -390,51 +436,20 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .contentGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .rightColumn {
-    order: -1;
-  }
+/* Agency Management Styles */
+.agencySection {
+  margin-bottom: 1.5rem;
 }
 
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-  }
-  
-  .header {
-    padding: 1.5rem;
-  }
-  
-  .avatarSection {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .cardHeader {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-  
-  .actionButtons {
-    justify-content: stretch;
-  }
-  
-  .actionButtons button {
-    flex: 1;
-  }
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f1f5f9;
 }
 
-/* Agency Membership Styles */
 .membershipsList, .agenciesList {
   display: flex;
   flex-direction: column;
@@ -452,6 +467,7 @@
 .membershipCard:hover, .agencyCard:hover {
   background: #f1f5f9;
   border-color: #cbd5e1;
+  transform: translateY(-1px);
 }
 
 .membershipHeader, .agencyHeader {
@@ -511,7 +527,7 @@
   margin-top: 1rem;
 }
 
-.viewAgencyBtn, .manageBtn, .viewBtn {
+.viewAgencyBtn, .manageBtn, .viewBtn, .leaveBtn, .cancelBtn {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
@@ -531,6 +547,7 @@
 
 .viewAgencyBtn:hover, .viewBtn:hover {
   background: #5a6fd8;
+  transform: translateY(-1px);
 }
 
 .manageBtn {
@@ -540,25 +557,27 @@
 
 .manageBtn:hover {
   background: #0da271;
+  transform: translateY(-1px);
 }
 
 .leaveBtn {
   background: #ef4444;
   color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: background 0.2s ease;
 }
 
 .leaveBtn:hover {
   background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.cancelBtn {
+  background: #6b7280;
+  color: white;
+}
+
+.cancelBtn:hover {
+  background: #5a6170;
+  transform: translateY(-1px);
 }
 
 /* Agency Admin Styles */
@@ -601,70 +620,7 @@
   font-size: 0.875rem;
 }
 
-/* Role Badge Enhancements */
-.agencyAdminBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-/* Additional Benefits */
-.benefitsList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.benefitItem {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.benefitItem:hover {
-  background: #e2e8f0;
-  transform: translateX(4px);
-}
-
-.benefitIcon {
-  color: #667eea;
-  font-size: 1.1rem;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .membershipHeader, .agencyHeader {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: flex-start;
-  }
-  
-  .membershipActions, .agencyActions {
-    flex-direction: column;
-  }
-  
-  .agencyStats {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .viewAgencyBtn, .manageBtn, .viewBtn, .leaveBtn {
-    justify-content: center;
-  }
-}
-
-
-/* Agency Limit Styles */
+/* Agency Limits & Info */
 .agencyLimitBadge {
   background: #d1fae5;
   color: #065f46;
@@ -677,21 +633,37 @@
   gap: 0.5rem;
 }
 
-.agencyLimitInfo {
+.agencyLimitsInfo {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding: 0.75rem;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
   background: #f0f9ff;
   border: 1px solid #bae6fd;
-  border-radius: 8px;
+  border-radius: 12px;
   color: #0369a1;
   font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.agencyLimitsInfo strong {
+  color: #0891b2;
+}
+
+.agencyLimitsInfo ul {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.25rem;
+}
+
+.agencyLimitsInfo li {
+  margin-bottom: 0.25rem;
 }
 
 .infoIcon {
   font-size: 1rem;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
 }
 
 .primaryAgencyNote {
@@ -714,22 +686,124 @@
   flex-shrink: 0;
 }
 
-/* Cancel Application Button */
-.cancelBtn {
-  background: #6b7280;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: background 0.2s ease;
+/* Danger Zone Styles */
+.dangerZone {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid #fecaca;
+  border-radius: 12px;
+  margin-top: 1rem;
 }
 
-.cancelBtn:hover {
-  background: #5a6170;
+.dangerWarning {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: #dc2626;
+}
+
+.warningIcon {
+  font-size: 1.5rem;
+  color: #ef4444;
+}
+
+.dangerWarning h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.dangerDescription {
+  margin: 0 0 1rem 0;
+  color: #991b1b;
+  line-height: 1.5;
+}
+
+.agencyWarning {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #ef4444;
+}
+
+.deletionList {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+  color: #7f1d1d;
+}
+
+.deletionList li {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rightColumn {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .header {
+    padding: 1.5rem;
+  }
+  
+  .avatarSection {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .actionButtons {
+    justify-content: stretch;
+  }
+  
+  .actionButtons button {
+    flex: 1;
+  }
+  
+  .membershipHeader, .agencyHeader {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  
+  .membershipActions, .agencyActions {
+    flex-direction: column;
+  }
+  
+  .agencyStats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .viewAgencyBtn, .manageBtn, .viewBtn, .leaveBtn {
+    justify-content: center;
+  }
+  
+  .agencyLimitsInfo {
+    flex-direction: column;
+    text-align: center;
+  }
 }

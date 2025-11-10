@@ -18,33 +18,37 @@ export default function BuyingPage() {
   const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
  
   useEffect(() => {
+  let isMounted = true;
+  
   const fetchProperties = async () => {
     try {
       setLoading(true);
       setError(null);
       
       const response = await API.realEstates.search({ 
-        listingType: 'FOR_SALE' 
-        // Add other filters if needed, like:
-        // status: 'ACTIVE',
-        // page: 0,
-        // size: 20
+        listingType: 'FOR_SALE'
       });
       
-      setRealEstates(response.data.content || []);
+      if (isMounted) {
+        setRealEstates(response.data.content || []);
+      }
     } catch (error) {
-      console.error("Error fetching properties for sale:", {
-        url: error.config?.url,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-      setError("Failed to fetch properties for sale. Please try again later.");
+      if (isMounted) {
+        console.error("Error fetching properties for sale:", error);
+        setError("Failed to fetch properties for sale. Please try again later.");
+      }
     } finally {
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     }
   };
 
   fetchProperties();
+
+  return () => {
+    isMounted = false;
+  };
 }, []);
 
   const handleCreateListingClick = () => {

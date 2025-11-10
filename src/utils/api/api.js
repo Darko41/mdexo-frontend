@@ -130,9 +130,23 @@ const API = {
     }),
     
     // Promote user to agency admin and create agency (requires ROLE_ADMIN)
-    promoteToAgencyAdmin: (userId, agencyData) => api.post('/api/agencies/promote/agency-admin', agencyData, {
-      params: { userId }
-    }),
+    promoteToAgencyAdmin: (userId, agencyData) => {
+	  console.log('🔍 DEBUG - promoteToAgencyAdmin API call:');
+	  console.log('🔍 userId:', userId, 'type:', typeof userId);
+	  console.log('🔍 agencyData:', agencyData);
+	  console.log('🔍 agencyData.name:', agencyData?.name);
+	  console.log('🔍 agencyData.description:', agencyData?.description);
+	  
+	  const requestBody = {
+	    userId: userId,
+	    name: agencyData.name,
+	    description: agencyData.description
+	  };
+  
+  console.log('🔍 Request body being sent:', requestBody);
+  
+  return api.post('/api/agencies/promote/agency-admin', requestBody);
+},
     
     // Demote user from agent role (requires ROLE_ADMIN)
     demoteFromAgent: (userId) => api.post('/api/agencies/demote/agent', null, {

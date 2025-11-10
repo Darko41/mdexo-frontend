@@ -28,11 +28,48 @@ export default function AgencyDirectoryPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAgencies();
-    if (user?.roles?.includes('ROLE_AGENT')) {
-      fetchUserMemberships();
+  let isMounted = true;
+  
+  const fetchAgencies = async () => {
+    try {
+      const response = await API.agencies.getAll();
+      if (isMounted) {
+        console.log('Agencies loaded:', response.data);
+        setAgencies(response.data);
+      }
+    } catch (error) {
+      if (isMounted) {
+        console.error('Error fetching agencies:', error);
+      }
+    } finally {
+      if (isMounted) {
+        setLoading(false);
+      }
     }
-  }, [user]);
+  };
+
+  const fetchUserMemberships = async () => {
+    try {
+      const response = await API.agencies.getMyMemberships();
+      if (isMounted) {
+        setUserMemberships(response.data || []);
+      }
+    } catch (error) {
+      if (isMounted) {
+        console.error('Error fetching user memberships:', error);
+      }
+    }
+  };
+
+  fetchAgencies();
+  if (user?.roles?.includes('ROLE_AGENT')) {
+    fetchUserMemberships();
+  }
+
+  return () => {
+    isMounted = false;
+  };
+}, [user]);
 
   useEffect(() => {
     filterAndSortAgencies();

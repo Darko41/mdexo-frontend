@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import API from '../../utils/api/api';
 import { AuthContext } from '../../context/AuthContext';
+import ConfirmationModal from "../../components/Common/ConfirmationModal";
 import { 
   FaUser, 
   FaEnvelope, 
@@ -21,7 +22,9 @@ import {
   FaSignOutAlt,
   FaPlus,
   FaExternalLinkAlt,
-  FaInfoCircle
+  FaInfoCircle,
+  FaTrash,
+  FaExclamationTriangle
 } from "react-icons/fa";
 import ProfessionalUpgradeCard from "../../components/Agent/ProfessionalUpgradeCard";
 import styles from './styles.module.css';
@@ -39,6 +42,7 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState('');
   
   const { isAuthenticated, user: authUser, refreshUserData } = useContext(AuthContext);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -157,6 +161,32 @@ export default function ProfilePage() {
       setError('Failed to cancel application: ' + (error.response?.data?.message || error.message));
     }
   };
+
+  const handleDeleteAccount = async () => {
+  setShowDeleteModal(true);
+};
+
+const confirmDeleteAccount = async () => {
+  setShowDeleteModal(false);
+  
+  if (!authUser?.id) return;
+  
+  try {
+    await API.users.delete(authUser.id);
+    setSuccess('Account deleted successfully.');
+    
+    // Clear local storage and redirect
+    setTimeout(() => {
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }, 2000);
+    
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    setError('Failed to delete account: ' + (error.response?.data?.message || error.message));
+  }
+};
   
   const isAgent = userData?.roles?.includes('ROLE_AGENT');
   const isAgencyAdmin = userData?.roles?.includes('ROLE_AGENCY_ADMIN');
@@ -315,7 +345,7 @@ export default function ProfilePage() {
                 ) : (
                   <p className={profileData.phone ? styles.value : styles.placeholder}>
                     {profileData.phone || 'Not provided'}
-                  </p>
+                    </p>
                 )}
               </div>
 
@@ -338,191 +368,235 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Agency Memberships Card (for agents) */}
-          {isAgent && (
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>
-                  <FaBuilding className={styles.cardIcon} />
-                  <h2>My Agency</h2>
-                </div>
-                
-                {/* Show different button based on membership status */}
-                {!hasActiveAgency ? (
-                  <button 
-                    className={styles.primaryBtn}
-                    onClick={() => navigate('/agencies')}
-                  >
-                    <FaPlus /> Join an Agency
-                  </button>
+          {/* Unified Agency Management Section */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>
+                <FaBuilding className={styles.cardIcon} />
+                <h2>Agency Management</h2>
+              </div>
+              
+              {/* Show appropriate action buttons based on role and status */}
+              {isAgencyAdmin && (
+                <button 
+                  className={styles.primaryBtn}
+                  onClick={() => navigate('/agencies/create')}
+                >
+                  <FaPlus /> Create New Agency
+                </button>
+              )}
+              
+              {isAgent && !hasActiveAgency && !isAgencyAdmin && (
+                <button 
+                  className={styles.primaryBtn}
+                  onClick={() => navigate('/agencies')}
+                >
+                  <FaPlus /> Join an Agency
+                </button>
+              )}
+            </div>
+
+            {/* Agency Admin Section - Show owned agencies */}
+            {isAgencyAdmin && (
+              <div className={styles.agencySection}>
+                <h3 className={styles.sectionTitle}>Agencies You Manage</h3>
+                {ownedAgencies.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <FaBuilding className={styles.emptyIcon} />
+                    <h4>No Agencies Created</h4>
+                    <p>Create your first agency to build your real estate team and establish your brand.</p>
+                  </div>
                 ) : (
-                  <span className={styles.agencyLimitBadge}>
-                    ✓ One Agency Maximum
-                  </span>
+                  <div className={styles.agenciesList}>
+                    {ownedAgencies.map(agency => (
+                      <div key={agency.id} className={styles.agencyCard}>
+                        <div className={styles.agencyHeader}>
+                          <div className={styles.agencyBasicInfo}>
+                            <h4>{agency.name}</h4>
+                            <p className={styles.agencyDescription}>
+                              {agency.description || 'Professional real estate agency'}
+                            </p>
+                          </div>
+                          <span className={styles.adminBadge}>Admin</span>
+                        </div>
+                        
+                        <div className={styles.agencyStats}>
+                          <div className={styles.stat}>
+                            <FaUsers className={styles.statIcon} />
+                            <span>{agency.memberships?.length || 0} Team Members</span>
+                          </div>
+                          <div className={styles.stat}>
+                            <FaHome className={styles.statIcon} />
+                            <span>0 Properties</span>
+                          </div>
+                        </div>
+
+                        <div className={styles.agencyActions}>
+                          <button 
+                            className={styles.manageBtn}
+                            onClick={() => navigate(`/agencies/${agency.id}/manage`)}
+                          >
+                            Manage Agency
+                          </button>
+                          <button 
+                            className={styles.viewBtn}
+                            onClick={() => navigate(`/agencies/${agency.id}`)}
+                          >
+                            View Public Page
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
+            )}
 
-              {agencyMemberships.length === 0 ? (
-                <div className={styles.emptyState}>
-                  <FaBuilding className={styles.emptyIcon} />
-                  <h3>Not Currently with an Agency</h3>
-                  <p>Join an agency to access professional resources, shared leads, and brand recognition. You can be a member of one agency at a time.</p>
-                  <button 
-                    className={styles.ctaButton}
-                    onClick={() => navigate('/agencies')}
-                  >
-                    Browse Agencies to Join
-                  </button>
-                  
-                  <div className={styles.agencyLimitInfo}>
-                    <FaInfoCircle className={styles.infoIcon} />
-                    <span>Agents are limited to one primary agency at a time</span>
+            {/* Agent Section - Show memberships (only if not an agency admin OR if they have memberships) */}
+            {isAgent && (!isAgencyAdmin || agencyMemberships.length > 0) && (
+              <div className={styles.agencySection}>
+                <h3 className={styles.sectionTitle}>
+                  {isAgencyAdmin ? "Your Agency Memberships" : "Your Agency"}
+                </h3>
+                
+                {agencyMemberships.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <FaBuilding className={styles.emptyIcon} />
+                    <h4>Not Currently with an Agency</h4>
+                    <p>
+                      {isAgencyAdmin 
+                        ? "You manage agencies but aren't a member of any as an agent."
+                        : "Join an agency to access professional resources and collaboration tools."
+                      }
+                    </p>
+                    {!isAgencyAdmin && (
+                      <button 
+                        className={styles.ctaButton}
+                        onClick={() => navigate('/agencies')}
+                      >
+                        Browse Agencies to Join
+                      </button>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div className={styles.membershipsList}>
-                  {/* Show active membership first */}
-                  {agencyMemberships
-                    .sort((a, b) => {
-                      // Active memberships first, then pending
-                      if (a.status === 'ACTIVE' && b.status !== 'ACTIVE') return -1;
-                      if (a.status !== 'ACTIVE' && b.status === 'ACTIVE') return 1;
-                      return 0;
-                    })
-                    .map(membership => (
-                    <div key={membership.id} className={styles.membershipCard}>
-                      <div className={styles.membershipHeader}>
-                        <div className={styles.agencyInfo}>
-                          <h4>{membership.agency?.name}</h4>
-                          <span className={`${styles.membershipStatus} ${styles[membership.status?.toLowerCase()]}`}>
-                            {membership.status === 'ACTIVE' ? 'Primary Agency' : membership.status}
-                          </span>
-                        </div>
-                        {membership.position && (
-                          <span className={styles.memberPosition}>{membership.position}</span>
-                        )}
-                      </div>
-                      
-                      <div className={styles.membershipDetails}>
-                        {membership.joinDate && (
-                          <p>Member since: {new Date(membership.joinDate).toLocaleDateString()}</p>
-                        )}
-                        
-                        {/* Show note for active membership */}
-                        {membership.status === 'ACTIVE' && (
-                          <div className={styles.primaryAgencyNote}>
-                            <FaInfoCircle className={styles.noteIcon} />
-                            <span>This is your primary agency. You must leave this agency before joining another.</span>
+                ) : (
+                  <div className={styles.membershipsList}>
+                    {agencyMemberships.map(membership => (
+                      <div key={membership.id} className={styles.membershipCard}>
+                        <div className={styles.membershipHeader}>
+                          <div className={styles.agencyInfo}>
+                            <h4>{membership.agency?.name}</h4>
+                            <span className={`${styles.membershipStatus} ${styles[membership.status?.toLowerCase()]}`}>
+                              {membership.status === 'ACTIVE' ? 'Primary Agency' : membership.status}
+                            </span>
                           </div>
-                        )}
-                      </div>
-
-                      <div className={styles.membershipActions}>
-                        <button 
-                          className={styles.viewAgencyBtn}
-                          onClick={() => navigate(`/agencies/${membership.agency?.id}`)}
-                        >
-                          <FaExternalLinkAlt /> View Agency
-                        </button>
+                          {membership.position && (
+                            <span className={styles.memberPosition}>{membership.position}</span>
+                          )}
+                        </div>
                         
-                        {membership.status === 'ACTIVE' && (
+                        <div className={styles.membershipDetails}>
+                          {membership.joinDate && (
+                            <p>Member since: {new Date(membership.joinDate).toLocaleDateString()}</p>
+                          )}
+                          
+                          {membership.status === 'ACTIVE' && (
+                            <div className={styles.primaryAgencyNote}>
+                              <FaInfoCircle className={styles.noteIcon} />
+                              <span>This is your primary agency. You must leave this agency before joining another.</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className={styles.membershipActions}>
                           <button 
-                            className={styles.leaveBtn}
-                            onClick={() => handleLeaveAgency(membership.agency?.id)}
+                            className={styles.viewAgencyBtn}
+                            onClick={() => navigate(`/agencies/${membership.agency?.id}`)}
                           >
-                            <FaSignOutAlt /> Leave Agency
+                            <FaExternalLinkAlt /> View Agency
                           </button>
-                        )}
-                        
-                        {membership.status === 'PENDING' && (
-                          <button 
-                            className={styles.cancelBtn}
-                            onClick={() => handleCancelApplication(membership.id)}
-                          >
-                            <FaTimes /> Cancel Application
-                          </button>
-                        )}
+                          
+                          {membership.status === 'ACTIVE' && (
+                            <button 
+                              className={styles.leaveBtn}
+                              onClick={() => handleLeaveAgency(membership.agency?.id)}
+                            >
+                              <FaSignOutAlt /> Leave Agency
+                            </button>
+                          )}
+                          
+                          {membership.status === 'PENDING' && (
+                            <button 
+                              className={styles.cancelBtn}
+                              onClick={() => handleCancelApplication(membership.id)}
+                            >
+                              <FaTimes /> Cancel Application
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Agency Limits Information */}
+            <div className={styles.agencyLimitsInfo}>
+              <FaInfoCircle className={styles.infoIcon} />
+              <div>
+                <strong>Agency Limits:</strong>
+                <ul>
+                  <li>Agents can be members of <strong>one primary agency</strong> at a time</li>
+                  <li>Agency admins can create and manage <strong>multiple agencies</strong></li>
+                  <li>You can be both an agency admin and an agency member simultaneously</li>
+                </ul>
+              </div>
             </div>
-          )}
+          </div>
 
-          {/* Owned Agencies Card (for agency admins) */}
-          {isAgencyAdmin && (
-			  <div className={styles.card}>
-			    <div className={styles.cardHeader}>
-			      <div className={styles.cardTitle}>
-			        <FaCrown className={styles.cardIcon} />
-			        <h2>My Agencies</h2>
-			      </div>
-			      <button 
-			        className={styles.primaryBtn}
-			        onClick={() => navigate('/agencies/create')}
-			      >
-			        <FaPlus /> Create Agency
-			      </button>
-			    </div>
-
-              {ownedAgencies.length === 0 ? (
-                <div className={styles.emptyState}>
-                  <FaBuilding className={styles.emptyIcon} />
-                  <h3>No Agencies Created</h3>
-                  <p>Create your first agency to build your real estate team, manage properties, and establish your brand in the market.</p>
-                  <button 
-                    className={styles.ctaButton}
-                    onClick={() => navigate('/agencies/create')}
-                  >
-                    Create Your First Agency
-                  </button>
-                </div>
-              ) : (
-                <div className={styles.agenciesList}>
-                  {ownedAgencies.map(agency => (
-                    <div key={agency.id} className={styles.agencyCard}>
-                      <div className={styles.agencyHeader}>
-                        <div className={styles.agencyBasicInfo}>
-                          <h4>{agency.name}</h4>
-                          <p className={styles.agencyDescription}>
-                            {agency.description || 'Professional real estate agency'}
-                          </p>
-                        </div>
-                        <span className={styles.adminBadge}>Admin</span>
-                      </div>
-                      
-                      <div className={styles.agencyStats}>
-                        <div className={styles.stat}>
-                          <FaUsers className={styles.statIcon} />
-                          <span>{agency.memberships?.length || 0} Team Members</span>
-                        </div>
-                        <div className={styles.stat}>
-                          <FaHome className={styles.statIcon} />
-                          <span>{/* You might want to add property count */}0 Properties</span>
-                        </div>
-                      </div>
-
-                      <div className={styles.agencyActions}>
-                        <button 
-                          className={styles.manageBtn}
-                          onClick={() => navigate(`/agencies/${agency.id}/manage`)}
-                        >
-                          Manage Agency
-                        </button>
-                        <button 
-                          className={styles.viewBtn}
-                          onClick={() => navigate(`/agencies/${agency.id}`)}
-                        >
-                          View Public Page
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+          {/* Account Deletion Section */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>
+                <FaExclamationTriangle className={styles.dangerIcon} />
+                <h2>Account Management</h2>
+              </div>
             </div>
-          )}
+            
+            <div className={styles.dangerZone}>
+              <div className={styles.dangerWarning}>
+                <FaExclamationTriangle className={styles.warningIcon} />
+                <h3>Danger Zone</h3>
+              </div>
+              
+              <p className={styles.dangerDescription}>
+                <strong>Permanent account deletion</strong> - This action cannot be undone.
+                {isAgencyAdmin && ownedAgencies.length > 0 && (
+                  <span className={styles.agencyWarning}>
+                    ⚠️ You are an admin of {ownedAgencies.length} agency/agencies. 
+                    These will be permanently deleted along with your account.
+                  </span>
+                )}
+              </p>
+              
+              <ul className={styles.deletionList}>
+                <li>Your profile information will be permanently removed</li>
+                <li>All your property listings will be deleted</li>
+                <li>You will be removed from any agencies</li>
+                {isAgencyAdmin && ownedAgencies.length > 0 && (
+                  <li>Your {ownedAgencies.length} agency/agencies will be permanently deleted</li>
+                )}
+                <li>This action cannot be reversed</li>
+              </ul>
+              
+              <button 
+				  className={styles.deleteAccountBtn}
+				  onClick={handleDeleteAccount}  // Changed from handleDeleteAccount to handleDeleteAccount
+				>
+				  <FaTrash /> Delete My Account
+				</button>
+            </div>
+          </div>
 
           {/* Professional Upgrade Section */}
           {!isAgent && (
@@ -629,6 +703,20 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+      <ConfirmationModal
+	      isOpen={showDeleteModal}
+	      onClose={() => setShowDeleteModal(false)}
+	      onConfirm={confirmDeleteAccount}
+	      title="Delete Your Account"
+	      message={
+	        isAgencyAdmin && ownedAgencies.length > 0 
+	          ? `You are an admin of ${ownedAgencies.length} agency/agencies. All agencies, properties, and account data will be permanently deleted.`
+	          : "This will permanently delete your account, all your properties, and remove you from any agencies."
+	      }
+	      confirmText="Delete My Account"
+	      type="danger"
+	      agencyCount={isAgencyAdmin ? ownedAgencies.length : 0}
+	    />
     </div>
   );
 }
