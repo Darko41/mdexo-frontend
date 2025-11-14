@@ -12,7 +12,6 @@ export default function SignUpPage() {
     firstName: "",
     lastName: "",
     phone: "",
-    roles: ["ROLE_USER"]
   });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -47,48 +46,65 @@ export default function SignUpPage() {
       return;
     }
 
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long.");
       setIsSubmitting(false);
       return;
     }
 
     try {
-      // 1. Register the user with basic info only (NEW ENDPOINT)
-      await API.auth.register({
+      console.log("🟡 Step 1: Starting registration with data:", {
         email: formData.email,
-        password: formData.password
+        hasPassword: !!formData.password,
+        hasProfile: !!(formData.firstName || formData.lastName || formData.phone)
       });
 
-      // 2. Automatically log in to get the token and user ID
+      // 1. Register the user - SIMPLIFIED VERSION (remove profile data temporarily)
+      const registrationData = {
+        email: formData.email,
+        password: formData.password
+        // Remove roles, tier, and profile temporarily to test basic registration
+      };
+
+      console.log("🟡 Sending registration request:", registrationData);
+      
+      const registerResponse = await API.auth.register(registrationData);
+      console.log("🟢 Registration successful - full response:", registerResponse);
+      console.log("🟢 Response data:", registerResponse.data);
+
+      // 2. Login to get token
+      console.log("🟡 Step 2: Attempting login");
       const loginResponse = await API.auth.login({
         email: formData.email,
         password: formData.password
       });
 
+      console.log("🟢 Login successful:", loginResponse.data);
+
       if (!loginResponse.data?.token) {
-        throw new Error("Login after registration failed");
+        throw new Error("Login after registration failed - no token received");
       }
 
       const { token } = loginResponse.data;
       const decodedToken = jwtDecode(token);
       
-      
-      // 3. Extract user ID reliably
+      console.log("🟡 Decoded token:", decodedToken);
+
+      // 3. Extract user ID
       let userId;
-      
-      // Try different possible fields for user ID
       if (decodedToken.id) {
         userId = decodedToken.id;
       } else if (decodedToken.userId) {
         userId = decodedToken.userId;
-      } else if (decodedToken.sub && !isNaN(decodedToken.sub)) {
-        userId = parseInt(decodedToken.sub);
-      } else {
-        // Fallback: Get user by ID from the token or current user endpoint
+      } else if (decodedToken.sub) {
+        // Try to parse sub as ID, or get from API
         const userResponse = await API.users.getCurrent();
         userId = userResponse.data.id;
+      } else {
+        throw new Error("Could not extract user ID from token");
       }
+
+      console.log("🟡 Extracted user ID:", userId);
      
       // 4. Update auth context
       await new Promise(resolve => {
@@ -100,40 +116,61 @@ export default function SignUpPage() {
         setTimeout(resolve, 100);
       });
 
-      // 5. Update user profile with the extracted user ID (NEW ENDPOINT)
+      // 5. Update profile with additional data if provided
       if (formData.firstName || formData.lastName || formData.phone) {
-	  try {
-	    await API.users.update(userId, {
-	      profile: {
-	        firstName: formData.firstName || '',
-	        lastName: formData.lastName || '',
-	        phone: formData.phone || '',
-	        bio: ''
-	      }
-	    });
-	    // Success - no logging needed
-	  } catch (profileError) {
-	    // Silent failure - user can update profile later
-	  }
-	}
+        console.log("🟡 Step 3: Updating profile with additional data");
+        try {
+          await API.users.update(userId, {
+            profile: {
+              firstName: formData.firstName || '',
+              lastName: formData.lastName || '',
+              phone: formData.phone || '',
+              bio: ''
+            }
+          });
+          console.log("🟢 Profile updated successfully");
+        } catch (profileError) {
+          console.warn("🟡 Profile update failed (user can update later):", profileError);
+        }
+      }
 
-      // 6. Show success and redirect
+      // 6. Success
       setSuccess("Registration successful! Redirecting...");
       setTimeout(() => {
         navigate("/profile", { replace: true });
       }, 1500);
 
     } catch (error) {
+      console.error("🔴 FULL REGISTRATION ERROR:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        response: error.response,
+        config: error.config
+      });
       
       let errorMessage = "Registration failed. Please try again.";
+      
       if (error.response) {
+        console.error("🔴 Response details:", {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers
+        });
+        
         if (error.response.status === 400) {
-          errorMessage = error.response.data?.message || "Invalid registration data.";
+          errorMessage = error.response.data?.message || "Invalid registration data. Please check your information.";
         } else if (error.response.status === 409) {
           errorMessage = "Email already exists. Please use a different email.";
+        } else if (error.response.status === 500) {
+          errorMessage = "Server error. Please try again later.";
         }
+      } else if (error.request) {
+        console.error("🔴 No response received:", error.request);
+        errorMessage = "No response from server. Please check your internet connection.";
       } else if (error.message.includes("Network Error")) {
-        errorMessage = "Network error. Please check your connection.";
+        errorMessage = "Network error. Please check your internet connection.";
       }
       
       setError(errorMessage);
@@ -142,6 +179,7 @@ export default function SignUpPage() {
     }
   };
 
+  // ... (keep the rest of your JSX the same)
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 py-8">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-4">
@@ -238,9 +276,9 @@ export default function SignUpPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              minLength="8"
+              minLength="6"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Minimum 8 characters"
+              placeholder="Minimum 6 characters"
             />
           </div>
 
@@ -255,7 +293,7 @@ export default function SignUpPage() {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              minLength="8"
+              minLength="6"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Confirm your password"
             />
@@ -298,7 +336,6 @@ export default function SignUpPage() {
           </p>
         </div>
 
-        {/* Profile Completion Notice */}
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-800 text-center">
             <strong>Tip:</strong> Complete your profile with name and phone number to contact property owners directly.
