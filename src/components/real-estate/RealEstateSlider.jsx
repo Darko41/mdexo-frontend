@@ -230,30 +230,36 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
     return estate.propertyId || estate.id || `estate-${index}`;
   };
 
+  // Generate property detail URL
+  const getPropertyDetailUrl = (estate) => {
+    const estateId = estate.propertyId || estate.id;
+    return `/real-estates/${estateId}`;
+  };
+
   const getImageUrl = useCallback((estate, index) => {
-  const estateKey = getEstateKey(estate, index);
-  
-  // Return cached URL if exists
-  if (imageCache.has(estateKey)) {
-    return imageCache.get(estateKey);
-  }
+    const estateKey = getEstateKey(estate, index);
+    
+    // Return cached URL if exists
+    if (imageCache.has(estateKey)) {
+      return imageCache.get(estateKey);
+    }
 
-  const imageUrl = getPropertyImageUrl(estate, index);
+    const imageUrl = getPropertyImageUrl(estate, index);
 
-  // Cache the URL
-  setImageCache(prev => new Map(prev).set(estateKey, imageUrl));
-  
-  return imageUrl;
-}, [imageCache]);
+    // Cache the URL
+    setImageCache(prev => new Map(prev).set(estateKey, imageUrl));
+    
+    return imageUrl;
+  }, [imageCache]);
 
   // Handle image error with caching
   const handleImageError = useCallback((e, estateKey) => {
-  const fallbackUrl = getPropertyImageUrl({}); // Get default fallback
-  handleImageError(e, fallbackUrl);
-  
-  // Update cache with fallback
-  setImageCache(prev => new Map(prev).set(estateKey, fallbackUrl));
-}, []);
+    const fallbackUrl = getPropertyImageUrl({}); // Get default fallback
+    handleImageError(e, fallbackUrl);
+    
+    // Update cache with fallback
+    setImageCache(prev => new Map(prev).set(estateKey, fallbackUrl));
+  }, []);
 
   if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
@@ -281,6 +287,7 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
               {realEstates.map((estate, index) => {
                 const estateKey = getEstateKey(estate, index);
                 const imageUrl = getImageUrl(estate, index);
+                const propertyDetailUrl = getPropertyDetailUrl(estate);
                 
                 return (
                   <div
@@ -290,14 +297,25 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
                   >
                     <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col group hover:scale-105">
                       <div className="relative h-36 sm:h-40 md:h-48 overflow-hidden rounded-t-lg">
-                        <img
-                          src={imageUrl}
-                          alt={estate.title || 'Property image'}
-                          className="w-full h-full object-cover select-none"
-                          loading="lazy"
-                          draggable="false"
-                          onError={(e) => handleImageError(e, estateKey)}
-                        />
+                        <Link 
+                          to={propertyDetailUrl}
+                          className="block w-full h-full"
+                          onClick={(e) => {
+                            // Prevent navigation if user was dragging
+                            if (isDragging) {
+                              e.preventDefault();
+                            }
+                          }}
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={estate.title || 'Property image'}
+                            className="w-full h-full object-cover select-none"
+                            loading="lazy"
+                            draggable="false"
+                            onError={(e) => handleImageError(e, estateKey)}
+                          />
+                        </Link>
                         <div className="absolute top-2 right-2 bg-white rounded-full px-2 py-1 text-xs font-semibold shadow">
                           {estate.listingType === 'FOR_RENT' ? 'For Rent' : 'For Sale'}
                         </div>
@@ -308,9 +326,14 @@ export default function RealEstateSlider({ realEstates: propRealEstates }) {
                         </div>
                       </div>
                       <div className="p-3 flex-grow flex flex-col">
-                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 line-clamp-1">
-                          {estate.title || 'Untitled Property'}
-                        </h3>
+                        <Link 
+                          to={propertyDetailUrl}
+                          className="hover:text-blue-600 transition-colors"
+                        >
+                          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 line-clamp-1">
+                            {estate.title || 'Untitled Property'}
+                          </h3>
+                        </Link>
                         <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-1">
                           {estate.city || 'Unknown'}, {estate.state || 'Unknown'}
                         </p>
