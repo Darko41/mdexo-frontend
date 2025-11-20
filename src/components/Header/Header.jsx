@@ -1,6 +1,7 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import API from "../../utils/api/api";
 import styles from './styles.module.css';
 
 export default function Header() {
@@ -9,34 +10,78 @@ export default function Header() {
         isAuthenticated, 
         logout, 
         userProfile, 
-        isProfileComplete 
+        isProfileComplete,
+        refreshUserData 
     } = useContext(AuthContext);
     
     const navigate = useNavigate();
     const [isVerifying, setIsVerifying] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [currentUserProfile, setCurrentUserProfile] = useState(null);
 
     const isAdmin = user?.roles?.includes("ROLE_ADMIN");
 
-    const handleLogout = async () => {
-	    try {
-	        await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/logout`, {
-	            method: 'POST',
-	            credentials: 'include'
-	        });
-	    } catch (error) {
-	        // Silent error handling
-	    } finally {
-	        logout();
-	        navigate("/login"); // Redirect to frontend login
-	    }
-	};
+    // Fetch user profile data when component mounts or user changes
+    useEffect(() => {
+        if (isAuthenticated && user?.id) {
+            fetchUserProfile();
+        }
+    }, [isAuthenticated, user?.id]);
 
-    const getWelcomeName = () => {
+    const fetchUserProfile = async () => {
+        try {
+            const response = await API.users.getCurrent();
+            const userData = response.data;
+            
+            // Set the profile data for display
+            if (userData?.profile) {
+                setCurrentUserProfile(userData.profile);
+            } else if (userData?.firstName || userData?.lastName) {
+                // Handle case where profile fields are at root level
+                setCurrentUserProfile({
+                    firstName: userData.firstName || '',
+                    lastName: userData.lastName || '',
+                    phone: userData.phone || '',
+                    bio: userData.bio || ''
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await API.auth.logout();
+        } catch (error) {
+            // Silent error handling - logout from frontend regardless
+            console.log("Logout API call failed, proceeding with frontend logout");
+        } finally {
+            logout();
+            navigate("/login"); // Redirect to frontend login
+        }
+    };
+
+    const getDisplayName = () => {
+        // Use the fetched profile data first
+        if (currentUserProfile?.firstName && currentUserProfile?.lastName) {
+            return `${currentUserProfile.firstName} ${currentUserProfile.lastName}`;
+        }
+        
+        if (currentUserProfile?.firstName) {
+            return currentUserProfile.firstName;
+        }
+        
+        // Fallback to AuthContext profile data
+        if (userProfile?.firstName && userProfile?.lastName) {
+            return `${userProfile.firstName} ${userProfile.lastName}`;
+        }
+        
         if (userProfile?.firstName) {
             return userProfile.firstName;
         }
         
+        // Final fallback to email
         if (user?.email) {
             return user.email.split('@')[0];
         }
@@ -113,7 +158,7 @@ export default function Header() {
                                     title={hasIncompleteProfile ? "Complete your profile" : "View profile"}
                                 >
                                     <span className={styles.welcomeText}>
-                                        Hi, {getWelcomeName()}
+                                        {getDisplayName()}
                                     </span>
                                     {hasIncompleteProfile && (
                                         <span className={styles.incompleteProfileBadge}>!</span>
@@ -174,16 +219,26 @@ export default function Header() {
                             )}
                             
                             {isAuthenticated && (
-                                <Link 
-                                    to="/profile" 
-                                    className={styles.mobileNavLink}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                    My Profile
-                                    {hasIncompleteProfile && (
-                                        <span className={styles.mobileBadge}>!</span>
-                                    )}
-                                </Link>
+                                <>
+                                    <Link 
+                                        to="/profile" 
+                                        className={styles.mobileNavLink}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                        My Profile
+                                        {hasIncompleteProfile && (
+                                            <span className={styles.mobileBadge}>!</span>
+                                        )}
+                                    </Link>
+                                    <div className={styles.mobileUserInfo}>
+                                        <span className={styles.mobileUserName}>
+                                            {getDisplayName()}
+                                        </span>
+                                        <span className={styles.mobileUserEmail}>
+                                            {user?.email}
+                                        </span>
+                                    </div>
+                                </>
                             )}
                         </nav>
                     </div>

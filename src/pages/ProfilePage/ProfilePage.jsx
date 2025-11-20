@@ -32,9 +32,7 @@ import styles from './styles.module.css';
 export default function ProfilePage() {
   const [userData, setUserData] = useState(null);
   const [profileData, setProfileData] = useState({ firstName: '', lastName: '', phone: '', bio: '' });
-  const [agencyMemberships, setAgencyMemberships] = useState([]);
   const [ownedAgencies, setOwnedAgencies] = useState([]);
-  const [hasActiveAgency, setHasActiveAgency] = useState(false);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -56,48 +54,44 @@ export default function ProfilePage() {
   const fetchUserData = async () => {
     try {
       setLoading(true);
-      if (authUser?.id) {
-        // Fetch user data
-        const userResponse = await API.users.getById(authUser.id);
-        setUserData(userResponse.data);
-        
-        // Set profile data
-        if (userResponse.data?.profile) {
-          setProfileData(userResponse.data.profile);
-        } else {
-          setProfileData({ firstName: '', lastName: '', phone: '', bio: '' });
-        }
+      
+      // Use getCurrent() instead of getById() for current user
+      const userResponse = await API.users.getCurrent();
+      const userData = userResponse.data;
+      setUserData(userData);
+      
+      // Set profile data - handle different response structure
+      if (userData?.profile) {
+        setProfileData(userData.profile);
+      } else if (userData?.firstName || userData?.lastName) {
+        // Handle case where profile fields are at root level
+        setProfileData({
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          phone: userData.phone || '',
+          bio: userData.bio || ''
+        });
+      } else {
+        setProfileData({ firstName: '', lastName: '', phone: '', bio: '' });
+      }
 
-        // Fetch agency memberships if user is an agent
-        if (userResponse.data?.roles?.includes('ROLE_AGENT')) {
-          try {
-            const membershipsResponse = await API.agencies.getMyMemberships();
-            const memberships = membershipsResponse.data || [];
-            setAgencyMemberships(memberships);
-            
-            // CHECK: If user has active agency membership
-            const activeMembership = memberships.find(m => m.status === 'ACTIVE');
-            setHasActiveAgency(!!activeMembership);
-          } catch (error) {
-            setAgencyMemberships([]);
-            setHasActiveAgency(false);
-          }
-        }
-
-        // Fetch owned agencies if user is agency admin
-        if (userResponse.data?.roles?.includes('ROLE_AGENCY_ADMIN')) {
-          try {
-            const agenciesResponse = await API.agencies.getAll();
-            const userOwnedAgencies = agenciesResponse.data.filter(agency => 
-              agency.admin?.id === authUser.id
-            );
-            setOwnedAgencies(userOwnedAgencies);
-          } catch (error) {
+      // Fetch owned agencies if user is agency admin
+      if (userData?.roles?.includes('ROLE_AGENCY_ADMIN')) {
+        try {
+          // Use getMyAgency for agency admin
+          const myAgencyResponse = await API.agencies.getMyAgency();
+          if (myAgencyResponse.data) {
+            setOwnedAgencies([myAgencyResponse.data]);
+          } else {
             setOwnedAgencies([]);
           }
+        } catch (error) {
+          console.warn("Could not fetch owned agencies:", error);
+          setOwnedAgencies([]);
         }
       }
     } catch (error) {
+      console.error("Error fetching user data:", error);
       setError("Failed to load profile data.");
     } finally {
       setLoading(false);
@@ -107,17 +101,23 @@ export default function ProfilePage() {
   const handleSave = async () => {
     try {
       setUpdating(true);
-      if (authUser?.id) {
-        await API.users.update(authUser.id, {
-          profile: profileData
-        });
-        setSuccess('Profile updated successfully!');
-        setIsEditing(false);
-        fetchUserData();
+      
+      // Use the current user endpoint for updates
+      await API.users.update(authUser.id, {
+        profile: profileData
+      });
+      
+      setSuccess('Profile updated successfully!');
+      setIsEditing(false);
+      fetchUserData();
+      
+      // Refresh auth context data
+      if (refreshUserData) {
         refreshUserData();
       }
     } catch (error) {
-      setError("Failed to update profile.");
+      console.error("Error updating profile:", error);
+      setError("Failed to update profile: " + (error.response?.data?.error || error.message));
     } finally {
       setUpdating(false);
     }
@@ -130,60 +130,34 @@ export default function ProfilePage() {
     }));
   };
 
-  const handleLeaveAgency = async (agencyId) => {
-    if (!window.confirm('Are you sure you want to leave this agency?')) {
-      return;
-    }
-
-    try {
-      await API.agencies.leaveAgency(agencyId);
-      setSuccess('Successfully left the agency.');
-      fetchUserData();
-    } catch (error) {
-      setError('Failed to leave agency: ' + (error.response?.data?.message || error.message));
-    }
-  };
-
-  const handleCancelApplication = async (membershipId) => {
-    if (!window.confirm('Are you sure you want to cancel this agency application?')) {
-      return;
-    }
-
-    try {
-      await API.agencies.cancelApplication(membershipId);
-      setSuccess('Application cancelled successfully.');
-      fetchUserData();
-    } catch (error) {
-      setError('Failed to cancel application: ' + (error.response?.data?.message || error.message));
-    }
-  };
-
   const handleDeleteAccount = async () => {
-  setShowDeleteModal(true);
-};
+    setShowDeleteModal(true);
+  };
 
-const confirmDeleteAccount = async () => {
-  setShowDeleteModal(false);
-  
-  if (!authUser?.id) return;
-  
-  try {
-    await API.users.delete(authUser.id);
-    setSuccess('Account deleted successfully.');
+  const confirmDeleteAccount = async () => {
+    setShowDeleteModal(false);
     
-    // Clear local storage and redirect
-    setTimeout(() => {
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('user');
-      window.location.href = '/';
-    }, 2000);
+    if (!authUser?.id) return;
     
-  } catch (error) {
-    setError('Failed to delete account: ' + (error.response?.data?.message || error.message));
-  }
-};
-  
-  const isAgent = userData?.roles?.includes('ROLE_AGENT');
+    try {
+      // Use the current user deletion endpoint
+      await API.users.delete(authUser.id);
+      setSuccess('Account deleted successfully.');
+      
+      // Clear local storage and redirect
+      setTimeout(() => {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+      }, 2000);
+      
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      setError('Failed to delete account: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  // Check user roles
   const isAgencyAdmin = userData?.roles?.includes('ROLE_AGENCY_ADMIN');
 
   if (loading) return (
@@ -223,13 +197,8 @@ const confirmDeleteAccount = async () => {
                   <FaBuilding /> Agency Admin
                 </span>
               )}
-              {isAgent && (
-                <span className={styles.agentBadge}>
-                  <FaAward /> Professional Agent
-                </span>
-              )}
               <span className={styles.userBadge}>
-                <FaUser /> {isAgent ? 'Verified User' : 'Basic User'}
+                <FaUser /> User
               </span>
             </div>
           </div>
@@ -340,7 +309,7 @@ const confirmDeleteAccount = async () => {
                 ) : (
                   <p className={profileData.phone ? styles.value : styles.placeholder}>
                     {profileData.phone || 'Not provided'}
-                    </p>
+                  </p>
                 )}
               </div>
 
@@ -363,43 +332,30 @@ const confirmDeleteAccount = async () => {
             </div>
           </div>
 
-          {/* Unified Agency Management Section */}
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>
-                <FaBuilding className={styles.cardIcon} />
-                <h2>Agency Management</h2>
-              </div>
-              
-              {/* Show appropriate action buttons based on role and status */}
-              {isAgencyAdmin && (
+          {/* Agency Management Section (Agency Admins only) */}
+          {isAgencyAdmin && (
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitle}>
+                  <FaBuilding className={styles.cardIcon} />
+                  <h2>Agency Management</h2>
+                </div>
+                
                 <button 
                   className={styles.primaryBtn}
                   onClick={() => navigate('/agencies/create')}
                 >
                   <FaPlus /> Create New Agency
                 </button>
-              )}
-              
-              {isAgent && !hasActiveAgency && !isAgencyAdmin && (
-                <button 
-                  className={styles.primaryBtn}
-                  onClick={() => navigate('/agencies')}
-                >
-                  <FaPlus /> Join an Agency
-                </button>
-              )}
-            </div>
+              </div>
 
-            {/* Agency Admin Section - Show owned agencies */}
-            {isAgencyAdmin && (
               <div className={styles.agencySection}>
                 <h3 className={styles.sectionTitle}>Agencies You Manage</h3>
                 {ownedAgencies.length === 0 ? (
                   <div className={styles.emptyState}>
                     <FaBuilding className={styles.emptyIcon} />
                     <h4>No Agencies Created</h4>
-                    <p>Create your first agency to build your real estate team and establish your brand.</p>
+                    <p>Create your first agency to establish your real estate brand.</p>
                   </div>
                 ) : (
                   <div className={styles.agenciesList}>
@@ -416,10 +372,6 @@ const confirmDeleteAccount = async () => {
                         </div>
                         
                         <div className={styles.agencyStats}>
-                          <div className={styles.stat}>
-                            <FaUsers className={styles.statIcon} />
-                            <span>{agency.memberships?.length || 0} Team Members</span>
-                          </div>
                           <div className={styles.stat}>
                             <FaHome className={styles.statIcon} />
                             <span>0 Properties</span>
@@ -445,109 +397,20 @@ const confirmDeleteAccount = async () => {
                   </div>
                 )}
               </div>
-            )}
 
-            {/* Agent Section - Show memberships (only if not an agency admin OR if they have memberships) */}
-            {isAgent && (!isAgencyAdmin || agencyMemberships.length > 0) && (
-              <div className={styles.agencySection}>
-                <h3 className={styles.sectionTitle}>
-                  {isAgencyAdmin ? "Your Agency Memberships" : "Your Agency"}
-                </h3>
-                
-                {agencyMemberships.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <FaBuilding className={styles.emptyIcon} />
-                    <h4>Not Currently with an Agency</h4>
-                    <p>
-                      {isAgencyAdmin 
-                        ? "You manage agencies but aren't a member of any as an agent."
-                        : "Join an agency to access professional resources and collaboration tools."
-                      }
-                    </p>
-                    {!isAgencyAdmin && (
-                      <button 
-                        className={styles.ctaButton}
-                        onClick={() => navigate('/agencies')}
-                      >
-                        Browse Agencies to Join
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className={styles.membershipsList}>
-                    {agencyMemberships.map(membership => (
-                      <div key={membership.id} className={styles.membershipCard}>
-                        <div className={styles.membershipHeader}>
-                          <div className={styles.agencyInfo}>
-                            <h4>{membership.agency?.name}</h4>
-                            <span className={`${styles.membershipStatus} ${styles[membership.status?.toLowerCase()]}`}>
-                              {membership.status === 'ACTIVE' ? 'Primary Agency' : membership.status}
-                            </span>
-                          </div>
-                          {membership.position && (
-                            <span className={styles.memberPosition}>{membership.position}</span>
-                          )}
-                        </div>
-                        
-                        <div className={styles.membershipDetails}>
-                          {membership.joinDate && (
-                            <p>Member since: {new Date(membership.joinDate).toLocaleDateString()}</p>
-                          )}
-                          
-                          {membership.status === 'ACTIVE' && (
-                            <div className={styles.primaryAgencyNote}>
-                              <FaInfoCircle className={styles.noteIcon} />
-                              <span>This is your primary agency. You must leave this agency before joining another.</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className={styles.membershipActions}>
-                          <button 
-                            className={styles.viewAgencyBtn}
-                            onClick={() => navigate(`/agencies/${membership.agency?.id}`)}
-                          >
-                            <FaExternalLinkAlt /> View Agency
-                          </button>
-                          
-                          {membership.status === 'ACTIVE' && (
-                            <button 
-                              className={styles.leaveBtn}
-                              onClick={() => handleLeaveAgency(membership.agency?.id)}
-                            >
-                              <FaSignOutAlt /> Leave Agency
-                            </button>
-                          )}
-                          
-                          {membership.status === 'PENDING' && (
-                            <button 
-                              className={styles.cancelBtn}
-                              onClick={() => handleCancelApplication(membership.id)}
-                            >
-                              <FaTimes /> Cancel Application
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Agency Limits Information */}
-            <div className={styles.agencyLimitsInfo}>
-              <FaInfoCircle className={styles.infoIcon} />
-              <div>
-                <strong>Agency Limits:</strong>
-                <ul>
-                  <li>Agents can be members of <strong>one primary agency</strong> at a time</li>
-                  <li>Agency admins can create and manage <strong>multiple agencies</strong></li>
-                  <li>You can be both an agency admin and an agency member simultaneously</li>
-                </ul>
+              {/* Agency Limits Information */}
+              <div className={styles.agencyLimitsInfo}>
+                <FaInfoCircle className={styles.infoIcon} />
+                <div>
+                  <strong>Agency Information:</strong>
+                  <ul>
+                    <li>Agency admins can create and manage <strong>multiple agencies</strong></li>
+                    <li>Each agency has its own properties and settings</li>
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Account Deletion Section */}
           <div className={styles.card}>
@@ -577,7 +440,6 @@ const confirmDeleteAccount = async () => {
               <ul className={styles.deletionList}>
                 <li>Your profile information will be permanently removed</li>
                 <li>All your property listings will be deleted</li>
-                <li>You will be removed from any agencies</li>
                 {isAgencyAdmin && ownedAgencies.length > 0 && (
                   <li>Your {ownedAgencies.length} agency/agencies will be permanently deleted</li>
                 )}
@@ -585,26 +447,13 @@ const confirmDeleteAccount = async () => {
               </ul>
               
               <button 
-				  className={styles.deleteAccountBtn}
-				  onClick={handleDeleteAccount}  // Changed from handleDeleteAccount to handleDeleteAccount
-				>
-				  <FaTrash /> Delete My Account
-				</button>
+                className={styles.deleteAccountBtn}
+                onClick={handleDeleteAccount}
+              >
+                <FaTrash /> Delete My Account
+              </button>
             </div>
           </div>
-
-          {/* Professional Upgrade Section */}
-          {!isAgent && (
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>
-                  <FaCrown className={styles.cardIcon} />
-                  <h2>Professional Tools</h2>
-                </div>
-              </div>
-              <ProfessionalUpgradeCard />
-            </div>
-          )}
         </div>
 
         {/* Right Column - Properties & Quick Actions */}
@@ -663,55 +512,51 @@ const confirmDeleteAccount = async () => {
             </div>
           </div>
 
-          {/* Agent Benefits Card (only for agents) */}
-          {isAgent && (
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>
-                  <FaStar className={styles.cardIcon} />
-                  <h2>Agent Benefits</h2>
-                </div>
-              </div>
-              <div className={styles.benefitsList}>
-                <div className={styles.benefitItem}>
-                  <FaChartLine className={styles.benefitIcon} />
-                  <span>Advanced Analytics Dashboard</span>
-                </div>
-                <div className={styles.benefitItem}>
-                  <FaUsers className={styles.benefitIcon} />
-                  <span>Lead Management System</span>
-                </div>
-                <div className={styles.benefitItem}>
-                  <FaCrown className={styles.benefitIcon} />
-                  <span>Featured Listings</span>
-                </div>
-                <div className={styles.benefitItem}>
-                  <FaAward className={styles.benefitIcon} />
-                  <span>Verified Professional Badge</span>
-                </div>
-                <div className={styles.benefitItem}>
-                  <FaBuilding className={styles.benefitIcon} />
-                  <span>Agency Collaboration</span>
-                </div>
+          {/* User Benefits Card */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>
+                <FaStar className={styles.cardIcon} />
+                <h2>User Benefits</h2>
               </div>
             </div>
-          )}
+            <div className={styles.benefitsList}>
+              <div className={styles.benefitItem}>
+                <FaChartLine className={styles.benefitIcon} />
+                <span>Property Management Dashboard</span>
+              </div>
+              <div className={styles.benefitItem}>
+                <FaUsers className={styles.benefitIcon} />
+                <span>Contact Property Owners</span>
+              </div>
+              <div className={styles.benefitItem}>
+                <FaCrown className={styles.benefitIcon} />
+                <span>Featured Listings</span>
+              </div>
+              {isAgencyAdmin && (
+                <div className={styles.benefitItem}>
+                  <FaBuilding className={styles.benefitIcon} />
+                  <span>Agency Management Tools</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
       <ConfirmationModal
-	      isOpen={showDeleteModal}
-	      onClose={() => setShowDeleteModal(false)}
-	      onConfirm={confirmDeleteAccount}
-	      title="Delete Your Account"
-	      message={
-	        isAgencyAdmin && ownedAgencies.length > 0 
-	          ? `You are an admin of ${ownedAgencies.length} agency/agencies. All agencies, properties, and account data will be permanently deleted.`
-	          : "This will permanently delete your account, all your properties, and remove you from any agencies."
-	      }
-	      confirmText="Delete My Account"
-	      type="danger"
-	      agencyCount={isAgencyAdmin ? ownedAgencies.length : 0}
-	    />
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDeleteAccount}
+        title="Delete Your Account"
+        message={
+          isAgencyAdmin && ownedAgencies.length > 0 
+            ? `You are an admin of ${ownedAgencies.length} agency/agencies. All agencies, properties, and account data will be permanently deleted.`
+            : "This will permanently delete your account, all your properties, and remove you from any agencies."
+        }
+        confirmText="Delete My Account"
+        type="danger"
+        agencyCount={isAgencyAdmin ? ownedAgencies.length : 0}
+      />
     </div>
   );
 }

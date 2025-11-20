@@ -59,20 +59,27 @@ export default function SignUpPage() {
         hasProfile: !!(formData.firstName || formData.lastName || formData.phone)
       });
 
-      // 1. Register the user - SIMPLIFIED VERSION (remove profile data temporarily)
+      // 1. Prepare registration data with profile information
       const registrationData = {
         email: formData.email,
-        password: formData.password
-        // Remove roles, tier, and profile temporarily to test basic registration
+        password: formData.password,
+        profile: {
+          firstName: formData.firstName || '',
+          lastName: formData.lastName || '',
+          phone: formData.phone || '',
+          bio: ''
+        }
+        // Note: roles and tier are automatically set by the backend for public registration
       };
 
       console.log("🟡 Sending registration request:", registrationData);
       
-      const registerResponse = await API.auth.register(registrationData);
+      // 2. Register the user using the updated API structure
+      const registerResponse = await API.users.register(registrationData);
       console.log("🟢 Registration successful - full response:", registerResponse);
       console.log("🟢 Response data:", registerResponse.data);
 
-      // 2. Login to get token
+      // 3. Login to get token
       console.log("🟡 Step 2: Attempting login");
       const loginResponse = await API.auth.login({
         email: formData.email,
@@ -85,60 +92,66 @@ export default function SignUpPage() {
         throw new Error("Login after registration failed - no token received");
       }
 
-      const { token } = loginResponse.data;
+      const { token, userId, roles, email } = loginResponse.data;
       const decodedToken = jwtDecode(token);
       
       console.log("🟡 Decoded token:", decodedToken);
 
-      // 3. Extract user ID
-      let userId;
-      if (decodedToken.id) {
-        userId = decodedToken.id;
+      // 4. Extract user ID from response or token
+      let extractedUserId;
+      if (userId) {
+        extractedUserId = userId;
+      } else if (decodedToken.id) {
+        extractedUserId = decodedToken.id;
       } else if (decodedToken.userId) {
-        userId = decodedToken.userId;
+        extractedUserId = decodedToken.userId;
       } else if (decodedToken.sub) {
         // Try to parse sub as ID, or get from API
-        const userResponse = await API.users.getCurrent();
-        userId = userResponse.data.id;
+        try {
+          const userResponse = await API.users.getCurrent();
+          extractedUserId = userResponse.data.id;
+        } catch (userError) {
+          console.warn("Could not get user ID from API, using token sub:", decodedToken.sub);
+          extractedUserId = decodedToken.sub;
+        }
       } else {
         throw new Error("Could not extract user ID from token");
       }
 
-      console.log("🟡 Extracted user ID:", userId);
+      console.log("🟡 Extracted user ID:", extractedUserId);
      
-      // 4. Update auth context
+      // 5. Update auth context
       await new Promise(resolve => {
         login({
-          email: formData.email,
-          roles: decodedToken.roles || ["ROLE_USER"],
-          id: userId
+          email: email || formData.email,
+          roles: roles || decodedToken.roles || ["ROLE_USER"],
+          id: extractedUserId,
+          token: token
         }, token);
         setTimeout(resolve, 100);
       });
 
-      // 5. Update profile with additional data if provided
-      if (formData.firstName || formData.lastName || formData.phone) {
-        console.log("🟡 Step 3: Updating profile with additional data");
-        try {
-          await API.users.update(userId, {
-            profile: {
-              firstName: formData.firstName || '',
-              lastName: formData.lastName || '',
-              phone: formData.phone || '',
-              bio: ''
-            }
-          });
-          console.log("🟢 Profile updated successfully");
-        } catch (profileError) {
-          console.warn("🟡 Profile update failed (user can update later):", profileError);
+      // 6. Success - user profile is already created during registration
+      setSuccess("Registration successful! Starting your free trial...");
+      
+      // Optional: Start trial automatically (if not started by backend)
+      try {
+        console.log("🟡 Checking trial status...");
+        const trialStatus = await API.trial.getMyStatus();
+        console.log("🟢 Trial status:", trialStatus.data);
+        
+        if (!trialStatus.data.inTrial) {
+          console.log("🟡 Starting trial...");
+          await API.trial.start();
+          console.log("🟢 Trial started successfully");
         }
+      } catch (trialError) {
+        console.warn("🟡 Trial start failed (user can start manually later):", trialError);
       }
 
-      // 6. Success
-      setSuccess("Registration successful! Redirecting...");
       setTimeout(() => {
         navigate("/profile", { replace: true });
-      }, 1500);
+      }, 2000);
 
     } catch (error) {
       console.error("🔴 FULL REGISTRATION ERROR:", {
@@ -160,11 +173,13 @@ export default function SignUpPage() {
         });
         
         if (error.response.status === 400) {
-          errorMessage = error.response.data?.message || "Invalid registration data. Please check your information.";
+          errorMessage = error.response.data?.error || error.response.data?.message || "Invalid registration data. Please check your information.";
         } else if (error.response.status === 409) {
           errorMessage = "Email already exists. Please use a different email.";
         } else if (error.response.status === 500) {
           errorMessage = "Server error. Please try again later.";
+        } else if (error.response.data?.error) {
+          errorMessage = error.response.data.error;
         }
       } else if (error.request) {
         console.error("🔴 No response received:", error.request);
@@ -179,7 +194,6 @@ export default function SignUpPage() {
     }
   };
 
-  // ... (keep the rest of your JSX the same)
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 py-8">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-4">
@@ -338,7 +352,7 @@ export default function SignUpPage() {
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-800 text-center">
-            <strong>Tip:</strong> Complete your profile with name and phone number to contact property owners directly.
+            <strong>Free Trial:</strong> Get 6 months free premium features when you sign up!
           </p>
         </div>
       </div>
