@@ -12,6 +12,13 @@ export default function SignUpPage() {
     firstName: "",
     lastName: "",
     phone: "",
+    userType: "individual", // individual, agency, investor
+    // Agency-specific fields (conditionally shown)
+    agencyName: "",
+    agencyLicense: "",
+    agencyDescription: "",
+    agencyPhone: "",
+    agencyWebsite: ""
   });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -27,39 +34,64 @@ export default function SignUpPage() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    setIsSubmitting(true);
+  const handleUserTypeChange = (userType) => {
+    setFormData(prev => ({
+      ...prev,
+      userType,
+      // Reset agency fields when switching away from agency type
+      ...(userType !== 'agency' && {
+        agencyName: "",
+        agencyLicense: "",
+        agencyDescription: "",
+        agencyPhone: "",
+        agencyWebsite: ""
+      })
+    }));
+  };
 
-    // Validation
+  const validateForm = () => {
+    // Basic validation
     if (!formData.email || !formData.password || !formData.confirmPassword) {
       setError("Please fill in all required fields.");
-      setIsSubmitting(false);
-      return;
+      return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
-      setIsSubmitting(false);
-      return;
+      return false;
     }
 
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters long.");
-      setIsSubmitting(false);
+      return false;
+    }
+
+    // Agency-specific validation
+    if (formData.userType === 'agency') {
+      if (!formData.agencyName || !formData.agencyLicense) {
+        setError("Agency name and license number are required for agency registration.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    
+    if (!validateForm()) {
       return;
     }
 
-    try {
-      console.log("🟡 Step 1: Starting registration with data:", {
-        email: formData.email,
-        hasPassword: !!formData.password,
-        hasProfile: !!(formData.firstName || formData.lastName || formData.phone)
-      });
+    setIsSubmitting(true);
 
-      // 1. Prepare registration data with profile information
+    try {
+      console.log("🟡 Step 1: Starting registration with user type:", formData.userType);
+
+      // 1. Prepare registration data based on user type
       const registrationData = {
         email: formData.email,
         password: formData.password,
@@ -69,15 +101,24 @@ export default function SignUpPage() {
           phone: formData.phone || '',
           bio: ''
         }
-        // Note: roles and tier are automatically set by the backend for public registration
       };
+
+      // Add agency data if user is registering as agency
+      if (formData.userType === 'agency') {
+        registrationData.agency = {
+          name: formData.agencyName,
+          licenseNumber: formData.agencyLicense,
+          description: formData.agencyDescription,
+          contactPhone: formData.agencyPhone,
+          website: formData.agencyWebsite
+        };
+      }
 
       console.log("🟡 Sending registration request:", registrationData);
       
-      // 2. Register the user using the updated API structure
+      // 2. Register the user
       const registerResponse = await API.users.register(registrationData);
       console.log("🟢 Registration successful - full response:", registerResponse);
-      console.log("🟢 Response data:", registerResponse.data);
 
       // 3. Login to get token
       console.log("🟡 Step 2: Attempting login");
@@ -97,7 +138,7 @@ export default function SignUpPage() {
       
       console.log("🟡 Decoded token:", decodedToken);
 
-      // 4. Extract user ID from response or token
+      // 4. Extract user ID
       let extractedUserId;
       if (userId) {
         extractedUserId = userId;
@@ -106,7 +147,6 @@ export default function SignUpPage() {
       } else if (decodedToken.userId) {
         extractedUserId = decodedToken.userId;
       } else if (decodedToken.sub) {
-        // Try to parse sub as ID, or get from API
         try {
           const userResponse = await API.users.getCurrent();
           extractedUserId = userResponse.data.id;
@@ -131,22 +171,23 @@ export default function SignUpPage() {
         setTimeout(resolve, 100);
       });
 
-      // 6. Success - user profile is already created during registration
-      setSuccess("Registration successful! Starting your free trial...");
+      // 6. Success message based on user type
+      let successMessage = "Registration successful!";
+      if (formData.userType === 'agency') {
+        successMessage += " Your agency is pending verification.";
+      } else if (formData.userType === 'investor') {
+        successMessage += " Complete your investor profile to get started.";
+      }
+
+      setSuccess(successMessage);
       
-      // Optional: Start trial automatically (if not started by backend)
+      // 7. Start trial for all user types
       try {
-        console.log("🟡 Checking trial status...");
-        const trialStatus = await API.trial.getMyStatus();
-        console.log("🟢 Trial status:", trialStatus.data);
-        
-        if (!trialStatus.data.inTrial) {
-          console.log("🟡 Starting trial...");
-          await API.trial.start();
-          console.log("🟢 Trial started successfully");
-        }
+        console.log("🟡 Starting trial...");
+        await API.trial.start();
+        console.log("🟢 Trial started successfully");
       } catch (trialError) {
-        console.warn("🟡 Trial start failed (user can start manually later):", trialError);
+        console.warn("🟡 Trial start failed:", trialError);
       }
 
       setTimeout(() => {
@@ -154,23 +195,12 @@ export default function SignUpPage() {
       }, 2000);
 
     } catch (error) {
-      console.error("🔴 FULL REGISTRATION ERROR:", {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        response: error.response,
-        config: error.config
-      });
+      console.error("🔴 FULL REGISTRATION ERROR:", error);
       
       let errorMessage = "Registration failed. Please try again.";
       
       if (error.response) {
-        console.error("🔴 Response details:", {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
-          headers: error.response.headers
-        });
+        console.error("🔴 Response details:", error.response);
         
         if (error.response.status === 400) {
           errorMessage = error.response.data?.error || error.response.data?.message || "Invalid registration data. Please check your information.";
@@ -196,10 +226,10 @@ export default function SignUpPage() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 py-8">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl mx-4">
         <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">CREATE ACCOUNT</h2>
         <p className="text-center text-gray-600 mb-6">
-          Join us to start exploring properties
+          Join us to start your real estate journey
         </p>
 
         {error && (
@@ -214,28 +244,93 @@ export default function SignUpPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Required Fields */}
-          <div>
-            <label htmlFor="email" className="block text-gray-700 font-semibold mb-1">
-              Email Address <span className="text-red-500">*</span>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* User Type Selection */}
+          <div className="border-b pb-4">
+            <label className="block text-gray-700 font-semibold mb-3">
+              I am a: <span className="text-red-500">*</span>
             </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="your@email.com"
-            />
+            <div className="grid grid-cols-3 gap-4">
+              <button
+                type="button"
+                onClick={() => handleUserTypeChange('individual')}
+                className={`p-4 border-2 rounded-lg text-center transition-all ${
+                  formData.userType === 'individual'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
+                }`}
+              >
+                <div className="font-semibold">🏠 Private Owner</div>
+                <div className="text-sm mt-1">List & manage your properties</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleUserTypeChange('agency')}
+                className={`p-4 border-2 rounded-lg text-center transition-all ${
+                  formData.userType === 'agency'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
+                }`}
+              >
+                <div className="font-semibold">🏢 Agency</div>
+                <div className="text-sm mt-1">Professional real estate agency</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleUserTypeChange('investor')}
+                className={`p-4 border-2 rounded-lg text-center transition-all ${
+                  formData.userType === 'investor'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
+                }`}
+              >
+                <div className="font-semibold">💰 Investor</div>
+                <div className="text-sm mt-1">Find investment opportunities</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Required Fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="email" className="block text-gray-700 font-semibold mb-1">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="your@email.com"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-gray-700 font-semibold mb-1">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="+381 123 456 789"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="firstName" className="block text-gray-700 font-semibold mb-1">
-                First Name
+                First Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -243,6 +338,7 @@ export default function SignUpPage() {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="First name"
               />
@@ -250,7 +346,7 @@ export default function SignUpPage() {
 
             <div>
               <label htmlFor="lastName" className="block text-gray-700 font-semibold mb-1">
-                Last Name
+                Last Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -258,60 +354,136 @@ export default function SignUpPage() {
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Last name"
               />
             </div>
           </div>
 
-          <div>
-            <label htmlFor="phone" className="block text-gray-700 font-semibold mb-1">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="+381 123 456 789"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="password" className="block text-gray-700 font-semibold mb-1">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength="6"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Minimum 6 characters"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-gray-700 font-semibold mb-1">
+                Confirm Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                minLength="6"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Confirm your password"
+              />
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-gray-700 font-semibold mb-1">
-              Password <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              minLength="6"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Minimum 6 characters"
-            />
-          </div>
+          {/* Agency-specific fields (conditionally shown) */}
+          {formData.userType === 'agency' && (
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Agency Information</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="agencyName" className="block text-gray-700 font-semibold mb-1">
+                    Agency Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="agencyName"
+                    name="agencyName"
+                    value={formData.agencyName}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Your agency name"
+                  />
+                </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-gray-700 font-semibold mb-1">
-              Confirm Password <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              minLength="6"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Confirm your password"
-            />
-          </div>
+                <div>
+                  <label htmlFor="agencyLicense" className="block text-gray-700 font-semibold mb-1">
+                    License Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="agencyLicense"
+                    name="agencyLicense"
+                    value={formData.agencyLicense}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="REA-123456"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label htmlFor="agencyDescription" className="block text-gray-700 font-semibold mb-1">
+                  Agency Description
+                </label>
+                <textarea
+                  id="agencyDescription"
+                  name="agencyDescription"
+                  value={formData.agencyDescription}
+                  onChange={handleChange}
+                  rows="3"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Brief description of your agency..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label htmlFor="agencyPhone" className="block text-gray-700 font-semibold mb-1">
+                    Agency Phone
+                  </label>
+                  <input
+                    type="tel"
+                    id="agencyPhone"
+                    name="agencyPhone"
+                    value={formData.agencyPhone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="+381 123 456 789"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="agencyWebsite" className="block text-gray-700 font-semibold mb-1">
+                    Agency Website
+                  </label>
+                  <input
+                    type="url"
+                    id="agencyWebsite"
+                    name="agencyWebsite"
+                    value={formData.agencyWebsite}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://youragency.com"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="pt-2">
             <button
@@ -332,7 +504,7 @@ export default function SignUpPage() {
                   Creating Account...
                 </span>
               ) : (
-                'Create Account'
+                `Create ${formData.userType === 'agency' ? 'Agency' : formData.userType === 'investor' ? 'Investor' : ''} Account`
               )}
             </button>
           </div>
@@ -352,7 +524,7 @@ export default function SignUpPage() {
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-800 text-center">
-            <strong>Free Trial:</strong> Get 6 months free premium features when you sign up!
+            <strong>Free Trial:</strong> Get 6 months free premium features for all account types!
           </p>
         </div>
       </div>

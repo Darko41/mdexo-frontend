@@ -6,10 +6,11 @@ import {
   FaHome, 
   FaChartLine, 
   FaCog,
-  FaBell,
-  FaUserCheck,
-  FaUserClock,
-  FaArrowLeft
+  FaArrowLeft,
+  FaEnvelope,
+  FaPhone,
+  FaGlobe,
+  FaMapMarkerAlt
 } from 'react-icons/fa';
 import API from '../../utils/api/api';
 import styles from './AgencyManagement.module.css';
@@ -29,12 +30,12 @@ export default function AgencyManagementDashboard() {
 
   const fetchAgencyData = async () => {
     try {
-      setError(null); // Clear previous errors
+      setError(null);
       setLoading(true);
       const response = await API.agencies.getById(id);
       setAgency(response.data);
     } catch (error) {
-      setError('Failed to load agency data'); // Set error message
+      setError('Failed to load agency data');
     } finally {
       setLoading(false);
     }
@@ -72,13 +73,13 @@ export default function AgencyManagementDashboard() {
         <div className={styles.headerContent}>
           <div className={styles.agencyInfo}>
             <h1>{agency.name} - Management</h1>
-            <p>Manage your agency team and listings</p>
+            <p>Manage your agency information and listings</p>
           </div>
           
           <div className={styles.headerStats}>
             <div className={styles.stat}>
-              <FaUsers className={styles.statIcon} />
-              <span>{agency.memberships?.length || 0} Members</span>
+              <FaBuilding className={styles.statIcon} />
+              <span>Agency Details</span>
             </div>
             <div className={styles.stat}>
               <FaHome className={styles.statIcon} />
@@ -88,25 +89,13 @@ export default function AgencyManagementDashboard() {
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Simplified without members/applications */}
       <div className={styles.navigation}>
         <button 
           className={`${styles.navItem} ${activeTab === 'overview' ? styles.activeNav : ''}`}
           onClick={() => setActiveTab('overview')}
         >
           <FaChartLine /> Overview
-        </button>
-        <button 
-          className={`${styles.navItem} ${activeTab === 'members' ? styles.activeNav : ''}`}
-          onClick={() => setActiveTab('members')}
-        >
-          <FaUsers /> Team Members
-        </button>
-        <button 
-          className={`${styles.navItem} ${activeTab === 'applications' ? styles.activeNav : ''}`}
-          onClick={() => setActiveTab('applications')}
-        >
-          <FaUserClock /> Applications
         </button>
         <button 
           className={`${styles.navItem} ${activeTab === 'properties' ? styles.activeNav : ''}`}
@@ -125,8 +114,6 @@ export default function AgencyManagementDashboard() {
       {/* Content */}
       <div className={styles.content}>
         {activeTab === 'overview' && <OverviewTab agency={agency} />}
-        {activeTab === 'members' && <MembersTab agencyId={id} />}
-        {activeTab === 'applications' && <ApplicationsTab agencyId={id} />}
         {activeTab === 'properties' && <PropertiesTab agencyId={id} />}
         {activeTab === 'settings' && <SettingsTab agency={agency} onUpdate={fetchAgencyData} />}
       </div>
@@ -134,16 +121,15 @@ export default function AgencyManagementDashboard() {
   );
 }
 
-// Overview Tab Component
+// Overview Tab Component - Simplified without member stats
 function OverviewTab({ agency }) {
   const [stats, setStats] = useState({
-    totalMembers: 0,
-    activeMembers: 0,
-    pendingApplications: 0,
-    totalProperties: 0
+    totalProperties: 0,
+    featuredProperties: 0,
+    activeProperties: 0
   });
   
-  const [error, setError] = useState(null); // Add local error state
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchStats();
@@ -151,18 +137,18 @@ function OverviewTab({ agency }) {
 
   const fetchStats = async () => {
     try {
-      setError(null); // Clear previous errors
-      const membersResponse = await API.agencies.getMemberships(agency.id);
-      const applicationsResponse = await API.agencies.getPendingMemberships(agency.id);
+      setError(null);
+      // Fetch agency properties to get stats
+      const propertiesResponse = await API.agencies.getProperties(agency.id);
+      const properties = propertiesResponse.data || [];
       
-      const activeMembers = membersResponse.data.filter(m => m.status === 'ACTIVE');
-      const pendingApplications = applicationsResponse.data.length;
+      const activeProperties = properties.filter(p => p.isActive !== false);
+      const featuredProperties = properties.filter(p => p.isFeatured === true);
 
       setStats({
-        totalMembers: membersResponse.data.length,
-        activeMembers: activeMembers.length,
-        pendingApplications,
-        totalProperties: 0 // TODO You would fetch this from properties API
+        totalProperties: properties.length,
+        activeProperties: activeProperties.length,
+        featuredProperties: featuredProperties.length
       });
     } catch (error) {
       setError('Failed to load statistics');
@@ -176,38 +162,76 @@ function OverviewTab({ agency }) {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <FaUsers className={styles.statCardIcon} />
-            <h3>Team Members</h3>
-          </div>
-          <div className={styles.statNumber}>{stats.totalMembers}</div>
-          <div className={styles.statSubtext}>{stats.activeMembers} active</div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statHeader}>
-            <FaUserClock className={styles.statCardIcon} />
-            <h3>Pending Applications</h3>
-          </div>
-          <div className={styles.statNumber}>{stats.pendingApplications}</div>
-          <div className={styles.statSubtext}>Awaiting review</div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statHeader}>
             <FaHome className={styles.statCardIcon} />
-            <h3>Properties</h3>
+            <h3>Total Properties</h3>
           </div>
           <div className={styles.statNumber}>{stats.totalProperties}</div>
-          <div className={styles.statSubtext}>Active listings</div>
+          <div className={styles.statSubtext}>All listings</div>
         </div>
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
             <FaChartLine className={styles.statCardIcon} />
-            <h3>Performance</h3>
+            <h3>Active Properties</h3>
           </div>
-          <div className={styles.statNumber}>0%</div>
-          <div className={styles.statSubtext}>Growth this month</div>
+          <div className={styles.statNumber}>{stats.activeProperties}</div>
+          <div className={styles.statSubtext}>Currently listed</div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <FaBuilding className={styles.statCardIcon} />
+            <h3>Featured</h3>
+          </div>
+          <div className={styles.statNumber}>{stats.featuredProperties}</div>
+          <div className={styles.statSubtext}>Premium listings</div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <FaCog className={styles.statCardIcon} />
+            <h3>Agency Status</h3>
+          </div>
+          <div className={styles.statNumber}>{agency.isActive ? 'Active' : 'Inactive'}</div>
+          <div className={styles.statSubtext}>Agency status</div>
+        </div>
+      </div>
+
+      {/* Agency Information Section */}
+      <div className={styles.agencyDetails}>
+        <h3>Agency Information</h3>
+        <div className={styles.detailsGrid}>
+          <div className={styles.detailItem}>
+            <strong>Name:</strong> {agency.name}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Description:</strong> {agency.description || 'No description provided'}
+          </div>
+          {agency.contactEmail && (
+            <div className={styles.detailItem}>
+              <strong>Contact Email:</strong> {agency.contactEmail}
+            </div>
+          )}
+          {agency.contactPhone && (
+            <div className={styles.detailItem}>
+              <strong>Contact Phone:</strong> {agency.contactPhone}
+            </div>
+          )}
+          {agency.website && (
+            <div className={styles.detailItem}>
+              <strong>Website:</strong> {agency.website}
+            </div>
+          )}
+          {agency.licenseNumber && (
+            <div className={styles.detailItem}>
+              <strong>License:</strong> {agency.licenseNumber}
+            </div>
+          )}
+          {agency.city && (
+            <div className={styles.detailItem}>
+              <strong>Location:</strong> {agency.city}
+            </div>
+          )}
         </div>
       </div>
 
@@ -215,264 +239,33 @@ function OverviewTab({ agency }) {
         <h3>Quick Actions</h3>
         <div className={styles.actionGrid}>
           <div className={styles.actionCard}>
-            <FaUserCheck className={styles.actionIcon} />
-            <h4>Review Applications</h4>
-            <p>Manage pending membership requests</p>
+            <FaHome className={styles.actionIcon} />
+            <h4>Manage Properties</h4>
+            <p>View and manage your agency property listings</p>
             <button className={styles.actionButton}>
-              View Applications
-            </button>
-          </div>
-
-          <div className={styles.actionCard}>
-            <FaUsers className={styles.actionIcon} />
-            <h4>Manage Team</h4>
-            <p>View and manage your agency members</p>
-            <button className={styles.actionButton}>
-              Manage Team
+              View Properties
             </button>
           </div>
 
           <div className={styles.actionCard}>
             <FaCog className={styles.actionIcon} />
             <h4>Agency Settings</h4>
-            <p>Update agency information and preferences</p>
+            <p>Update agency information and contact details</p>
             <button className={styles.actionButton}>
               Update Settings
             </button>
           </div>
+
+          <div className={styles.actionCard}>
+            <FaBuilding className={styles.actionIcon} />
+            <h4>Public Page</h4>
+            <p>View how your agency appears to the public</p>
+            <button className={styles.actionButton}>
+              View Public Page
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-// Members Tab Component
-function MembersTab({ agencyId }) {
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchMembers();
-  }, [agencyId]);
-
-  const fetchMembers = async () => {
-    try {
-      setError(null); // Clear previous errors
-      setLoading(true);
-      const response = await API.agencies.getMemberships(agencyId);
-      setMembers(response.data);
-    } catch (error) {
-      setError('Failed to load members');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateMemberRole = async (membershipId, newPosition) => {
-    try {
-      await API.agencies.updateMember(membershipId, { position: newPosition });
-      fetchMembers(); // Refresh list
-    } catch (error) {
-      setError('Failed to update member role');
-    }
-  };
-
-  const removeMember = async (membershipId) => {
-    if (!window.confirm('Are you sure you want to remove this member from the agency?')) {
-      return;
-    }
-
-    try {
-      await API.agencies.removeMember(membershipId);
-      fetchMembers(); // Refresh list
-    } catch (error) {
-      setError('Failed to remove member');
-    }
-  };
-
-  if (loading) {
-    return <div className={styles.loading}>Loading team members...</div>;
-  }
-
-  return (
-    <div className={styles.membersTab}>
-      <div className={styles.tabHeader}>
-        <h2>Team Members</h2>
-        <p>Manage your agency team members and their roles</p>
-      </div>
-
-      {members.length === 0 ? (
-        <div className={styles.emptyState}>
-          <FaUsers className={styles.emptyIcon} />
-          <h3>No Team Members</h3>
-          <p>Your agency doesn't have any members yet.</p>
-        </div>
-      ) : (
-        <div className={styles.membersList}>
-          {members.map(member => (
-            <div key={member.id} className={styles.memberCard}>
-              <div className={styles.memberInfo}>
-                <div className={styles.memberAvatar}>
-                  {member.user.profile?.firstName?.[0]}{member.user.profile?.lastName?.[0]}
-                </div>
-                <div className={styles.memberDetails}>
-                  <h4>
-                    {member.user.profile?.firstName} {member.user.profile?.lastName}
-                  </h4>
-                  <p className={styles.memberEmail}>{member.user.email}</p>
-                  <div className={styles.memberMeta}>
-                    <span className={`${styles.memberStatus} ${styles[member.status?.toLowerCase()]}`}>
-                      {member.status}
-                    </span>
-                    {member.joinDate && (
-                      <span className={styles.joinDate}>
-                        Joined: {new Date(member.joinDate).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.memberActions}>
-                <div className={styles.positionSection}>
-                  <label>Position:</label>
-                  <select 
-                    value={member.position || ''}
-                    onChange={(e) => updateMemberRole(member.id, e.target.value)}
-                    className={styles.positionSelect}
-                  >
-                    <option value="">Select Position</option>
-                    <option value="Real Estate Agent">Real Estate Agent</option>
-                    <option value="Senior Agent">Senior Agent</option>
-                    <option value="Team Lead">Team Lead</option>
-                    <option value="Broker">Broker</option>
-                    <option value="Office Manager">Office Manager</option>
-                  </select>
-                </div>
-
-                <div className={styles.actionButtons}>
-                  <button className={styles.contactButton}>
-                    Contact
-                  </button>
-                  {member.status === 'ACTIVE' && (
-                    <button 
-                      className={styles.removeButton}
-                      onClick={() => removeMember(member.id)}
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Applications Tab Component
-function ApplicationsTab({ agencyId }) {
-  const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchApplications();
-  }, [agencyId]);
-
-  const fetchApplications = async () => {
-    try {
-      setError(null);
-      setLoading(true);
-      const response = await API.agencies.getPendingMemberships(agencyId);
-      setApplications(response.data);
-    } catch (error) {
-      setError('Failed to load applications');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApplication = async (membershipId, action) => {
-    try {
-      setError(null);
-      if (action === 'approve') {
-        await API.agencies.approveMembership(membershipId);
-      } else {
-        await API.agencies.rejectMembership(membershipId);
-      }
-      fetchApplications(); // Refresh list
-    } catch (error) {
-      setError(`Failed to ${action} application`);
-    }
-  };
-
-  if (loading) {
-    return <div className={styles.loading}>Loading applications...</div>;
-  }
-
-  return (
-    <div className={styles.applicationsTab}>
-      <div className={styles.tabHeader}>
-        <h2>Membership Applications</h2>
-        <p>Review and manage pending membership requests</p>
-      </div>
-
-      {applications.length === 0 ? (
-        <div className={styles.emptyState}>
-          <FaUserClock className={styles.emptyIcon} />
-          <h3>No Pending Applications</h3>
-          <p>There are no pending membership applications at this time.</p>
-        </div>
-      ) : (
-        <div className={styles.applicationsList}>
-          {applications.map(application => (
-            <div key={application.id} className={styles.applicationCard}>
-              <div className={styles.applicationInfo}>
-                <div className={styles.applicantAvatar}>
-                  {application.user.profile?.firstName?.[0]}{application.user.profile?.lastName?.[0]}
-                </div>
-                <div className={styles.applicantDetails}>
-                  <h4>
-                    {application.user.profile?.firstName} {application.user.profile?.lastName}
-                  </h4>
-                  <p className={styles.applicantEmail}>{application.user.email}</p>
-                  {application.user.profile?.phone && (
-                    <p className={styles.applicantPhone}>{application.user.profile.phone}</p>
-                  )}
-                  {application.user.profile?.bio && (
-                    <p className={styles.applicantBio}>{application.user.profile.bio}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.applicationMeta}>
-                <span className={styles.applicationDate}>
-                  Applied: {new Date(application.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-
-              <div className={styles.applicationActions}>
-                <button 
-                  className={styles.approveButton}
-                  onClick={() => handleApplication(application.id, 'approve')}
-                >
-                  <FaUserCheck /> Approve
-                </button>
-                <button 
-                  className={styles.rejectButton}
-                  onClick={() => handleApplication(application.id, 'reject')}
-                >
-                  Reject
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -520,7 +313,7 @@ function PropertiesTab({ agencyId }) {
       ) : (
         <div className={styles.propertiesList}>
           {properties.map(property => (
-            <div key={property.id} className={styles.propertyCard}>
+            <div key={property.propertyId || property.id} className={styles.propertyCard}>
               <div className={styles.propertyImage}>
                 {property.images && property.images.length > 0 ? (
                   <img src={property.images[0]} alt={property.title} />
@@ -534,10 +327,22 @@ function PropertiesTab({ agencyId }) {
               <div className={styles.propertyInfo}>
                 <h4>{property.title}</h4>
                 <p className={styles.propertyAddress}>{property.address}</p>
-                <div className={property.propertyDetails}>
+                <div className={styles.propertyDetails}>
                   <span className={styles.propertyPrice}>${property.price?.toLocaleString()}</span>
-                  <span className={styles.propertyType}>{property.type}</span>
+                  <span className={styles.propertyType}>{property.propertyType}</span>
+                  {property.isFeatured && (
+                    <span className={styles.featuredBadge}>Featured</span>
+                  )}
                 </div>
+                {/* Agent information fields for agency admin */}
+                {(property.agentName || property.agentPhone || property.agentLicense) && (
+                  <div className={styles.agentInfo}>
+                    <h5>Responsible Agent:</h5>
+                    {property.agentName && <p><strong>Name:</strong> {property.agentName}</p>}
+                    {property.agentPhone && <p><strong>Phone:</strong> {property.agentPhone}</p>}
+                    {property.agentLicense && <p><strong>License:</strong> {property.agentLicense}</p>}
+                  </div>
+                )}
               </div>
 
               <div className={styles.propertyActions}>
@@ -552,13 +357,17 @@ function PropertiesTab({ agencyId }) {
   );
 }
 
-// Settings Tab Component
+// Settings Tab Component - Enhanced with more agency fields
 function SettingsTab({ agency, onUpdate }) {
   const [formData, setFormData] = useState({
-    name: agency.name,
-    description: agency.description,
-    contactInfo: agency.contactInfo,
-    logo: agency.logo
+    name: agency.name || '',
+    description: agency.description || '',
+    contactEmail: agency.contactEmail || '',
+    contactPhone: agency.contactPhone || '',
+    website: agency.website || '',
+    licenseNumber: agency.licenseNumber || '',
+    city: agency.city || '',
+    logo: agency.logo || ''
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -570,10 +379,11 @@ function SettingsTab({ agency, onUpdate }) {
       setSuccess(false);
       setSaving(true);
       await API.agencies.update(agency.id, formData);
-      onUpdate(); // Refresh agency data
+      onUpdate();
       setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
-      setError('Failed to update agency settings');
+      setError('Failed to update agency settings: ' + (error.response?.data?.error || error.message));
     } finally {
       setSaving(false);
     }
@@ -590,17 +400,30 @@ function SettingsTab({ agency, onUpdate }) {
     <div className={styles.settingsTab}>
       <div className={styles.tabHeader}>
         <h2>Agency Settings</h2>
-        <p>Update your agency information and preferences</p>
+        <p>Update your agency information and contact details</p>
       </div>
+
+      {success && (
+        <div className={styles.successMessage}>
+          Agency settings updated successfully!
+        </div>
+      )}
+
+      {error && (
+        <div className={styles.errorMessage}>
+          {error}
+        </div>
+      )}
 
       <div className={styles.settingsForm}>
         <div className={styles.formGroup}>
-          <label>Agency Name</label>
+          <label>Agency Name *</label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => handleInputChange('name', e.target.value)}
             className={styles.formInput}
+            required
           />
         </div>
 
@@ -611,18 +434,66 @@ function SettingsTab({ agency, onUpdate }) {
             onChange={(e) => handleInputChange('description', e.target.value)}
             rows="4"
             className={styles.formTextarea}
-            placeholder="Describe your agency's mission and services..."
+            placeholder="Describe your agency's mission, services, and expertise..."
           />
         </div>
 
+        <div className={styles.formRow}>
+          <div className={styles.formGroup}>
+            <label>Contact Email</label>
+            <input
+              type="email"
+              value={formData.contactEmail}
+              onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+              className={styles.formInput}
+              placeholder="contact@agency.com"
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Contact Phone</label>
+            <input
+              type="tel"
+              value={formData.contactPhone}
+              onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+              className={styles.formInput}
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+        </div>
+
+        <div className={styles.formRow}>
+          <div className={styles.formGroup}>
+            <label>Website</label>
+            <input
+              type="url"
+              value={formData.website}
+              onChange={(e) => handleInputChange('website', e.target.value)}
+              className={styles.formInput}
+              placeholder="https://youragency.com"
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>License Number</label>
+            <input
+              type="text"
+              value={formData.licenseNumber}
+              onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
+              className={styles.formInput}
+              placeholder="REA-123456"
+            />
+          </div>
+        </div>
+
         <div className={styles.formGroup}>
-          <label>Contact Information</label>
+          <label>City/Location</label>
           <input
             type="text"
-            value={formData.contactInfo}
-            onChange={(e) => handleInputChange('contactInfo', e.target.value)}
+            value={formData.city}
+            onChange={(e) => handleInputChange('city', e.target.value)}
             className={styles.formInput}
-            placeholder="Email, phone, or contact details"
+            placeholder="New York, NY"
           />
         </div>
 
@@ -635,6 +506,11 @@ function SettingsTab({ agency, onUpdate }) {
             className={styles.formInput}
             placeholder="https://example.com/logo.png"
           />
+          {formData.logo && (
+            <div className={styles.logoPreview}>
+              <img src={formData.logo} alt="Logo preview" className={styles.previewImage} />
+            </div>
+          )}
         </div>
 
         <div className={styles.formActions}>

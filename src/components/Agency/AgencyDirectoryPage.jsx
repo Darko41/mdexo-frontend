@@ -9,19 +9,18 @@ import {
   FaStar, 
   FaMapMarkerAlt,
   FaFilter,
-  FaCheckCircle,
-  FaUserCheck
+  FaPhone,
+  FaEnvelope,
+  FaGlobe
 } from 'react-icons/fa';
 import styles from './AgencyDirectory.module.css';
 
 export default function AgencyDirectoryPage() {
   const [agencies, setAgencies] = useState([]);
   const [filteredAgencies, setFilteredAgencies] = useState([]);
-  const [userMemberships, setUserMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   const { user } = useContext(AuthContext);
@@ -47,21 +46,7 @@ export default function AgencyDirectoryPage() {
       }
     };
 
-    const fetchUserMemberships = async () => {
-      try {
-        const response = await API.agencies.getMyMemberships();
-        if (isMounted) {
-          setUserMemberships(response.data || []);
-        }
-      } catch (error) {
-        // Silently fail for memberships as it's not critical
-      }
-    };
-
     fetchAgencies();
-    if (user?.roles?.includes('ROLE_AGENT')) {
-      fetchUserMemberships();
-    }
 
     return () => {
       isMounted = false;
@@ -75,7 +60,9 @@ export default function AgencyDirectoryPage() {
   const filterAndSortAgencies = () => {
     let filtered = agencies.filter(agency =>
       agency.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      agency.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      agency.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      agency.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      agency.contactEmail?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Sort agencies
@@ -84,9 +71,9 @@ export default function AgencyDirectoryPage() {
         case 'name':
           return a.name.localeCompare(b.name);
         case 'newest':
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        case 'agents':
-          return (b.memberships?.length || 0) - (a.memberships?.length || 0);
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        case 'city':
+          return (a.city || '').localeCompare(b.city || '');
         default:
           return 0;
       }
@@ -95,26 +82,7 @@ export default function AgencyDirectoryPage() {
     setFilteredAgencies(filtered);
   };
 
-  const handleApplyToAgency = async (agencyId) => {
-    try {
-      setError('');
-      await API.agencies.apply(agencyId);
-      setMessage('Application submitted successfully!');
-      
-      // Refresh memberships to show applied status
-      try {
-        const response = await API.agencies.getMyMemberships();
-        setUserMemberships(response.data || []);
-      } catch (error) {
-        // Silently fail for membership refresh
-      }
-    } catch (error) {
-      setError('Failed to apply to agency: ' + (error.response?.data?.message || error.message));
-    }
-  };
-
-  const isUserAgent = user?.roles?.includes('ROLE_AGENT');
-  const hasActiveAgency = userMemberships.some(m => m.status === 'ACTIVE');
+  const isAgencyAdmin = user?.roles?.includes('ROLE_AGENCY_ADMIN');
 
   if (loading) {
     return (
@@ -129,22 +97,10 @@ export default function AgencyDirectoryPage() {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.heroSection}>
-          <h1>Find Your Perfect Real Estate Agency</h1>
-          <p>Connect with professional agencies and their expert agents</p>
+          <h1>Professional Real Estate Agencies</h1>
+          <p>Discover trusted agencies with verified listings and professional service</p>
         </div>
 
-        {message && (
-          <div className={styles.successMessage}>
-            {message}
-            <button 
-              onClick={() => setMessage('')}
-              className={styles.closeButton}
-            >
-              ×
-            </button>
-          </div>
-        )}
-        
         {error && (
           <div className={styles.errorMessage}>
             {error}
@@ -162,7 +118,7 @@ export default function AgencyDirectoryPage() {
             <FaSearch className={styles.searchIcon} />
             <input
               type="text"
-              placeholder="Search agencies by name or description..."
+              placeholder="Search agencies by name, description, city, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
@@ -179,26 +135,25 @@ export default function AgencyDirectoryPage() {
               >
                 <option value="name">Sort by Name</option>
                 <option value="newest">Newest First</option>
-                <option value="agents">Most Agents</option>
+                <option value="city">Sort by City</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Agent-specific info */}
-        {isUserAgent && (
-          <div className={styles.agentInfo}>
-            {hasActiveAgency ? (
-              <div className={styles.agencyLimitNote}>
-                <FaCheckCircle />
-                <span>You are currently with an agency. You must leave your current agency before joining another.</span>
-              </div>
-            ) : (
-              <div className={styles.agencyLimitNote}>
-                <FaUserCheck />
-                <span>As an agent, you can join one agency at a time. Browse agencies below to find your perfect fit.</span>
-              </div>
-            )}
+        {/* Agency Admin CTA */}
+        {isAgencyAdmin && (
+          <div className={styles.adminInfo}>
+            <div className={styles.adminNote}>
+              <FaBuilding />
+              <span>You're an agency admin! Manage your agencies from your profile.</span>
+              <button 
+                onClick={() => navigate('/profile')}
+                className={styles.profileButton}
+              >
+                Go to Profile
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -224,11 +179,12 @@ export default function AgencyDirectoryPage() {
             <AgencyCard 
               key={agency.id} 
               agency={agency} 
-              userMemberships={userMemberships}
-              isUserAgent={isUserAgent}
-              hasActiveAgency={hasActiveAgency}
               onView={() => navigate(`/agencies/${agency.id}`)}
-              onApply={handleApplyToAgency}
+              onContact={() => {
+                if (agency.contactEmail) {
+                  window.location.href = `mailto:${agency.contactEmail}`;
+                }
+              }}
             />
           ))
         )}
@@ -243,17 +199,17 @@ export default function AgencyDirectoryPage() {
           </div>
         </div>
         <div className={styles.statItem}>
-          <FaUsers className={styles.statIcon} />
-          <div className={styles.statContent}>
-            <h3>{agencies.reduce((total, agency) => total + (agency.memberships?.length || 0), 0)}</h3>
-            <p>Expert Agents</p>
-          </div>
-        </div>
-        <div className={styles.statItem}>
           <FaStar className={styles.statIcon} />
           <div className={styles.statContent}>
             <h3>100%</h3>
-            <p>Verified Professionals</p>
+            <p>Verified Listings</p>
+          </div>
+        </div>
+        <div className={styles.statItem}>
+          <FaMapMarkerAlt className={styles.statIcon} />
+          <div className={styles.statContent}>
+            <h3>{new Set(agencies.filter(a => a.city).map(a => a.city)).size}</h3>
+            <p>Cities Covered</p>
           </div>
         </div>
       </div>
@@ -261,12 +217,9 @@ export default function AgencyDirectoryPage() {
   );
 }
 
-// Agency Card Component
-function AgencyCard({ agency, userMemberships, isUserAgent, hasActiveAgency, onView, onApply }) {
-  const userMembership = userMemberships?.find(m => m.agency?.id === agency.id);
-  const hasApplied = userMembership?.status === 'PENDING';
-  const isMember = userMembership?.status === 'ACTIVE';
-  const canApply = isUserAgent && !hasActiveAgency && !hasApplied && !isMember;
+// Agency Card Component - Simplified without agent functionality
+function AgencyCard({ agency, onView, onContact }) {
+  const hasContactInfo = agency.contactEmail || agency.contactPhone || agency.website;
 
   return (
     <div className={styles.agencyCard}>
@@ -280,9 +233,16 @@ function AgencyCard({ agency, userMemberships, isUserAgent, hasActiveAgency, onV
         )}
         <div className={styles.agencyInfo}>
           <h3 className={styles.agencyName}>{agency.name}</h3>
-          <p className={styles.agencyAdmin}>
-            Admin: {agency.admin?.email}
-          </p>
+          {agency.city && (
+            <p className={styles.agencyLocation}>
+              <FaMapMarkerAlt /> {agency.city}
+            </p>
+          )}
+          {agency.admin?.profile?.firstName && (
+            <p className={styles.agencyAdmin}>
+              Admin: {agency.admin.profile.firstName} {agency.admin.profile.lastName}
+            </p>
+          )}
         </div>
       </div>
 
@@ -292,48 +252,54 @@ function AgencyCard({ agency, userMemberships, isUserAgent, hasActiveAgency, onV
         </p>
         
         <div className={styles.agencyMeta}>
-          <div className={styles.metaItem}>
-            <FaUsers className={styles.metaIcon} />
-            <span>{agency.memberships?.length || 0} Agents</span>
-          </div>
-          <div className={styles.metaItem}>
-            <FaMapMarkerAlt className={styles.metaIcon} />
-            <span>Multiple Locations</span>
-          </div>
+          {agency.contactEmail && (
+            <div className={styles.metaItem}>
+              <FaEnvelope className={styles.metaIcon} />
+              <span>{agency.contactEmail}</span>
+            </div>
+          )}
+          {agency.contactPhone && (
+            <div className={styles.metaItem}>
+              <FaPhone className={styles.metaIcon} />
+              <span>{agency.contactPhone}</span>
+            </div>
+          )}
+          {agency.website && (
+            <div className={styles.metaItem}>
+              <FaGlobe className={styles.metaIcon} />
+              <span>{agency.website}</span>
+            </div>
+          )}
         </div>
+
+        {agency.licenseNumber && (
+          <div className={styles.licenseInfo}>
+            <span className={styles.licenseBadge}>
+              License: {agency.licenseNumber}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className={styles.cardFooter}>
         <button className={styles.viewButton} onClick={onView}>
-          View Agency
+          View Details
         </button>
         
-        {/* Apply button for agents */}
-        {canApply && (
+        {hasContactInfo && (
           <button 
-            className={styles.applyButton}
-            onClick={() => onApply(agency.id)}
+            className={styles.contactButton}
+            onClick={onContact}
+            disabled={!agency.contactEmail}
           >
-            Apply to Join
+            Contact Agency
           </button>
         )}
         
-        {/* Status badges */}
-        {hasApplied && (
-          <span className={styles.appliedBadge}>
-            <FaCheckCircle /> Application Pending
-          </span>
-        )}
-        
-        {isMember && (
-          <span className={styles.memberBadge}>
-            <FaUserCheck /> Current Member
-          </span>
-        )}
-        
-        {hasActiveAgency && !isMember && (
-          <span className={styles.limitBadge}>
-            Already with an Agency
+        {/* Agency Status */}
+        {agency.isActive === false && (
+          <span className={styles.inactiveBadge}>
+            Currently Inactive
           </span>
         )}
       </div>

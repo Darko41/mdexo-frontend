@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaBuilding, 
-  FaUsers, 
   FaHome, 
   FaEnvelope, 
   FaPhone, 
@@ -10,7 +9,8 @@ import {
   FaStar,
   FaCalendar,
   FaArrowLeft,
-  FaExternalLinkAlt
+  FaGlobe,
+  FaCheckCircle
 } from 'react-icons/fa';
 import API from '../../utils/api/api';
 import styles from './AgencyProfile.module.css';
@@ -19,7 +19,6 @@ export default function AgencyProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [agency, setAgency] = useState(null);
-  const [agents, setAgents] = useState([]);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -29,30 +28,24 @@ export default function AgencyProfilePage() {
   }, [id]);
 
   const fetchAgencyData = async () => {
-  try {
-    setLoading(true);
-    
-    // Fetch agency details
-    const agencyResponse = await API.agencies.getById(id);
-    setAgency(agencyResponse.data);
-    
-    // Fetch agency members (agents)
-    const membersResponse = await API.agencies.getMemberships(id);
-    const activeAgents = membersResponse.data.filter(member => 
-      member.status === 'ACTIVE'
-    );
-    setAgents(activeAgents);
-    
-    // Fetch agency properties
-    const propertiesResponse = await API.agencies.getProperties(id);
-    setProperties(propertiesResponse.data || []);
-    
-  } catch (error) {
-    // Error fetching agency data
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      
+      // Fetch agency details
+      const agencyResponse = await API.agencies.getById(id);
+      const agencyData = agencyResponse.data;
+      setAgency(agencyData);
+      
+      // Fetch agency properties
+      const propertiesResponse = await API.agencies.getProperties(id);
+      setProperties(propertiesResponse.data || []);
+      
+    } catch (error) {
+      console.error('Error fetching agency data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -102,10 +95,6 @@ export default function AgencyProfilePage() {
             
             <div className={styles.agencyMeta}>
               <div className={styles.metaItem}>
-                <FaUsers className={styles.metaIcon} />
-                <span>{agents.length} Agents</span>
-              </div>
-              <div className={styles.metaItem}>
                 <FaHome className={styles.metaIcon} />
                 <span>{properties.length} Properties</span>
               </div>
@@ -113,19 +102,48 @@ export default function AgencyProfilePage() {
                 <FaCalendar className={styles.metaIcon} />
                 <span>Est. {new Date(agency.createdAt).getFullYear()}</span>
               </div>
+              {agency.isActive === false && (
+                <div className={styles.metaItem}>
+                  <FaCheckCircle className={styles.metaIcon} />
+                  <span>Currently Inactive</span>
+                </div>
+              )}
             </div>
             
-            {agency.contactInfo && (
-              <div className={styles.contactInfo}>
-                <FaEnvelope className={styles.contactIcon} />
-                <span>{agency.contactInfo}</span>
-              </div>
-            )}
+            {/* Enhanced Contact Information */}
+            <div className={styles.contactSection}>
+              {agency.contactEmail && (
+                <div className={styles.contactItem}>
+                  <FaEnvelope className={styles.contactIcon} />
+                  <span>{agency.contactEmail}</span>
+                </div>
+              )}
+              {agency.contactPhone && (
+                <div className={styles.contactItem}>
+                  <FaPhone className={styles.contactIcon} />
+                  <span>{agency.contactPhone}</span>
+                </div>
+              )}
+              {agency.website && (
+                <div className={styles.contactItem}>
+                  <FaGlobe className={styles.contactIcon} />
+                  <a href={agency.website} target="_blank" rel="noopener noreferrer">
+                    {agency.website}
+                  </a>
+                </div>
+              )}
+              {agency.city && (
+                <div className={styles.contactItem}>
+                  <FaMapMarkerAlt className={styles.contactIcon} />
+                  <span>{agency.city}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Navigation Tabs - Simplified without agents */}
       <div className={styles.tabNavigation}>
         <button 
           className={`${styles.tab} ${activeTab === 'overview' ? styles.activeTab : ''}`}
@@ -134,39 +152,44 @@ export default function AgencyProfilePage() {
           Overview
         </button>
         <button 
-          className={`${styles.tab} ${activeTab === 'agents' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('agents')}
-        >
-          Our Agents ({agents.length})
-        </button>
-        <button 
           className={`${styles.tab} ${activeTab === 'properties' ? styles.activeTab : ''}`}
           onClick={() => setActiveTab('properties')}
         >
           Properties ({properties.length})
         </button>
+        {agency.licenseNumber && (
+          <button 
+            className={`${styles.tab} ${activeTab === 'credentials' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('credentials')}
+          >
+            Credentials
+          </button>
+        )}
       </div>
 
       {/* Tab Content */}
       <div className={styles.tabContent}>
         {activeTab === 'overview' && (
-          <OverviewTab agency={agency} agents={agents} properties={properties} />
-        )}
-        
-        {activeTab === 'agents' && (
-          <AgentsTab agents={agents} />
+          <OverviewTab agency={agency} properties={properties} />
         )}
         
         {activeTab === 'properties' && (
           <PropertiesTab properties={properties} />
+        )}
+        
+        {activeTab === 'credentials' && (
+          <CredentialsTab agency={agency} />
         )}
       </div>
     </div>
   );
 }
 
-// Overview Tab Component
-function OverviewTab({ agency, agents, properties }) {
+// Overview Tab Component - Simplified without agents
+function OverviewTab({ agency, properties }) {
+  const featuredProperties = properties.filter(property => property.isFeatured).slice(0, 3);
+  const activeProperties = properties.filter(property => property.isActive !== false);
+
   return (
     <div className={styles.overviewTab}>
       <div className={styles.overviewGrid}>
@@ -175,108 +198,87 @@ function OverviewTab({ agency, agents, properties }) {
           <p>
             {agency.description || 
               `${agency.name} is a professional real estate agency dedicated to providing exceptional service to our clients. 
-              With a team of experienced agents and a wide portfolio of properties, we help clients find their perfect home 
-              or investment opportunity.`}
+              With a wide portfolio of properties, we help clients find their perfect home or investment opportunity.`}
           </p>
           
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
-              <div className={styles.statNumber}>{agents.length}</div>
-              <div className={styles.statLabel}>Expert Agents</div>
+              <div className={styles.statNumber}>{properties.length}</div>
+              <div className={styles.statLabel}>Total Listings</div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statNumber}>{properties.length}</div>
+              <div className={styles.statNumber}>{activeProperties.length}</div>
               <div className={styles.statLabel}>Active Listings</div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statNumber}>{new Date(agency.createdAt).getFullYear()}</div>
-              <div className={styles.statLabel}>Years Established</div>
+              <div className={styles.statNumber}>{featuredProperties.length}</div>
+              <div className={styles.statLabel}>Featured</div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statNumber}>{new Date().getFullYear() - new Date(agency.createdAt).getFullYear()}</div>
+              <div className={styles.statLabel}>Years Experience</div>
             </div>
           </div>
         </div>
         
-        <div className={styles.featuredAgents}>
-          <h2>Featured Agents</h2>
-          <div className={styles.agentsPreview}>
-            {agents.slice(0, 3).map(agent => (
-              <div key={agent.user.id} className={styles.agentPreviewCard}>
-                <div className={styles.agentAvatar}>
-                  {agent.user.profile?.firstName?.[0]}{agent.user.profile?.lastName?.[0]}
-                </div>
-                <div className={styles.agentInfo}>
-                  <h4>
-                    {agent.user.profile?.firstName} {agent.user.profile?.lastName}
-                  </h4>
-                  <p className={styles.agentEmail}>{agent.user.email}</p>
-                  {agent.position && (
-                    <span className={styles.agentPosition}>{agent.position}</span>
+        {/* Featured Properties instead of Featured Agents */}
+        {featuredProperties.length > 0 && (
+          <div className={styles.featuredProperties}>
+            <h2>Featured Properties</h2>
+            <div className={styles.propertiesPreview}>
+              {featuredProperties.map(property => (
+                <div key={property.propertyId || property.id} className={styles.propertyPreviewCard}>
+                  {property.images && property.images.length > 0 ? (
+                    <img 
+                      src={property.images[0]} 
+                      alt={property.title}
+                      className={styles.previewImage}
+                    />
+                  ) : (
+                    <div className={styles.previewImagePlaceholder}>
+                      <FaHome />
+                    </div>
                   )}
+                  <div className={styles.previewInfo}>
+                    <h4>{property.title}</h4>
+                    <p className={styles.previewPrice}>${property.price?.toLocaleString()}</p>
+                    <p className={styles.previewLocation}>{property.city || property.address}</p>
+                  </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Agency Credentials Section */}
+      <div className={styles.credentialsSection}>
+        <h2>Agency Credentials</h2>
+        <div className={styles.credentialsList}>
+          {agency.licenseNumber && (
+            <div className={styles.credentialItem}>
+              <FaCheckCircle className={styles.credentialIcon} />
+              <div>
+                <strong>License Number:</strong> {agency.licenseNumber}
               </div>
-            ))}
+            </div>
+          )}
+          {agency.isActive !== false && (
+            <div className={styles.credentialItem}>
+              <FaCheckCircle className={styles.credentialIcon} />
+              <div>
+                <strong>Status:</strong> Active & Verified
+              </div>
+            </div>
+          )}
+          <div className={styles.credentialItem}>
+            <FaCheckCircle className={styles.credentialIcon} />
+            <div>
+              <strong>Established:</strong> {new Date(agency.createdAt).getFullYear()}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-// Agents Tab Component
-function AgentsTab({ agents }) {
-  return (
-    <div className={styles.agentsTab}>
-      <h2>Our Professional Team</h2>
-      
-      {agents.length === 0 ? (
-        <div className={styles.emptyState}>
-          <FaUsers className={styles.emptyIcon} />
-          <h3>No Agents Yet</h3>
-          <p>This agency hasn't added any agents to their team.</p>
-        </div>
-      ) : (
-        <div className={styles.agentsGrid}>
-          {agents.map(member => (
-            <div key={member.user.id} className={styles.agentCard}>
-              <div className={styles.agentHeader}>
-                <div className={styles.agentAvatar}>
-                  {member.user.profile?.firstName?.[0]}{member.user.profile?.lastName?.[0]}
-                </div>
-                <div className={styles.agentBasicInfo}>
-                  <h3>{member.user.profile?.firstName} {member.user.profile?.lastName}</h3>
-                  <p className={styles.agentEmail}>{member.user.email}</p>
-                </div>
-              </div>
-              
-              <div className={styles.agentDetails}>
-                {member.position && (
-                  <div className={styles.detailItem}>
-                    <strong>Position:</strong> {member.position}
-                  </div>
-                )}
-                {member.joinDate && (
-                  <div className={styles.detailItem}>
-                    <strong>Member since:</strong> {new Date(member.joinDate).toLocaleDateString()}
-                  </div>
-                )}
-                {member.user.profile?.phone && (
-                  <div className={styles.detailItem}>
-                    <strong>Phone:</strong> {member.user.profile.phone}
-                  </div>
-                )}
-              </div>
-              
-              <div className={styles.agentActions}>
-                <button className={styles.contactButton}>
-                  <FaEnvelope /> Contact
-                </button>
-                <button className={styles.viewProfileButton}>
-                  View Profile <FaExternalLinkAlt />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -299,9 +301,9 @@ function PropertiesTab({ properties }) {
         <div className={styles.propertiesGrid}>
           {properties.map(property => (
             <div 
-              key={property.id} 
+              key={property.propertyId || property.id} 
               className={styles.propertyCard}
-              onClick={() => navigate(`/properties/${property.id}`)}
+              onClick={() => navigate(`/properties/${property.propertyId || property.id}`)}
             >
               {property.images && property.images.length > 0 ? (
                 <img 
@@ -326,8 +328,13 @@ function PropertiesTab({ properties }) {
                     ${property.price?.toLocaleString()}
                   </span>
                   <span className={styles.propertyType}>
-                    {property.type}
+                    {property.propertyType || property.type}
                   </span>
+                  {property.isFeatured && (
+                    <span className={styles.featuredBadge}>
+                      <FaStar /> Featured
+                    </span>
+                  )}
                 </div>
                 
                 <div className={styles.propertyFeatures}>
@@ -335,11 +342,89 @@ function PropertiesTab({ properties }) {
                   {property.bathrooms && <span>{property.bathrooms} baths</span>}
                   {property.area && <span>{property.area} sq ft</span>}
                 </div>
+
+                {/* Agent information for the property */}
+                {(property.agentName || property.agentPhone || property.agentLicense) && (
+                  <div className={styles.agentContact}>
+                    <h4>Contact Agent:</h4>
+                    {property.agentName && <p><strong>{property.agentName}</strong></p>}
+                    {property.agentPhone && <p><FaPhone /> {property.agentPhone}</p>}
+                    {property.agentLicense && <p>License: {property.agentLicense}</p>}
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// New Credentials Tab Component
+function CredentialsTab({ agency }) {
+  return (
+    <div className={styles.credentialsTab}>
+      <h2>Agency Credentials & Information</h2>
+      
+      <div className={styles.credentialsGrid}>
+        <div className={styles.credentialSection}>
+          <h3>Licensing & Certification</h3>
+          {agency.licenseNumber ? (
+            <div className={styles.credentialItem}>
+              <FaCheckCircle className={styles.verifiedIcon} />
+              <div>
+                <strong>Real Estate License:</strong> {agency.licenseNumber}
+              </div>
+            </div>
+          ) : (
+            <p>No license information available.</p>
+          )}
+        </div>
+
+        <div className={styles.credentialSection}>
+          <h3>Contact Information</h3>
+          {agency.contactEmail && (
+            <div className={styles.contactDetail}>
+              <FaEnvelope />
+              <strong>Email:</strong> {agency.contactEmail}
+            </div>
+          )}
+          {agency.contactPhone && (
+            <div className={styles.contactDetail}>
+              <FaPhone />
+              <strong>Phone:</strong> {agency.contactPhone}
+            </div>
+          )}
+          {agency.website && (
+            <div className={styles.contactDetail}>
+              <FaGlobe />
+              <strong>Website:</strong> 
+              <a href={agency.website} target="_blank" rel="noopener noreferrer">
+                {agency.website}
+              </a>
+            </div>
+          )}
+          {agency.city && (
+            <div className={styles.contactDetail}>
+              <FaMapMarkerAlt />
+              <strong>Location:</strong> {agency.city}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.credentialSection}>
+          <h3>Agency Details</h3>
+          <div className={styles.contactDetail}>
+            <FaBuilding />
+            <strong>Established:</strong> {new Date(agency.createdAt).toLocaleDateString()}
+          </div>
+          <div className={styles.contactDetail}>
+            <FaCheckCircle />
+            <strong>Status:</strong> {agency.isActive === false ? 'Inactive' : 'Active'}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
