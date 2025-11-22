@@ -26,7 +26,6 @@ import {
   FaTrash,
   FaExclamationTriangle
 } from "react-icons/fa";
-import ProfessionalUpgradeCard from "../../components/Agent/ProfessionalUpgradeCard";
 import styles from './styles.module.css';
 
 export default function ProfilePage() {
