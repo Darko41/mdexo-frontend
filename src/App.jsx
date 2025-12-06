@@ -27,9 +27,9 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="app-container"> 
+        <div className="app-container">
           <Header />
-          <main className="main-content"> 
+          <main className="main-content">
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Main />} />
@@ -46,66 +46,66 @@ function App() {
               <Route path="/agencies/:id" element={<AgencyProfilePage />} />
 
               {/* Protected Routes - Require Authentication */}
-              <Route 
-                path="/create-listing" 
+              <Route
+                path="/create-listing"
                 element={
                   <ProtectedRoute>
                     <CreateListingForm />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/profile" 
+              <Route
+                path="/profile"
                 element={
                   <ProtectedRoute>
                     <ProfilePage />
                   </ProtectedRoute>
-                } 
+                }
               />
 
               {/* Admin Protected Routes - Require ADMIN Role */}
-              <Route 
-                path="/admin" 
+              <Route
+                path="/admin"
                 element={
                   <ProtectedRoute requiredRole="ROLE_ADMIN">
                     <AdminDashboard />
                   </ProtectedRoute>
-                } 
+                }
               />
-              
-              <Route 
-                path="/admin/users" 
+
+              <Route
+                path="/admin/users"
                 element={
                   <ProtectedRoute requiredRole="ROLE_ADMIN">
                     <UserRoleManagement />
                   </ProtectedRoute>
-                } 
+                }
               />
 
               {/* Agency Management Protected Routes */}
-              <Route 
-                path="/agencies/create" 
+              <Route
+                path="/agencies/create"
                 element={
                   <ProtectedRoute requiredRole="ROLE_AGENCY_ADMIN">
                     <CreateAgencyPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/agencies/:id/manage" 
+              <Route
+                path="/agencies/:id/manage"
                 element={
                   <ProtectedRoute requiredRole="ROLE_AGENCY_ADMIN">
                     <AgencyManagementDashboard />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/agencies/:id/manage/*" 
+              <Route
+                path="/agencies/:id/manage/*"
                 element={
                   <ProtectedRoute requiredRole="ROLE_AGENCY_ADMIN">
                     <AgencyManagementDashboard />
                   </ProtectedRoute>
-                } 
+                }
               />
             </Routes>
           </main>

@@ -1,17 +1,23 @@
+/* Auth Prompt - Updated to match dark theme */
 .authSection {
   text-align: center;
-  margin: 0 0 2rem 0; /* Remove top margin, keep bottom */
+  margin: 0 0 2rem 0;
   padding: 2rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 1rem;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 1.25rem;
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .authText {
   font-size: 1.125rem;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 1.5rem;
   font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .authButtons {
@@ -22,38 +28,45 @@
 }
 
 .loginButton {
-  background: #2563eb;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
   color: white;
-  padding: 0.75rem 2rem;
-  border-radius: 0.75rem;
-  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: 0.875rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .loginButton:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 .registerButton {
-  background: white;
-  color: #374151;
-  padding: 0.75rem 2rem;
-  border-radius: 0.75rem;
-  border: 1px solid #d1d5db;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  padding: 0.875rem 2rem;
+  border-radius: 0.875rem;
+  border: none;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .registerButton:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(59, 130, 246, 0.4),
+    0 12px 32px rgba(0, 0, 0, 0.25);
 }
 
 /* Responsive design */
@@ -61,6 +74,7 @@
   .authSection {
     padding: 1.5rem;
     margin: 2rem 0;
+    border-radius: 1rem;
   }
   
   .authButtons {
@@ -72,11 +86,12 @@
   .registerButton {
     width: 100%;
     max-width: 200px;
+    padding: 0.75rem 1.5rem;
   }
 }
 
-/* Optional: Dark mode support */
-@media (prefers-color-scheme: dark) {
+/* Optional: Dark mode support - removed as we're always in dark mode now */
+/* @media (prefers-color-scheme: dark) {
   .authSection {
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
     border-color: #475569;
@@ -95,4 +110,4 @@
   .registerButton:hover {
     background: #4b5563;
   }
-}
+} */

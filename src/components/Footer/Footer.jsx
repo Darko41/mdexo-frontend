@@ -110,7 +110,7 @@ export default function Footer() {
               </div>
               <div className={styles.contactItem}>
                 <FaEnvelope className={styles.contactIcon} />
-                <span>info@realestatepro.com</span>
+                <span>office@iterials.com</span>
               </div>
             </div>
             
@@ -140,7 +140,7 @@ export default function Footer() {
           <div className={styles.bottomContent}>
             <div className={styles.copyright}>
               <FaShieldAlt className={styles.shieldIcon} /> {/* Changed to FaShieldAlt */}
-              <span>&copy; {currentYear} RealEstate Pro. All rights reserved.</span>
+              <span>&copy; {currentYear} Iterials Core. All rights reserved.</span>
             </div>
             <div className={styles.bottomLinks}>
               <span className={styles.madeWith}>

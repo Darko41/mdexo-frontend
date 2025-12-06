@@ -22,7 +22,6 @@ const AdvancedSearchModal = ({
     city: '',
     state: '',
     zipCode: '',
-    // 🆕 NEW: Add all the new filter fields
     roomsMin: '',
     roomsMax: '',
     floorMin: '',
@@ -42,15 +41,13 @@ const AdvancedSearchModal = ({
   const [featureWarning, setFeatureWarning] = useState('');
   const [featureSearch, setFeatureSearch] = useState('');
 
-  // 🆕 NEW: Add the new enum options
   const propertyTypes = ['APARTMENT', 'HOUSE', 'CONDO', 'LAND', 'GARRAGE', 'COMMERCIAL', 'OTHER'];
   const listingTypes = ['SALE', 'RENT'];
   const heatingTypes = ['CENTRAL', 'DISTRICT', 'ELECTRIC', 'GAS', 'HEAT_PUMP', 'SOLAR', 'WOOD_PELLET', 'OIL', 'NONE', 'OTHER'];
   const propertyConditions = ['NEW_CONSTRUCTION', 'RENOVATED', 'MODERNIZED', 'GOOD', 'NEEDS_RENOVATION', 'ORIGINAL', 'LUXURY', 'SHELL', 'OTHER'];
-  
+
   const navigate = useNavigate();
 
-  // Common feature synonyms and variations
   const featureSynonyms = {
     'ac': ['air conditioning', 'air conditioner', 'ac', 'a/c'],
     'pool': ['swimming pool', 'pool', 'community pool', 'infinity pool'],
@@ -60,7 +57,6 @@ const AdvancedSearchModal = ({
     'gym': ['gym', 'fitness center', 'fitness'],
   };
 
-  // 🆕 NEW: Room count options for dropdown
   const roomOptions = [
     { value: 0.5, label: 'Студио (0.5)' },
     { value: 1, label: '1 соба' },
@@ -74,7 +70,6 @@ const AdvancedSearchModal = ({
     { value: 5, label: '5+ соба' }
   ];
 
-  // 🆕 NEW: Property age ranges for better UX
   const ageRanges = [
     { min: 2020, max: 2030, label: 'Нова градња (0-3 године)' },
     { min: 2010, max: 2019, label: 'Модерна (4-13 година)' },
@@ -83,22 +78,18 @@ const AdvancedSearchModal = ({
     { min: 1500, max: 1969, label: 'Историјска (54+ година)' }
   ];
 
-  // Normalize feature name for matching
   const normalizeFeature = (feature) => {
     return feature.toLowerCase().trim();
   };
 
-  // Find matching feature in database
   const findMatchingFeature = (userInput) => {
     const normalizedInput = normalizeFeature(userInput);
-    
-    // First, check if exact match exists
-    const exactMatch = availableFeatures.find(f => 
+
+    const exactMatch = availableFeatures.find(f =>
       normalizeFeature(f) === normalizedInput
     );
     if (exactMatch) return exactMatch;
-    
-    // Check synonyms
+
     for (const [canonical, synonyms] of Object.entries(featureSynonyms)) {
       if (synonyms.includes(normalizedInput)) {
         const canonicalMatch = availableFeatures.find(f =>
@@ -107,51 +98,45 @@ const AdvancedSearchModal = ({
         if (canonicalMatch) return canonicalMatch;
       }
     }
-    
-    // Check partial matches
+
     const partialMatch = availableFeatures.find(f =>
       normalizeFeature(f).includes(normalizedInput) ||
       normalizedInput.includes(normalizeFeature(f))
     );
-    
+
     return partialMatch || null;
   };
 
-  // Filter features based on search
   const filteredFeatures = availableFeatures.filter(feature =>
     feature.toLowerCase().includes(featureSearch.toLowerCase())
   );
 
   const initialFeatureCount = 10;
-  const visibleFeatures = showAllFeatures 
-    ? filteredFeatures 
+  const visibleFeatures = showAllFeatures
+    ? filteredFeatures
     : filteredFeatures.slice(0, initialFeatureCount);
 
-  // Fetch available features from backend when modal opens
   useEffect(() => {
     const fetchFeatures = async () => {
       if (!isOpen) return;
-      
+
       setIsLoadingFeatures(true);
       try {
-        // Use the API utility with the dedicated features endpoint
         const response = await API.realEstates.features();
-        
+
         if (Array.isArray(response.data)) {
           setAvailableFeatures(response.data);
         } else {
-          // Fallback to default features
           setAvailableFeatures(['Parking', 'Garden', 'Pool', 'Elevator', 'AC']);
         }
       } catch (error) {
-        // Fallback to default features
         setAvailableFeatures(['Parking', 'Garden', 'Pool', 'Elevator', 'AC', 'Garage', 'Basement', 'Fireplace']);
         setError('Failed to load features. Using default features.');
       } finally {
         setIsLoadingFeatures(false);
       }
     };
-    
+
     fetchFeatures();
   }, [isOpen]);
 
@@ -160,7 +145,6 @@ const AdvancedSearchModal = ({
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
-  // 🆕 NEW: Handler for age range selection
   const handleAgeRangeChange = (range) => {
     setFilters(prev => ({
       ...prev,
@@ -169,12 +153,11 @@ const AdvancedSearchModal = ({
     }));
   };
 
-  // 🆕 NEW: Handler for room count selection
   const handleRoomCountChange = (roomCount) => {
     setFilters(prev => ({
       ...prev,
       roomsMin: roomCount,
-      roomsMax: roomCount === 5 ? 20 : roomCount // If 5+ selected, set max to 20
+      roomsMax: roomCount === 5 ? 20 : roomCount
     }));
   };
 
@@ -190,27 +173,24 @@ const AdvancedSearchModal = ({
   const addCustomFeature = () => {
     if (customFeature.trim() && !filters.features.includes(customFeature.trim())) {
       const userInput = customFeature.trim();
-      
-      // Try to find a matching feature in the database
+
       const matchingFeature = findMatchingFeature(userInput);
-      
+
       let featureToAdd = userInput;
       let warning = '';
-      
+
       if (matchingFeature && matchingFeature !== userInput) {
-        // Found a match with different name
         featureToAdd = matchingFeature;
         warning = `Додата карактеристика "${matchingFeature}" (пронађен сличан: "${userInput}")`;
       } else if (!matchingFeature) {
-        // No match found
         warning = `"${userInput}" није пронађен у бази. Претрага може да не пронађе резултате.`;
       }
-      
+
       if (warning) {
         setFeatureWarning(warning);
         setTimeout(() => setFeatureWarning(''), 5000);
       }
-      
+
       setFilters(prev => ({
         ...prev,
         features: [...prev.features, featureToAdd]
@@ -237,15 +217,14 @@ const AdvancedSearchModal = ({
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setIsLoading(true);
     setError(null);
     setFeatureWarning('');
 
     try {
       const searchParams = new URLSearchParams();
-      
-      // Add all active filters with proper encoding
+
       if (filters.searchTerm.trim()) {
         searchParams.append('searchTerm', filters.searchTerm.trim());
       }
@@ -270,8 +249,7 @@ const AdvancedSearchModal = ({
       if (filters.zipCode) {
         searchParams.append('zipCode', filters.zipCode);
       }
-      
-      // 🆕 NEW: Add all the new filter parameters
+
       if (filters.roomsMin) {
         searchParams.append('roomsMin', filters.roomsMin);
       }
@@ -299,15 +277,13 @@ const AdvancedSearchModal = ({
       if (filters.municipality) {
         searchParams.append('municipality', filters.municipality);
       }
-      
-      // Append features without brackets
+
       filters.features.forEach(f => {
         searchParams.append('features', f);
       });
 
       const queryString = searchParams.toString();
-      
-      // Navigate to search page
+
       navigate(`/search?${queryString}`);
       onClose();
 
@@ -331,7 +307,6 @@ const AdvancedSearchModal = ({
       city: '',
       state: '',
       zipCode: '',
-      // 🆕 NEW: Clear all new filters too
       roomsMin: '',
       roomsMax: '',
       floorMin: '',
@@ -366,510 +341,513 @@ const AdvancedSearchModal = ({
             {error}
           </div>
         )}
-        
+
         {featureWarning && (
           <div className={styles.warningMessage}>
             {featureWarning}
           </div>
         )}
-        
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            {/* Price Range */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Цена</h3>
-              <div className={styles.priceRange}>
-                <div className={styles.priceInput}>
-                  <label className={styles.label}>Минимална цена</label>
-                  <input
-                    type="number"
-                    name="priceMin"
-                    value={filters.priceMin}
-                    onChange={handleFilterChange}
-                    className={styles.input}
-                    min="0"
-                    placeholder="мин."
-                  />
-                </div>
-                <div className={styles.priceInput}>
-                  <label className={styles.label}>Максимална цена</label>
-                  <input
-                    type="number"
-                    name="priceMax"
-                    value={filters.priceMax}
-                    onChange={handleFilterChange}
-                    className={styles.input}
-                    min="0"
-                    placeholder="макс."
-                  />
-                </div>
-              </div>
-            </div>
 
-            {/* 🆕 NEW: Room Count */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Број соба</h3>
-              <div className={styles.roomCountSection}>
-                <div className={styles.roomCountButtons}>
-                  {roomOptions.map(option => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => handleRoomCountChange(option.value)}
-                      className={`${styles.roomCountButton} ${
-                        filters.roomsMin === option.value ? styles.roomCountActive : ''
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-                <div className={styles.roomRangeInputs}>
-                  <div className={styles.rangeInput}>
-                    <label className={styles.label}>Од</label>
+        <div className={styles.scrollableContent}>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.formGroup}>
+              {/* Price Range */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Цена</h3>
+                <div className={styles.priceRange}>
+                  <div className={styles.priceInput}>
+                    <label className={styles.label}>Минимална цена</label>
                     <input
                       type="number"
-                      name="roomsMin"
-                      value={filters.roomsMin}
+                      name="priceMin"
+                      value={filters.priceMin}
                       onChange={handleFilterChange}
                       className={styles.input}
-                      min="0.5"
-                      max="20"
-                      step="0.5"
-                      placeholder="0.5"
+                      min="0"
+                      placeholder="мин."
                     />
                   </div>
-                  <div className={styles.rangeInput}>
-                    <label className={styles.label}>До</label>
+                  <div className={styles.priceInput}>
+                    <label className={styles.label}>Максимална цена</label>
                     <input
                       type="number"
-                      name="roomsMax"
-                      value={filters.roomsMax}
+                      name="priceMax"
+                      value={filters.priceMax}
                       onChange={handleFilterChange}
                       className={styles.input}
-                      min="0.5"
-                      max="20"
-                      step="0.5"
-                      placeholder="20"
+                      min="0"
+                      placeholder="макс."
                     />
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* 🆕 NEW: Floor Information */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Спрат</h3>
-              <div className={styles.floorRange}>
-                <div className={styles.rangeInput}>
-                  <label className={styles.label}>Најнижи спрат</label>
-                  <input
-                    type="number"
-                    name="floorMin"
-                    value={filters.floorMin}
-                    onChange={handleFilterChange}
-                    className={styles.input}
-                    min="-5"
-                    max="200"
-                    placeholder="-5 (подрум)"
-                  />
-                </div>
-                <div className={styles.rangeInput}>
-                  <label className={styles.label}>Највиши спрат</label>
-                  <input
-                    type="number"
-                    name="floorMax"
-                    value={filters.floorMax}
-                    onChange={handleFilterChange}
-                    className={styles.input}
-                    min="0"
-                    max="200"
-                    placeholder="200"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 🆕 NEW: Construction Year & Age */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Година изградње & Старост</h3>
-              <div className={styles.ageSection}>
-                <div className={styles.ageRangeButtons}>
-                  {ageRanges.map((range, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => handleAgeRangeChange(range)}
-                      className={`${styles.ageRangeButton} ${
-                        filters.constructionYearMin === range.min ? styles.ageRangeActive : ''
-                      }`}
-                    >
-                      {range.label}
-                    </button>
-                  ))}
-                </div>
-                <div className={styles.yearRangeInputs}>
-                  <div className={styles.rangeInput}>
-                    <label className={styles.label}>Од године</label>
-                    <input
-                      type="number"
-                      name="constructionYearMin"
-                      value={filters.constructionYearMin}
-                      onChange={handleFilterChange}
-                      className={styles.input}
-                      min="1500"
-                      max="2030"
-                      placeholder="1500"
-                    />
-                  </div>
-                  <div className={styles.rangeInput}>
-                    <label className={styles.label}>До године</label>
-                    <input
-                      type="number"
-                      name="constructionYearMax"
-                      value={filters.constructionYearMax}
-                      onChange={handleFilterChange}
-                      className={styles.input}
-                      min="1500"
-                      max="2030"
-                      placeholder="2030"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Property Type */}
-            <div className={styles.section}>
-			  <h3 className={styles.sectionTitle}>Тип некретнине</h3>
-			  <div className={styles.selectGroup}>
-			    <select
-			      name="propertyType"
-			      value={filters.propertyType}
-			      onChange={handleFilterChange}
-			      className={styles.select}
-			    >
-			      <option value="">Сви типови</option>
-			      {propertyTypes.map(type => (
-			        <option key={type} value={type}>
-			          {type === 'APARTMENT' && 'Апартман'}
-			          {type === 'HOUSE' && 'Кућа'}
-			          {type === 'CONDO' && 'Кондо'}
-			          {type === 'LAND' && 'Земљиште'}
-			          {type === 'GARRAGE' && 'Гаража'}
-			          {type === 'COMMERCIAL' && 'Комерцијални'}
-			          {type === 'OTHER' && 'Остало'}
-			        </option>
-			      ))}
-			    </select>
-			  </div>
-			</div>
-            
-            {/* Listing Type */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Тип огласа</h3>
-              <div className={styles.selectGroup}>
-                <select
-                  name="listingType"
-                  value={filters.listingType}
-                  onChange={handleFilterChange}
-                  className={styles.select}
-                >
-                  <option value="">Сви типови</option>
-                  {listingTypes.map(type => (
-                    <option key={type} value={type}>
-                      {type === 'SALE' && 'Продаја'}
-                      {type === 'RENT' && 'Изнајмљивање'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* 🆕 NEW: Heating Type */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Грејање</h3>
-              <div className={styles.selectGroup}>
-                <select
-                  name="heatingType"
-                  value={filters.heatingType}
-                  onChange={handleFilterChange}
-                  className={styles.select}
-                >
-                  <option value="">Сви типови грејања</option>
-                  {heatingTypes.map(type => (
-                    <option key={type} value={type}>
-                      {type === 'CENTRAL' && 'Централно грејање'}
-                      {type === 'DISTRICT' && 'Даљинско грејање'}
-                      {type === 'ELECTRIC' && 'Електрично грејање'}
-                      {type === 'GAS' && 'Гасно грејање'}
-                      {type === 'HEAT_PUMP' && 'Топлотна пумпа'}
-                      {type === 'SOLAR' && 'Соларно грејање'}
-                      {type === 'WOOD_PELLET' && 'Пелет'}
-                      {type === 'OIL' && 'Нафта'}
-                      {type === 'NONE' && 'Без грејања'}
-                      {type === 'OTHER' && 'Остало'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* 🆕 NEW: Property Condition */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Стање некретнине</h3>
-              <div className={styles.selectGroup}>
-                <select
-                  name="propertyCondition"
-                  value={filters.propertyCondition}
-                  onChange={handleFilterChange}
-                  className={styles.select}
-                >
-                  <option value="">Сва стања</option>
-                  {propertyConditions.map(condition => (
-                    <option key={condition} value={condition}>
-                      {condition === 'NEW_CONSTRUCTION' && 'Нова градња'}
-                      {condition === 'RENOVATED' && 'Реновирано'}
-                      {condition === 'MODERNIZED' && 'Модернизовано'}
-                      {condition === 'GOOD' && 'Добро стање'}
-                      {condition === 'NEEDS_RENOVATION' && 'Потребно реновирање'}
-                      {condition === 'ORIGINAL' && 'Оригинално стање'}
-                      {condition === 'LUXURY' && 'Луксузно'}
-                      {condition === 'SHELL' && 'Груба градња'}
-                      {condition === 'OTHER' && 'Остало'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            
-            {/* Features */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Карактеристике</h3>
-              
-              {isLoadingFeatures ? (
-                <div className={styles.loadingFeatures}>
-                  Учитавање карактеристика...
-                </div>
-              ) : (
-                <>
-                  {/* Feature Search */}
-                  <div className={styles.featureSearchContainer}>
-                    <div className={styles.searchInputWrapper}>
-                      <FaSearch className={styles.searchIcon} />
-                      <input
-                        type="text"
-                        placeholder="Претражи карактеристике..."
-                        value={featureSearch}
-                        onChange={(e) => setFeatureSearch(e.target.value)}
-                        className={styles.featureSearchInput}
-                      />
-                    </div>
-                    {featureSearch && (
+              {/* Room Count */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Број соба</h3>
+                <div className={styles.roomCountSection}>
+                  <div className={styles.roomCountButtons}>
+                    {roomOptions.map(option => (
                       <button
+                        key={option.value}
                         type="button"
-                        onClick={() => setFeatureSearch('')}
-                        className={styles.clearSearchButton}
-                      >
-                        Обриши
-                      </button>
-                    )}
-                  </div>
-                  
-                  {/* Features List */}
-                  <div className={styles.featuresContainer}>
-                    {Array.isArray(visibleFeatures) && visibleFeatures.map(feature => (
-                      <button
-                        key={feature}
-                        type="button"
-                        onClick={() => handleFeatureToggle(feature)}
-                        className={`${styles.featureButton} ${
-                          filters.features.includes(feature) 
-                            ? styles.featureActive 
-                            : ''
+                        onClick={() => handleRoomCountChange(option.value)}
+                        className={`${styles.roomCountButton} ${
+                          filters.roomsMin === option.value ? styles.roomCountActive : ''
                         }`}
                       >
-                        {feature}
-                        {filters.features.includes(feature) && ' ✓'}
+                        {option.label}
                       </button>
                     ))}
-                    
-                    {filteredFeatures.length === 0 && featureSearch && (
-                      <div className={styles.noResults}>
-                        Није пронађена карактеристика "{featureSearch}"
-                      </div>
-                    )}
                   </div>
-                  
-                  {/* Show More/Less Button */}
-                  {filteredFeatures.length > initialFeatureCount && (
-                    <button
-                      type="button"
-                      onClick={() => setShowAllFeatures(!showAllFeatures)}
-                      className={styles.showMoreButton}
-                    >
-                      {showAllFeatures ? (
-                        <>
-                          <FaChevronUp className={styles.buttonIcon} />
-                          Прикажи мање
-                        </>
-                      ) : (
-                        <>
-                          <FaChevronDown className={styles.buttonIcon} />
-                          Прикажи још {filteredFeatures.length - initialFeatureCount} карактеристика
-                        </>
-                      )}
-                    </button>
-                  )}
-                  
-                  {/* Custom Feature Input */}
-                  <div className={styles.customFeature}>
-                    <br/>
-                    <div className={styles.featureInputRow}>
+                  <div className={styles.roomRangeInputs}>
+                    <div className={styles.rangeInput}>
+                      <label className={styles.label}>Од</label>
                       <input
-                        type="text"
-                        value={customFeature}
-                        onChange={(e) => setCustomFeature(e.target.value)}
+                        type="number"
+                        name="roomsMin"
+                        value={filters.roomsMin}
+                        onChange={handleFilterChange}
                         className={styles.input}
-                        placeholder="Унеси карактеристику која недостаје"
-                        onKeyPress={handleCustomFeatureKeyPress}
+                        min="0.5"
+                        max="20"
+                        step="0.5"
+                        placeholder="0.5"
                       />
+                    </div>
+                    <div className={styles.rangeInput}>
+                      <label className={styles.label}>До</label>
+                      <input
+                        type="number"
+                        name="roomsMax"
+                        value={filters.roomsMax}
+                        onChange={handleFilterChange}
+                        className={styles.input}
+                        min="0.5"
+                        max="20"
+                        step="0.5"
+                        placeholder="20"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floor Information */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Спрат</h3>
+                <div className={styles.floorRange}>
+                  <div className={styles.rangeInput}>
+                    <label className={styles.label}>Најнижи спрат</label>
+                    <input
+                      type="number"
+                      name="floorMin"
+                      value={filters.floorMin}
+                      onChange={handleFilterChange}
+                      className={styles.input}
+                      min="-5"
+                      max="200"
+                      placeholder="-5 (подрум)"
+                    />
+                  </div>
+                  <div className={styles.rangeInput}>
+                    <label className={styles.label}>Највиши спрат</label>
+                    <input
+                      type="number"
+                      name="floorMax"
+                      value={filters.floorMax}
+                      onChange={handleFilterChange}
+                      className={styles.input}
+                      min="0"
+                      max="200"
+                      placeholder="200"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Construction Year & Age */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Година изградње & Старост</h3>
+                <div className={styles.ageSection}>
+                  <div className={styles.ageRangeButtons}>
+                    {ageRanges.map((range, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleAgeRangeChange(range)}
+                        className={`${styles.ageRangeButton} ${
+                          filters.constructionYearMin === range.min ? styles.ageRangeActive : ''
+                        }`}
+                      >
+                        {range.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className={styles.yearRangeInputs}>
+                    <div className={styles.rangeInput}>
+                      <label className={styles.label}>Од године</label>
+                      <input
+                        type="number"
+                        name="constructionYearMin"
+                        value={filters.constructionYearMin}
+                        onChange={handleFilterChange}
+                        className={styles.input}
+                        min="1500"
+                        max="2030"
+                        placeholder="1500"
+                      />
+                    </div>
+                    <div className={styles.rangeInput}>
+                      <label className={styles.label}>До године</label>
+                      <input
+                        type="number"
+                        name="constructionYearMax"
+                        value={filters.constructionYearMax}
+                        onChange={handleFilterChange}
+                        className={styles.input}
+                        min="1500"
+                        max="2030"
+                        placeholder="2030"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Property Type */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Тип некретнине</h3>
+                <div className={styles.selectGroup}>
+                  <select
+                    name="propertyType"
+                    value={filters.propertyType}
+                    onChange={handleFilterChange}
+                    className={styles.select}
+                  >
+                    <option value="">Сви типови</option>
+                    {propertyTypes.map(type => (
+                      <option key={type} value={type}>
+                        {type === 'APARTMENT' && 'Апартман'}
+                        {type === 'HOUSE' && 'Кућа'}
+                        {type === 'CONDO' && 'Кондо'}
+                        {type === 'LAND' && 'Земљиште'}
+                        {type === 'GARRAGE' && 'Гаража'}
+                        {type === 'COMMERCIAL' && 'Комерцијални'}
+                        {type === 'OTHER' && 'Остало'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Listing Type */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Тип огласа</h3>
+                <div className={styles.selectGroup}>
+                  <select
+                    name="listingType"
+                    value={filters.listingType}
+                    onChange={handleFilterChange}
+                    className={styles.select}
+                  >
+                    <option value="">Сви типови</option>
+                    {listingTypes.map(type => (
+                      <option key={type} value={type}>
+                        {type === 'SALE' && 'Продаја'}
+                        {type === 'RENT' && 'Изнајмљивање'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Heating Type */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Грејање</h3>
+                <div className={styles.selectGroup}>
+                  <select
+                    name="heatingType"
+                    value={filters.heatingType}
+                    onChange={handleFilterChange}
+                    className={styles.select}
+                  >
+                    <option value="">Сви типови грејања</option>
+                    {heatingTypes.map(type => (
+                      <option key={type} value={type}>
+                        {type === 'CENTRAL' && 'Централно грејање'}
+                        {type === 'DISTRICT' && 'Даљинско грејање'}
+                        {type === 'ELECTRIC' && 'Електрично грејање'}
+                        {type === 'GAS' && 'Гасно грејање'}
+                        {type === 'HEAT_PUMP' && 'Топлотна пумпа'}
+                        {type === 'SOLAR' && 'Соларно грејање'}
+                        {type === 'WOOD_PELLET' && 'Пелет'}
+                        {type === 'OIL' && 'Нафта'}
+                        {type === 'NONE' && 'Без грејања'}
+                        {type === 'OTHER' && 'Остало'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Property Condition */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Стање некретнине</h3>
+                <div className={styles.selectGroup}>
+                  <select
+                    name="propertyCondition"
+                    value={filters.propertyCondition}
+                    onChange={handleFilterChange}
+                    className={styles.select}
+                  >
+                    <option value="">Сва стања</option>
+                    {propertyConditions.map(condition => (
+                      <option key={condition} value={condition}>
+                        {condition === 'NEW_CONSTRUCTION' && 'Нова градња'}
+                        {condition === 'RENOVATED' && 'Реновирано'}
+                        {condition === 'MODERNIZED' && 'Модернизовано'}
+                        {condition === 'GOOD' && 'Добро стање'}
+                        {condition === 'NEEDS_RENOVATION' && 'Потребно реновирање'}
+                        {condition === 'ORIGINAL' && 'Оригинално стање'}
+                        {condition === 'LUXURY' && 'Луксузно'}
+                        {condition === 'SHELL' && 'Груба градња'}
+                        {condition === 'OTHER' && 'Остало'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Карактеристике</h3>
+
+                {isLoadingFeatures ? (
+                  <div className={styles.loadingFeatures}>
+                    Учитавање карактеристика...
+                  </div>
+                ) : (
+                  <>
+                    {/* Feature Search */}
+                    <div className={styles.featureSearchContainer}>
+                      <div className={styles.searchInputWrapper}>
+                        <FaSearch className={styles.searchIcon} />
+                        <input
+                          type="text"
+                          placeholder="Претражи карактеристике..."
+                          value={featureSearch}
+                          onChange={(e) => setFeatureSearch(e.target.value)}
+                          className={styles.featureSearchInput}
+                        />
+                      </div>
+                      {featureSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setFeatureSearch('')}
+                          className={styles.clearSearchButton}
+                        >
+                          Обриши
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Features List */}
+                    <div className={styles.featuresContainer}>
+                      {Array.isArray(visibleFeatures) && visibleFeatures.map(feature => (
+                        <button
+                          key={feature}
+                          type="button"
+                          onClick={() => handleFeatureToggle(feature)}
+                          className={`${styles.featureButton} ${
+                            filters.features.includes(feature)
+                              ? styles.featureActive
+                              : ''
+                          }`}
+                        >
+                          {feature}
+                          {filters.features.includes(feature) && ' ✓'}
+                        </button>
+                      ))}
+
+                      {filteredFeatures.length === 0 && featureSearch && (
+                        <div className={styles.noResults}>
+                          Није пронађена карактеристика "{featureSearch}"
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Show More/Less Button */}
+                    {filteredFeatures.length > initialFeatureCount && (
                       <button
                         type="button"
-                        onClick={addCustomFeature}
-                        className={styles.addButton}
-                        disabled={!customFeature.trim()}
+                        onClick={() => setShowAllFeatures(!showAllFeatures)}
+                        className={styles.showMoreButton}
                       >
-                        <FaPlus />
+                        {showAllFeatures ? (
+                          <>
+                            <FaChevronUp className={styles.buttonIcon} />
+                            Прикажи мање
+                          </>
+                        ) : (
+                          <>
+                            <FaChevronDown className={styles.buttonIcon} />
+                            Прикажи још {filteredFeatures.length - initialFeatureCount} карактеристика
+                          </>
+                        )}
                       </button>
-                    </div>
-                    <div className={styles.customFeatureHint}>
-                      Ако не пронађете карактеристику, унесите је овде
-                    </div>
-                  </div>
-                  
-                  {/* Selected Features */}
-                  {filters.features.length > 0 && (
-                    <div className={styles.selectedFeatures}>
-                      <label className={styles.label}>Изабране карактеристике:</label>
-                      <div className={styles.selectedFeaturesList}>
-                        {filters.features.map(feature => (
-                          <span key={feature} className={styles.selectedFeatureTag}>
-                            {feature}
-                            <button
-                              type="button"
-                              onClick={() => removeFeature(feature)}
-                              className={styles.removeFeatureButton}
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
+                    )}
+
+                    {/* Custom Feature Input */}
+                    <div className={styles.customFeature}>
+                      <br/>
+                      <div className={styles.featureInputRow}>
+                        <input
+                          type="text"
+                          value={customFeature}
+                          onChange={(e) => setCustomFeature(e.target.value)}
+                          className={styles.input}
+                          placeholder="Унеси карактеристику која недостаје"
+                          onKeyPress={handleCustomFeatureKeyPress}
+                        />
+                        <button
+                          type="button"
+                          onClick={addCustomFeature}
+                          className={styles.addButton}
+                          disabled={!customFeature.trim()}
+                        >
+                          <FaPlus />
+                        </button>
+                      </div>
+                      <div className={styles.customFeatureHint}>
+                        Ако не пронађете карактеристику, унесите је овде
                       </div>
                     </div>
-                  )}
-                </>
-              )}
-            </div>
 
-            {/* Location */}
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Локација</h3>
-              
-              {/* 🆕 NEW: Municipality for privacy */}
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>Општина</label>
-                <input
-                  type="text"
-                  name="municipality"
-                  value={filters.municipality}
-                  onChange={handleFilterChange}
-                  className={styles.input}
-                  placeholder="Унесите општину"
-                />
+                    {/* Selected Features */}
+                    {filters.features.length > 0 && (
+                      <div className={styles.selectedFeatures}>
+                        <label className={styles.label}>Изабране карактеристике:</label>
+                        <div className={styles.selectedFeaturesList}>
+                          {filters.features.map(feature => (
+                            <span key={feature} className={styles.selectedFeatureTag}>
+                              {feature}
+                              <button
+                                type="button"
+                                onClick={() => removeFeature(feature)}
+                                className={styles.removeFeatureButton}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>Град</label>
-                <input
-                  type="text"
-                  name="city"
-                  value={filters.city}
-                  onChange={handleFilterChange}
-                  className={styles.input}
-                  placeholder="Унесите град"
-                />
-              </div>
+              {/* Location */}
+              <div className={styles.section}>
+                <h3 className={styles.sectionTitle}>Локација</h3>
 
-              <div className={styles.locationRow}>
+                {/* Municipality for privacy */}
                 <div className={styles.inputGroup}>
-                  <label className={styles.label}>Држава</label>
+                  <label className={styles.label}>Општина</label>
                   <input
                     type="text"
-                    name="state"
-                    value={filters.state}
+                    name="municipality"
+                    value={filters.municipality}
                     onChange={handleFilterChange}
                     className={styles.input}
-                    placeholder="Држава"
+                    placeholder="Унесите општину"
                   />
                 </div>
+
                 <div className={styles.inputGroup}>
-                  <label className={styles.label}>Поштански број</label>
+                  <label className={styles.label}>Град</label>
                   <input
                     type="text"
-                    name="zipCode"
-                    value={filters.zipCode}
+                    name="city"
+                    value={filters.city}
                     onChange={handleFilterChange}
                     className={styles.input}
-                    placeholder="Поштански број"
+                    placeholder="Унесите град"
                   />
                 </div>
+
+                <div className={styles.locationRow}>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Држава</label>
+                    <input
+                      type="text"
+                      name="state"
+                      value={filters.state}
+                      onChange={handleFilterChange}
+                      className={styles.input}
+                      placeholder="Држава"
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.label}>Поштански број</label>
+                    <input
+                      type="text"
+                      name="zipCode"
+                      value={filters.zipCode}
+                      onChange={handleFilterChange}
+                      className={styles.input}
+                      placeholder="Поштански број"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* General Search */}
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>
+                  Општа претрага
+                  <span className={styles.hint}> (наслов, опис, град, адреса)</span>
+                </label>
+                <input
+                  type="text"
+                  name="searchTerm"
+                  value={filters.searchTerm}
+                  onChange={handleFilterChange}
+                  className={styles.input}
+                  placeholder="Унесите кључне речи"
+                />
               </div>
             </div>
+          </form>
+        </div>
 
-            {/* General Search */}
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>
-                Општа претрага
-                <span className={styles.hint}> (наслов, опис, град, адреса)</span>
-              </label>
-              <input
-                type="text"
-                name="searchTerm"
-                value={filters.searchTerm}
-                onChange={handleFilterChange}
-                className={styles.input}
-                placeholder="Унесите кључне речи"
-              />
-            </div>
-          </div>
-          
-          <div className={styles.modalFooter}>
+        <div className={styles.modalFooter}>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className={styles.clearButton}
+          >
+            Обриши све филтере
+          </button>
+          <div className={styles.actionButtons}>
             <button
               type="button"
-              onClick={clearFilters}
-              className={styles.clearButton}
+              onClick={onClose}
+              className={styles.secondaryButton}
             >
-              Обриши све филтере
+              Откажи
             </button>
-            <div className={styles.actionButtons}>
-              <button
-                type="button"
-                onClick={onClose}
-                className={styles.secondaryButton}
-              >
-                Откажи
-              </button>
-              <button
-                type="submit"
-                className={styles.primaryButton}
-                disabled={isLoadingFeatures}
-              >
-                {isLoadingFeatures ? 'Учитавање...' : 'Примени филтере'}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className={styles.primaryButton}
+              disabled={isLoadingFeatures}
+            >
+              {isLoadingFeatures ? 'Учитавање...' : 'Примени филтере'}
+            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

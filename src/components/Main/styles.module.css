@@ -76,43 +76,43 @@
   font-weight: 500;
 }
 
-/* Action Grid in Hero */
+/* Updated Action Grid for 3 cards */
 .actionGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  max-width: 1000px;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+  max-width: 900px;
   margin: 0 auto;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .actionGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
   }
 }
 
-@media (max-width: 768px) {
-  .actionGrid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-}
-
+/* Card styling - transparent and blended */
 .actionCard {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 1.5rem;
-  padding: 2rem 1.5rem;
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.15),
-    0 4px 12px rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1.25rem;
+  padding: 1.75rem 1.5rem;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+/* Subtle gradient overlay for depth */
 .actionCard::before {
   content: '';
   position: absolute;
@@ -120,148 +120,89 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%);
+  opacity: 0.8;
+  z-index: 0;
 }
 
+/* Hover effect - slightly more opaque with glow */
 .actionCard:hover {
-  background: rgba(255, 255, 255, 0.98);
-  transform: translateY(-12px) scale(1.02);
-  box-shadow: 
-    0 32px 64px rgba(0, 0, 0, 0.2),
-    0 8px 24px rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    0 0 40px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.actionCard:hover::before {
-  opacity: 1;
+/* Card content positioning */
+.actionCard > * {
+  position: relative;
+  z-index: 1;
 }
 
-.buyCard:hover {
-  border-color: #3b82f6;
-}
-
-.rentCard:hover {
-  border-color: #10b981;
-}
-
-.sellCard:hover {
-  border-color: #8b5cf6;
-}
-
-.browseCard {
-  background: rgba(30, 41, 59, 0.85);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-.browseCard:hover {
-  background: rgba(30, 41, 59, 0.95);
-  border-color: #fbbf24;
-}
-
+/* Icon containers with glass effect */
 .iconContainer {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 1rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.875rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   transition: all 0.3s ease;
   position: relative;
   z-index: 1;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
+/* Icon container hover effect */
 .actionCard:hover .iconContainer {
-  transform: scale(1.15) rotate(5deg);
+  transform: scale(1.1);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.buyIcon {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-}
-
-.rentIcon {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-}
-
-.sellIcon {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
-}
-
-.browseIcon {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  box-shadow: 0 8px 20px rgba(251, 191, 36, 0.3);
-}
-
+/* Card text - bright white for better visibility on background */
 .cardTitle {
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 0.75rem;
-  position: relative;
-  z-index: 1;
-}
-
-.browseCard .cardTitle {
   color: white;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .cardDescription {
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 1.5rem;
-  line-height: 1.6;
-  position: relative;
-  z-index: 1;
+  line-height: 1.5;
+  font-size: 0.9375rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  flex-grow: 1;
 }
 
-.browseCard .cardDescription {
-  color: #e5e7eb;
-}
-
+/* Card links */
 .cardLink {
   display: flex;
   align-items: center;
   font-weight: 600;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.buyLink {
-  color: #2563eb;
-}
-
-.buyLink:hover {
-  color: #1d4ed8;
-}
-
-.rentLink {
-  color: #059669;
-}
-
-.rentLink:hover {
-  color: #047857;
-}
-
-.sellLink {
-  color: #7c3aed;
-}
-
-.sellLink:hover {
-  color: #6d28d9;
-}
-
-.browseLink {
-  color: #fbbf24;
-}
-
-.browseLink:hover {
-  color: #f59e0b;
+.cardLink:hover {
+  opacity: 0.9;
 }
 
 .linkIcon {
@@ -269,62 +210,214 @@
   height: 1.25rem;
   margin-left: 0.5rem;
   transition: transform 0.3s ease;
+  stroke: white;
 }
 
 .actionCard:hover .linkIcon {
   transform: translateX(0.5rem);
 }
 
-/* Rest of the CSS remains the same from previous version */
-.contentSection {
-  width: 100%;
-  background: white;
-  position: relative;
-  z-index: 3;
+/* Individual card accent colors on hover */
+.buyCard:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.5);
 }
 
+.rentCard:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.browseCard:hover {
+  background: rgba(251, 191, 36, 0.25);
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+/* Icon gradients - more vibrant */
+.buyIcon {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.rentIcon {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+}
+
+.browseIcon {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+/* Link accent colors */
+.buyLink {
+  color: #93c5fd;
+}
+
+.rentLink {
+  color: #a7f3d0;
+}
+
+.browseLink {
+  color: #fde68a;
+}
+
+.buyLink:hover {
+  color: #60a5fa;
+}
+
+.rentLink:hover {
+  color: #6ee7b7;
+}
+
+.browseLink:hover {
+  color: #fcd34d;
+}
+
+/* Responsive adjustments for action cards */
+@media (max-width: 767px) {
+  .actionGrid {
+    gap: 1rem;
+  }
+
+  .actionCard {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .iconContainer {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .actionCard {
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+  }
+}
+
+/* Main Content Section with background */
+.contentSection {
+  width: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.95) 0%,
+    rgba(15, 23, 42, 0.98) 100%
+  );
+  position: relative;
+  z-index: 3;
+  color: white;
+}
+
+/* Add a subtle background pattern/texture */
+.contentSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+  z-index: -1;
+}
+
+/* Integrated Search Section */
 .integratedSearchSection {
   width: 100%;
   max-width: 56rem;
-  margin: 4rem auto;
-  padding: 0 1rem;
+  margin: 0 auto;
+  padding: 6rem 1rem 4rem;
 }
 
 .searchContent {
-  background: white;
-  border-radius: 1.5rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  padding: 3rem 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 2rem;
+  padding: 3.5rem 2.5rem;
   text-align: center;
-  border: 1px solid #f1f5f9;
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add decorative elements */
+.searchContent::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle at center,
+    rgba(59, 130, 246, 0.1) 0%,
+    transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.searchContent > * {
+  position: relative;
+  z-index: 1;
 }
 
 .searchHeader {
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
 .searchTitle {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 1rem;
+  font-size: 3rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 1.25rem;
+  line-height: 1.1;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
 }
 
 .searchSubtitle {
-  font-size: 1.25rem;
-  color: #6b7280;
+  font-size: 1.375rem;
+  color: rgba(255, 255, 255, 0.9);
   max-width: 500px;
   margin: 0 auto;
   line-height: 1.6;
+  font-weight: 400;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .searchArea {
   max-width: 500px;
-  margin: 0 auto 2rem;
+  margin: 0 auto 3rem;
+}
+
+/* Style the SearchBar component container */
+.searchArea :global(.search-bar-container) {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.searchArea :global(.search-bar-container):hover,
+.searchArea :global(.search-bar-container):focus-within {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(251, 191, 36, 0.5);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .searchActions {
-  margin-top: 1rem;
+  margin-top: 2rem;
 }
 
 .advancedButton {
@@ -333,41 +426,46 @@
   justify-content: center;
   width: 100%;
   margin-top: 1rem;
-  color: #2563eb;
+  color: white;
   font-weight: 600;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  border: 2px solid #e5e7eb;
+  padding: 1.125rem 1.5rem;
+  border-radius: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
-  background: white;
+  background: rgba(255, 255, 255, 0.1);
   font-size: 1rem;
+  backdrop-filter: blur(10px);
 }
 
 .advancedButton:hover {
-  color: #1d4ed8;
-  border-color: #3b82f6;
-  background: #f8fafc;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+  background: rgba(251, 191, 36, 0.2);
+  border-color: #fbbf24;
+  color: #fbbf24;
+  transform: translateY(-3px);
+  box-shadow:
+    0 15px 30px rgba(251, 191, 36, 0.2),
+    0 0 20px rgba(251, 191, 36, 0.1);
 }
 
 /* Integrated Guidance */
 .integratedGuidance {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 3rem;
-  margin-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 3.5rem;
+  margin-top: 3.5rem;
 }
 
 .guidanceSection {
-  max-width: 600px;
+  max-width: 700px;
   margin: 0 auto;
 }
 
 .guidanceTitle {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .quickTips {
@@ -377,69 +475,99 @@
 }
 
 .tipCard {
-  background: #f8fafc;
-  border-radius: 1rem;
-  padding: 2rem 1.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.25rem;
+  padding: 2.25rem 1.75rem;
   text-align: center;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tipCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .tipCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-  background: white;
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-8px) scale(1.03);
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(251, 191, 36, 0.1);
+}
+
+.tipCard:hover::before {
+  opacity: 1;
 }
 
 .tipIcon {
-  font-size: 2.5rem;
+  font-size: 3rem;
   display: block;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 .tipCard h4 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.75rem;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.875rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .tipCard p {
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 1rem;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* Error Message */
+/* Error Message - updated to match theme */
 .errorMessage {
   width: 100%;
   max-width: 56rem;
-  margin: 1rem auto;
-  padding: 1.25rem;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: rgba(220, 38, 38, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #fecaca;
   border-radius: 1rem;
   text-align: center;
   font-weight: 500;
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.1);
 }
 
-/* Loading Spinner */
+/* Loading Spinner - updated to match theme */
 .loadingSpinner {
   width: 100%;
   display: flex;
   justify-content: center;
-  margin: 3rem 0;
+  margin: 4rem 0;
 }
 
 .spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 3px solid #e5e7eb;
-  border-top: 3px solid #3b82f6;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top: 3px solid #fbbf24;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
 }
 
 @keyframes spin {
@@ -447,7 +575,7 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Results Section */
+/* Results Section - updated to match theme */
 .resultsSection {
   width: 100%;
   max-width: 72rem;
@@ -456,11 +584,12 @@
 }
 
 .resultsTitle {
-  font-size: 2.25rem;
+  font-size: 2.5rem;
   font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 2rem;
+  color: white;
+  margin-bottom: 2.5rem;
   text-align: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .resultsGrid {
@@ -481,15 +610,15 @@
   }
 }
 
-/* CTA + Auth Section */
+/* CTA + Auth Section - updated to match theme */
 .ctaAuthSection {
   width: 100%;
   max-width: 80rem;
-  margin: 4rem auto;
+  margin: 6rem auto 4rem;
   padding: 0 1rem;
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 4rem;
 }
 
 /* Responsive Design */
@@ -497,32 +626,45 @@
   .heroTitle {
     font-size: 2.75rem;
   }
-  
+
   .heroSubtitle {
     font-size: 1.25rem;
   }
-  
+
+  .integratedSearchSection {
+    padding: 4rem 1rem 3rem;
+  }
+
   .searchContent {
-    padding: 2.5rem 1.5rem;
+    padding: 2.5rem 1.75rem;
+    border-radius: 1.5rem;
   }
-  
+
   .searchTitle {
-    font-size: 2rem;
+    font-size: 2.25rem;
   }
-  
+
   .searchSubtitle {
     font-size: 1.125rem;
   }
-  
+
+  .guidanceTitle {
+    font-size: 1.75rem;
+  }
+
   .quickTips {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .tipCard {
-    padding: 1.75rem 1.25rem;
+    padding: 2rem 1.5rem;
   }
-  
+
+  .tipIcon {
+    font-size: 2.5rem;
+  }
+
   .heroSection {
     background-attachment: scroll;
   }
@@ -531,38 +673,45 @@
 @media (max-width: 640px) {
   .integratedSearchSection {
     margin-bottom: 2rem;
+    padding: 3rem 1rem 2rem;
   }
-  
+
   .heroSection {
     padding: 1rem;
   }
-  
+
   .heroContent {
     padding: 1rem 0;
   }
-  
+
   .heroTitle {
     font-size: 2.25rem;
   }
-  
+
   .actionCard {
     padding: 1.5rem 1rem;
   }
+
+  .searchContent {
+    padding: 2rem 1.25rem;
+  }
+
+  .searchTitle {
+    font-size: 2rem;
+  }
+
+  .searchSubtitle {
+    font-size: 1.125rem;
+  }
+
+  .tipCard h4 {
+    font-size: 1.25rem;
+  }
 }
 
-.leaseCard:hover {
-  border-color: #8b5cf6;
-}
-
-.leaseIcon {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
-}
-
+/* Remove old Lease card styles */
+.leaseCard:hover,
+.leaseIcon,
 .leaseLink {
-  color: #7c3aed;
-}
-
-.leaseLink:hover {
-  color: #6d28d9;
+  display: none;
 }

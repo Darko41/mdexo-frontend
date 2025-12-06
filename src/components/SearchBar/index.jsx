@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { FaSearch } from 'react-icons/fa';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import styles from './styles.module.css';
 
 const SearchBar = ({ onSearchResults, setIsLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,7 +22,7 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
 
   const handleSearch = async () => {
     if (!searchTerm.trim() && !hasAdvancedFilters()) {
-      setError("Молимо унесите појам за претрагу или користите напредне филтере");
+      setError("Molimo unesite pojam za pretragu ili koristite napredne filtere");
       return;
     }
 
@@ -30,14 +30,12 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
     setError(null);
 
     try {
-      // Build search parameters
       const searchParams = new URLSearchParams();
-      
+
       if (searchTerm.trim()) {
         searchParams.append('searchTerm', searchTerm.trim());
       }
-      
-      // Add advanced filters if they exist
+
       if (advancedFilters.propertyType) {
         searchParams.append('propertyType', advancedFilters.propertyType);
       }
@@ -65,13 +63,13 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
 
       const queryString = searchParams.toString();
       navigate(`/search?${queryString}`);
-      
+
     } catch (error) {
-	  setError("Претрага није успела. Молимо покушајте поново.");
-	} finally {
-	  setIsLoading(false);
-	}
-	  };
+      setError("Pretraga nije uspela. Molimo pokušajte ponovo.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const hasAdvancedFilters = () => {
     return Object.values(advancedFilters).some(value => value !== '');
@@ -105,44 +103,46 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
   };
 
   const propertyTypes = [
-    { value: '', label: 'Сви типови' },
-    { value: 'APARTMENT', label: 'Апартман' },
-    { value: 'HOUSE', label: 'Кућа' },
-    { value: 'CONDO', label: 'Кондо' },
-    { value: 'LAND', label: 'Земљиште' },
-    { value: 'GARAGE', label: 'Гаража' },
-    { value: 'COMMERCIAL', label: 'Комерцијални' },
-    { value: 'OTHER', label: 'Остало' }
+    { value: '', label: 'Svi tipovi' },
+    { value: 'APARTMENT', label: 'Apartman' },
+    { value: 'HOUSE', label: 'Kuća' },
+    { value: 'CONDO', label: 'Kondominijum' },
+    { value: 'LAND', label: 'Zemljište' },
+    { value: 'GARAGE', label: 'Garaža' },
+    { value: 'COMMERCIAL', label: 'Komercijalni' },
+    { value: 'OTHER', label: 'Ostalo' }
   ];
 
   const listingTypes = [
-    { value: '', label: 'Сви типови' },
-    { value: 'FOR_SALE', label: 'За продају' },
-    { value: 'FOR_RENT', label: 'За изнајмљивање' }
+    { value: '', label: 'Svi tipovi' },
+    { value: 'FOR_SALE', label: 'Prodaja' },
+    { value: 'FOR_RENT', label: 'Izdavanje' }
   ];
 
   const roomOptions = [
-    { value: '', label: 'Било који' },
-    { value: '0.5', label: 'Студио (0.5)' },
-    { value: '1', label: '1 соба' },
-    { value: '1.5', label: '1.5 собе' },
-    { value: '2', label: '2 собе' },
-    { value: '2.5', label: '2.5 собе' },
-    { value: '3', label: '3 собе' },
-    { value: '3.5', label: '3.5 собе' },
-    { value: '4', label: '4 собе' },
-    { value: '5', label: '5+ соба' }
+    { value: '', label: 'Bilo koji' },
+    { value: '0.5', label: 'Garsonjera (0.5)' },
+    { value: '1', label: '1 soba' },
+    { value: '1.5', label: '1.5 soba' },
+    { value: '2', label: '2 sobe' },
+    { value: '2.5', label: '2.5 sobe' },
+    { value: '3', label: '3 sobe' },
+    { value: '3.5', label: '3.5 sobe' },
+    { value: '4', label: '4 sobe' },
+    { value: '5', label: '5+ soba' }
   ];
 
   return (
-    <div className="flex flex-col w-full max-w-4xl mx-auto">
+    <div className={styles.searchContainer}>
       {/* Main Search Bar */}
-      <div className="flex h-12 w-full flex-row items-center rounded-xl border-2 border-blue-800 bg-white mb-2">
-        <FaSearch className="ml-3 text-blue-800" />
+      <div className={styles.mainSearchBar}>
+        <div className={styles.searchIconWrapper}>
+          <FaSearch className={styles.searchIcon} />
+        </div>
         <input
-          className="ml-2 w-full rounded-xl pl-2 text-left outline-none"
+          className={styles.searchInput}
           type="text"
-          placeholder="Куцајте за претрагу (наслов, опис, град, адреса, општина...)"
+          placeholder="Pretražite po naslovu, opisu, gradu, adresi, opštini..."
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -153,55 +153,55 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
         <button
           onClick={handleSearch}
           disabled={!searchTerm.trim() && !hasAdvancedFilters()}
-          className="px-4 h-full bg-blue-800 text-white rounded-r-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className={styles.searchButton}
         >
-          Тражи
+          Pretraži
         </button>
       </div>
 
       {/* Advanced Options Toggle */}
-      <div className="flex justify-between items-center mb-2">
+      <div className={styles.advancedToggleContainer}>
         <button
           onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-          className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+          className={styles.advancedToggleButton}
         >
-          {showAdvancedOptions ? 'Сакриј напредне опције' : 'Прикажи напредне опције'}
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className={`h-4 w-4 ml-1 transition-transform ${showAdvancedOptions ? 'rotate-180' : ''}`}
-            fill="none" 
-            viewBox="0 0 24 24" 
+          {showAdvancedOptions ? 'Sakrij dodatne filtere' : 'Prikaži dodatne filtere'}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`${styles.chevronIcon} ${showAdvancedOptions ? styles.rotated : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
             stroke="currentColor"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        
+
         {hasAdvancedFilters() && (
           <button
             onClick={clearAdvancedFilters}
-            className="text-red-600 hover:text-red-800 text-sm"
+            className={styles.clearFiltersButton}
           >
-            Обриши филтере
+            Obriši filtere
           </button>
         )}
       </div>
 
       {/* Advanced Search Options */}
       {showAdvancedOptions && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            
+        <div className={styles.advancedOptionsContainer}>
+          <div className={styles.advancedFiltersGrid}>
+
             {/* Property Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Тип некретнине
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                Tip nekretnine
               </label>
               <select
                 name="propertyType"
                 value={advancedFilters.propertyType}
                 onChange={handleAdvancedFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className={styles.filterSelect}
               >
                 {propertyTypes.map(type => (
                   <option key={type.value} value={type.value}>
@@ -212,15 +212,15 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
             </div>
 
             {/* Listing Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Тип огласа
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                Tip oglasa
               </label>
               <select
                 name="listingType"
                 value={advancedFilters.listingType}
                 onChange={handleAdvancedFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className={styles.filterSelect}
               >
                 {listingTypes.map(type => (
                   <option key={type.value} value={type.value}>
@@ -231,15 +231,15 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
             </div>
 
             {/* Room Count */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Број соба
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                Broj soba
               </label>
               <select
                 name="roomsMin"
                 value={advancedFilters.roomsMin}
                 onChange={handleAdvancedFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className={styles.filterSelect}
               >
                 {roomOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -250,17 +250,17 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
             </div>
 
             {/* Price Range */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Цена до
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                Cena do
               </label>
               <input
                 type="number"
                 name="priceMax"
                 value={advancedFilters.priceMax}
                 onChange={handleAdvancedFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="Максимална цена"
+                className={styles.filterInput}
+                placeholder="Maksimalna cena"
                 min="0"
               />
             </div>
@@ -268,44 +268,44 @@ const SearchBar = ({ onSearchResults, setIsLoading }) => {
           </div>
 
           {/* Second Row of Advanced Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-            
+          <div className={styles.secondRowFilters}>
+
             {/* City */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Град
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                Grad
               </label>
               <input
                 type="text"
                 name="city"
                 value={advancedFilters.city}
                 onChange={handleAdvancedFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="Унесите град"
+                className={styles.filterInput}
+                placeholder="Unesite grad"
               />
             </div>
 
             {/* Municipality */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Општина
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                Opština
               </label>
               <input
                 type="text"
                 name="municipality"
                 value={advancedFilters.municipality}
                 onChange={handleAdvancedFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="Унесите општину"
+                className={styles.filterInput}
+                placeholder="Unesite opštinu"
               />
             </div>
 
           </div>
         </div>
       )}
-      
+
       {error && (
-        <div className="mt-2 text-red-600 text-sm">
+        <div className={styles.errorMessage}>
           {error}
         </div>
       )}

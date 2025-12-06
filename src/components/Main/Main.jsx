@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaSlidersH, FaHome, FaKey, FaTag, FaSearch, FaChartLine, FaStar, FaClock, FaHeadset, FaFileContract } from "react-icons/fa";
+import { FaSlidersH, FaHome, FaKey, FaSearch, FaChartLine, FaStar, FaClock, FaHeadset } from "react-icons/fa";
 import SearchBar from "../SearchBar";
 import AdvancedSearchModal from "../AdvancedSearchModal";
 import { RealEstateCard } from "../real-estate";
@@ -39,27 +39,27 @@ export default function Main() {
         <div className={styles.heroContent}>
           <div className={styles.heroText}>
             <h1 className={styles.heroTitle}>
-              Find Your Dream <span>Property</span>
+              Pronađite nekretninu <span>po svojoj meri</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Discover amazing properties for sale, rent, or lease. Your perfect home is just a click away.
+              Otkrijte šta su agencije, vlasnici nekeretnina i investitori pripemili za vas.
             </p>
           </div>
 
           {/* Action Cards Over Background */}
           <div className={styles.actionGrid}>
             {/* Buy Card */}
-            <div 
+            <div
               onClick={() => navigate('/buy')}
               className={`${styles.actionCard} ${styles.buyCard}`}
             >
               <div className={`${styles.iconContainer} ${styles.buyIcon}`}>
                 <FaHome className="text-white text-xl" />
               </div>
-              <h3 className={styles.cardTitle}>Buy a Home</h3>
-              <p className={styles.cardDescription}>Find your perfect property from thousands of listings</p>
+              <h3 className={styles.cardTitle}>Kupite nekretninu</h3>
+              <p className={styles.cardDescription}>Pronađite nešto za vas iz naše ponude</p>
               <div className={`${styles.cardLink} ${styles.buyLink}`}>
-                Browse Properties
+                Za prodaju
                 <svg className={styles.linkIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -67,53 +67,35 @@ export default function Main() {
             </div>
 
             {/* Rent Card */}
-            <div 
+            <div
               onClick={() => navigate('/rent')}
               className={`${styles.actionCard} ${styles.rentCard}`}
             >
               <div className={`${styles.iconContainer} ${styles.rentIcon}`}>
                 <FaKey className="text-white text-xl" />
               </div>
-              <h3 className={styles.cardTitle}>Rent a Property</h3>
-              <p className={styles.cardDescription}>Discover rental properties that fit your lifestyle</p>
+              <h3 className={styles.cardTitle}>Iznajmite nekretninu</h3>
+              <p className={styles.cardDescription}>Pronađite prostor za iznajmljivanje koji odgovara vašim potrebama</p>
               <div className={`${styles.cardLink} ${styles.rentLink}`}>
-                Find Rentals
+                Za iznajmljivanje
                 <svg className={styles.linkIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
             </div>
 
-            {/* Lease Card */}
-            <div 
-			  onClick={() => navigate('/lease')}
-			  className={`${styles.actionCard} ${styles.leaseCard}`}
-			>
-			  <div className={`${styles.iconContainer} ${styles.leaseIcon}`}>
-			    <FaFileContract className="text-white text-xl" />
-			  </div>
-			  <h3 className={styles.cardTitle}>Lease Property</h3>
-			  <p className={styles.cardDescription}>Commercial spaces and long-term lease options</p>
-			  <div className={`${styles.cardLink} ${styles.leaseLink}`}>
-			    Browse Leases
-			    <svg className={styles.linkIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-			    </svg>
-			  </div>
-			</div>
-
             {/* Browse All Card */}
-            <div 
+            <div
               onClick={() => navigate('/real-estates')}
               className={`${styles.actionCard} ${styles.browseCard}`}
             >
               <div className={`${styles.iconContainer} ${styles.browseIcon}`}>
                 <FaSearch className="text-gray-900 text-xl" />
               </div>
-              <h3 className={styles.cardTitle}>Browse All</h3>
-              <p className={styles.cardDescription}>Explore our complete collection of properties</p>
+              <h3 className={styles.cardTitle}>Pogledaj sve</h3>
+              <p className={styles.cardDescription}>Pogledajte kompletnu kolekciju nekretnina</p>
               <div className={`${styles.cardLink} ${styles.browseLink}`}>
-                View All Listings
+                Pogledajte sve nekretnine
                 <svg className={styles.linkIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -125,30 +107,30 @@ export default function Main() {
 
       {/* Main Content Section */}
       <div className={styles.contentSection}>
-        {/* Search Section */}
+        {/* Search Section - Updated to match hero */}
         <div className={styles.integratedSearchSection}>
           <div className={styles.searchContent}>
             <div className={styles.searchHeader}>
-              <h2 className={styles.searchTitle}>Find Your Perfect Property</h2>
+              <h2 className={styles.searchTitle}>Pretražite ponudu</h2>
               <p className={styles.searchSubtitle}>
-                Discover amazing properties tailored to your needs
+                Otkrijte sjajne nekretnine svih tipova, po vašem ukusu i za vaše potrebe
               </p>
             </div>
-            
+
             <div className={styles.searchArea}>
-              <SearchBar 
+              <SearchBar
                 onSearchResults={handleSearchResults}
                 onError={handleError}
                 setIsLoading={setIsLoading}
               />
-              
+
               <div className={styles.searchActions}>
                 <button
                   onClick={() => setIsAdvancedSearchOpen(true)}
                   className={styles.advancedButton}
                 >
                   <FaSlidersH className="mr-2" />
-                  Advanced Filters
+                  Svi filteri
                 </button>
               </div>
             </div>
@@ -157,22 +139,22 @@ export default function Main() {
             {!isLoading && searchResults.length === 0 && !error && (
               <div className={styles.integratedGuidance}>
                 <div className={styles.guidanceSection}>
-                  <h3 className={styles.guidanceTitle}>Not sure where to start?</h3>
+                  <h3 className={styles.guidanceTitle}>Kako da počnete?</h3>
                   <div className={styles.quickTips}>
                     <div className={styles.tipCard}>
                       <span className={styles.tipIcon}>📍</span>
-                      <h4>Search by Location</h4>
-                      <p>Enter a city, neighborhood, or address</p>
+                      <h4>Pretražite po lokaciji</h4>
+                      <p>Unesite grad, opštinu ili ulicu</p>
                     </div>
                     <div className={styles.tipCard}>
                       <span className={styles.tipIcon}>💰</span>
-                      <h4>Filter by Price</h4>
-                      <p>Set your budget range</p>
+                      <h4>Izdvojite po ceni</h4>
+                      <p>Postavite opseg u okviru vašeg budžeta</p>
                     </div>
                     <div className={styles.tipCard}>
                       <span className={styles.tipIcon}>🏠</span>
-                      <h4>Browse by Type</h4>
-                      <p>Apartments, houses, commercial</p>
+                      <h4>Pretražite po kategoriiji</h4>
+                      <p>Stan, kuća, magacin, lokal...</p>
                     </div>
                   </div>
                 </div>
