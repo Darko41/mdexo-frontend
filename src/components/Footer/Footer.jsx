@@ -12,7 +12,7 @@ import {
   FaHome,
   FaUserShield,
   FaServer,
-  FaShieldAlt, // Use FaShieldAlt instead of FaShield
+  FaShieldAlt,
   FaHeart
 } from 'react-icons/fa';
 import styles from './Footer.module.css';
@@ -25,10 +25,10 @@ export default function Footer() {
 
   const handleBackendAdmin = () => {
     if (!isAdmin) {
-      alert('Access denied');
+      alert('Pristup odbijen');
       return;
     }
-    
+
     const adminUrl = `${import.meta.env.VITE_BACKEND_URL}/admin/dashboard`;
     window.open(adminUrl, '_blank');
   };
@@ -36,16 +36,16 @@ export default function Footer() {
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
-        
+
         {/* Main Footer Content */}
         <div className={styles.footerContent}>
-          
+
           {/* Company Info */}
           <div className={styles.footerSection}>
             <div className={styles.logoSection}>
-              <img 
-                src="/cover.png" 
-                alt="RealEstate Pro" 
+              <img
+                src="/cover.png"
+                alt="RealEstate Pro"
                 className={styles.footerLogo}
                 onError={(e) => {
                   e.target.src = "/default.png";
@@ -53,8 +53,8 @@ export default function Footer() {
               />
             </div>
             <p className={styles.companyDescription}>
-              Your trusted partner in real estate. Connecting buyers, sellers, and agents 
-              with the perfect properties across the country.
+              Vaš pouzdani partner na tržištu nekretnina. Povezujemo kupce, prodavce i agente
+              sa savršenim nekretninama širom zemlje.
             </p>
             <div className={styles.socialLinks}>
               <a href="#" className={styles.socialLink} aria-label="Facebook">
@@ -74,50 +74,50 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className={styles.footerSection}>
-            <h3 className={styles.sectionTitle}>Quick Links</h3>
+            <h3 className={styles.sectionTitle}>Brzi linkovi</h3>
             <ul className={styles.footerLinks}>
-              <li><Link to="/buy" className={styles.footerLink}>Buy Properties</Link></li>
-              <li><Link to="/rent" className={styles.footerLink}>Rent Properties</Link></li>
-              <li><Link to="/sell" className={styles.footerLink}>Sell Property</Link></li>
-              <li><Link to="/agencies" className={styles.footerLink}>Find Agencies</Link></li>
-              <li><Link to="/help" className={styles.footerLink}>Help Center</Link></li>
+              <li><Link to="/buy" className={styles.footerLink}>Kupovina nekretnina</Link></li>
+              <li><Link to="/rent" className={styles.footerLink}>Iznajmljivanje nekretnina</Link></li>
+              <li><Link to="/sell" className={styles.footerLink}>Prodaja nekretnina</Link></li>
+              <li><Link to="/agencies" className={styles.footerLink}>Pronađite agencije</Link></li>
+              <li><Link to="/help" className={styles.footerLink}>Centar za pomoć</Link></li>
             </ul>
           </div>
 
           {/* For Agents */}
           <div className={styles.footerSection}>
-            <h3 className={styles.sectionTitle}>For Agents</h3>
+            <h3 className={styles.sectionTitle}>Za agente</h3>
             <ul className={styles.footerLinks}>
-              <li><Link to="/profile" className={styles.footerLink}>Agent Dashboard</Link></li>
-              <li><Link to="/agencies" className={styles.footerLink}>Join an Agency</Link></li>
-              <li><Link to="/create-listing" className={styles.footerLink}>List a Property</Link></li>
-              <li><Link to="/resources" className={styles.footerLink}>Agent Resources</Link></li>
-              <li><Link to="/training" className={styles.footerLink}>Training & Support</Link></li>
+              <li><Link to="/profile" className={styles.footerLink}>Kontrolna tabla</Link></li>
+              <li><Link to="/agencies" className={styles.footerLink}>Pridružite se agenciji</Link></li>
+              <li><Link to="/create-listing" className={styles.footerLink}>Postavite oglas</Link></li>
+              <li><Link to="/resources" className={styles.footerLink}>Resursi za agente</Link></li>
+              <li><Link to="/training" className={styles.footerLink}>Obuka i podrška</Link></li>
             </ul>
           </div>
 
           {/* Contact & Legal */}
           <div className={styles.footerSection}>
-            <h3 className={styles.sectionTitle}>Contact Info</h3>
+            <h3 className={styles.sectionTitle}>Kontakt informacije</h3>
             <div className={styles.contactInfo}>
               <div className={styles.contactItem}>
                 <FaMapMarkerAlt className={styles.contactIcon} />
-                <span>123 Real Estate Ave, Suite 100<br />New York, NY 10001</span>
+                <span>Bulevar kralja Aleksandra 123<br />Beograd, Srbija</span>
               </div>
               <div className={styles.contactItem}>
                 <FaPhone className={styles.contactIcon} />
-                <span>+1 (555) 123-REAL</span>
+                <span>+381 11 123 4567</span>
               </div>
               <div className={styles.contactItem}>
                 <FaEnvelope className={styles.contactIcon} />
                 <span>office@iterials.com</span>
               </div>
             </div>
-            
+
             <div className={styles.legalLinks}>
-              <Link to="/privacy" className={styles.legalLink}>Privacy Policy</Link>
-              <Link to="/terms" className={styles.legalLink}>Terms of Service</Link>
-              <Link to="/cookies" className={styles.legalLink}>Cookie Policy</Link>
+              <Link to="/privacy" className={styles.legalLink}>Politika privatnosti</Link>
+              <Link to="/terms" className={styles.legalLink}>Uslovi korišćenja</Link>
+              <Link to="/cookies" className={styles.legalLink}>Politika kolačića</Link>
             </div>
 
             {/* Hidden Backend Admin Link */}
@@ -128,7 +128,7 @@ export default function Footer() {
                   className={styles.adminLink}
                 >
                   <FaServer className={styles.adminIcon} />
-                  Backend Admin
+                  Admin panel
                 </button>
               </div>
             )}
@@ -139,12 +139,12 @@ export default function Footer() {
         <div className={styles.footerBottom}>
           <div className={styles.bottomContent}>
             <div className={styles.copyright}>
-              <FaShieldAlt className={styles.shieldIcon} /> {/* Changed to FaShieldAlt */}
-              <span>&copy; {currentYear} Iterials Core. All rights reserved.</span>
+              <FaShieldAlt className={styles.shieldIcon} />
+              <span>&copy; {currentYear} Iterials Core. Sva prava zadržana.</span>
             </div>
             <div className={styles.bottomLinks}>
               <span className={styles.madeWith}>
-                Made with <FaHeart className={styles.heartIcon} /> for home seekers {/* Added heart icon */}
+                Napravljeno sa <FaHeart className={styles.heartIcon} /> za tragaoce domova
               </span>
             </div>
           </div>

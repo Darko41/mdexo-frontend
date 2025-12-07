@@ -6,11 +6,11 @@
   position: relative;
 }
 
-/* Hero Section with More Visible Background */
+/* Hero Section - Optimized for height */
 .heroSection {
   width: 100%;
-  min-height: 100vh;
-  background-image: 
+  min-height: 85vh;
+  background-image:
     linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.5) 100%),
     url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1973&q=80');
   background-size: cover;
@@ -19,7 +19,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 1rem;
   position: relative;
 }
 
@@ -46,14 +46,14 @@
 }
 
 .heroText {
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
 }
 
 .heroTitle {
-  font-size: 3.5rem;
+  font-size: 3rem;
   font-weight: 800;
   color: white;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   line-height: 1.1;
   text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
@@ -67,52 +67,51 @@
 }
 
 .heroSubtitle {
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   color: #f8fafc;
   max-width: 600px;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.5;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   font-weight: 500;
 }
 
-/* Updated Action Grid for 3 cards */
+/* Action Grid - Wider cards */
 .actionGrid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  gap: 1.5rem;
-  max-width: 900px;
+  gap: 1.25rem;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
 @media (min-width: 768px) {
   .actionGrid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: 1.5rem;
   }
 }
 
-/* Card styling - transparent and blended */
+/* Card styling - Wider and shorter */
 .actionCard {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 1.25rem;
-  padding: 1.75rem 1.5rem;
+  border-radius: 1rem;
+  padding: 1.5rem 1.25rem;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
   box-shadow:
-    0 10px 25px rgba(0, 0, 0, 0.2),
+    0 8px 20px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Subtle gradient overlay for depth */
 .actionCard::before {
   content: '';
   position: absolute;
@@ -128,74 +127,68 @@
   z-index: 0;
 }
 
-/* Hover effect - slightly more opaque with glow */
 .actionCard:hover {
   background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-8px) scale(1.02);
+  transform: translateY(-6px) scale(1.02);
   border-color: rgba(255, 255, 255, 0.4);
   box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    0 0 40px rgba(255, 255, 255, 0.1),
+    0 15px 30px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(255, 255, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Card content positioning */
 .actionCard > * {
   position: relative;
   z-index: 1;
 }
 
-/* Icon containers with glass effect */
 .iconContainer {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 0.875rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   transition: all 0.3s ease;
   position: relative;
   z-index: 1;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Icon container hover effect */
 .actionCard:hover .iconContainer {
   transform: scale(1.1);
   box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.3),
+    0 10px 20px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* Card text - bright white for better visibility on background */
 .cardTitle {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: white;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .cardDescription {
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
-  font-size: 0.9375rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+  font-size: 0.875rem;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   flex-grow: 1;
 }
 
-/* Card links */
 .cardLink {
   display: flex;
   align-items: center;
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   transition: all 0.2s ease;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -206,18 +199,17 @@
 }
 
 .linkIcon {
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-left: 0.5rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-left: 0.375rem;
   transition: transform 0.3s ease;
   stroke: white;
 }
 
 .actionCard:hover .linkIcon {
-  transform: translateX(0.5rem);
+  transform: translateX(0.375rem);
 }
 
-/* Individual card accent colors on hover */
 .buyCard:hover {
   background: rgba(59, 130, 246, 0.25);
   border-color: rgba(59, 130, 246, 0.5);
@@ -233,7 +225,6 @@
   border-color: rgba(251, 191, 36, 0.5);
 }
 
-/* Icon gradients - more vibrant */
 .buyIcon {
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
 }
@@ -246,7 +237,6 @@
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
 }
 
-/* Link accent colors */
 .buyLink {
   color: #93c5fd;
 }
@@ -271,31 +261,7 @@
   color: #fcd34d;
 }
 
-/* Responsive adjustments for action cards */
-@media (max-width: 767px) {
-  .actionGrid {
-    gap: 1rem;
-  }
-
-  .actionCard {
-    padding: 1.5rem 1.25rem;
-  }
-
-  .iconContainer {
-    width: 3rem;
-    height: 3rem;
-    margin-bottom: 1rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .actionCard {
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-  }
-}
-
-/* Main Content Section with background */
+/* Main Content Section */
 .contentSection {
   width: 100%;
   background: linear-gradient(
@@ -308,7 +274,6 @@
   color: white;
 }
 
-/* Add a subtle background pattern/texture */
 .contentSection::before {
   content: '';
   position: absolute;
@@ -323,12 +288,12 @@
   z-index: -1;
 }
 
-/* Integrated Search Section */
+/* Integrated Search Section - Wider */
 .integratedSearchSection {
   width: 100%;
-  max-width: 56rem;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 6rem 1rem 4rem;
+  padding: 3rem 1rem 2rem;
 }
 
 .searchContent {
@@ -336,17 +301,16 @@
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 2rem;
-  padding: 3.5rem 2.5rem;
+  border-radius: 1.5rem;
+  padding: 2.5rem 2rem;
   text-align: center;
   box-shadow:
-    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 20px 40px rgba(0, 0, 0, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
 }
 
-/* Add decorative elements */
 .searchContent::before {
   content: '';
   position: absolute;
@@ -367,14 +331,14 @@
 }
 
 .searchHeader {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .searchTitle {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: white;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   line-height: 1.1;
   text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   background: linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%);
@@ -385,27 +349,26 @@
 }
 
 .searchSubtitle {
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   color: rgba(255, 255, 255, 0.9);
   max-width: 500px;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.5;
   font-weight: 400;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .searchArea {
   max-width: 500px;
-  margin: 0 auto 3rem;
+  margin: 0 auto 2rem;
 }
 
-/* Style the SearchBar component container */
 .searchArea :global(.search-bar-container) {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 1rem;
-  padding: 0.75rem;
+  border-radius: 0.875rem;
+  padding: 0.625rem;
   transition: all 0.3s ease;
 }
 
@@ -413,11 +376,11 @@
 .searchArea :global(.search-bar-container):focus-within {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(251, 191, 36, 0.5);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .searchActions {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 
 .advancedButton {
@@ -425,15 +388,15 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   color: white;
   font-weight: 600;
-  padding: 1.125rem 1.5rem;
-  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.875rem;
   border: 2px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.1);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   backdrop-filter: blur(10px);
 }
 
@@ -441,29 +404,29 @@
   background: rgba(251, 191, 36, 0.2);
   border-color: #fbbf24;
   color: #fbbf24;
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow:
-    0 15px 30px rgba(251, 191, 36, 0.2),
-    0 0 20px rgba(251, 191, 36, 0.1);
+    0 10px 25px rgba(251, 191, 36, 0.2),
+    0 0 15px rgba(251, 191, 36, 0.1);
 }
 
 /* Integrated Guidance */
 .integratedGuidance {
   border-top: 1px solid rgba(255, 255, 255, 0.15);
-  padding-top: 3.5rem;
-  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  margin-top: 2.5rem;
 }
 
 .guidanceSection {
-  max-width: 700px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
 .guidanceTitle {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: white;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   text-align: center;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -471,17 +434,17 @@
 .quickTips {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 .tipCard {
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1.25rem;
-  padding: 2.25rem 1.75rem;
+  border-radius: 1rem;
+  padding: 1.5rem 1.25rem;
   text-align: center;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
@@ -502,11 +465,11 @@
 
 .tipCard:hover {
   background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-8px) scale(1.03);
+  transform: translateY(-6px) scale(1.02);
   border-color: rgba(251, 191, 36, 0.3);
   box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    0 0 30px rgba(251, 191, 36, 0.1);
+    0 15px 30px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(251, 191, 36, 0.1);
 }
 
 .tipCard:hover::before {
@@ -514,60 +477,243 @@
 }
 
 .tipIcon {
-  font-size: 3rem;
+  font-size: 2.25rem;
   display: block;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 .tipCard h4 {
-  font-size: 1.375rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: white;
-  margin-bottom: 0.875rem;
+  margin-bottom: 0.5rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .tipCard p {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 1rem;
+  font-size: 0.875rem;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.4;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* Error Message - updated to match theme */
+/* Platform Section Header - Very compact */
+.platformForSection {
+  text-align: center;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.platformTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+.platformSubtitle {
+  font-size: 1.125rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Audience Selector - Ultra compact */
+.audienceSelector {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.selectorTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.selectorSubtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Audience Cards - Wide and compact */
+.audienceCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.audienceCard {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1.25rem 0.875rem;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.audienceCard:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-3px);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.2),
+    0 0 15px rgba(251, 191, 36, 0.08);
+}
+
+.audienceCardActive {
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.25);
+  box-shadow:
+    0 12px 25px rgba(0, 0, 0, 0.25),
+    0 0 15px rgba(251, 191, 36, 0.1);
+  transform: translateY(-2px);
+}
+
+.audienceCardActive::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.audienceIcon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
+  flex-shrink: 0;
+}
+
+.audienceCard:hover .audienceIcon {
+  transform: scale(1.1);
+}
+
+.audienceTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.375rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.audienceDesc {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+}
+
+.audienceBadge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.audienceCardActive .audienceBadge {
+  background: rgba(251, 191, 36, 0.25);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+}
+
+/* CTA Section - Very compact */
+.ctaAuthSection {
+  width: 100%;
+  max-width: 1000px;
+  margin: 1.5rem auto 1rem;
+  padding: 1rem 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.ctaAuthSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%);
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+/* Error Message */
 .errorMessage {
   width: 100%;
   max-width: 56rem;
-  margin: 2rem auto;
-  padding: 1.5rem;
+  margin: 1.5rem auto;
+  padding: 1.25rem;
   background: rgba(220, 38, 38, 0.15);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(220, 38, 38, 0.3);
   color: #fecaca;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   text-align: center;
   font-weight: 500;
-  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.1);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.1);
 }
 
-/* Loading Spinner - updated to match theme */
+/* Loading Spinner */
 .loadingSpinner {
   width: 100%;
   display: flex;
   justify-content: center;
-  margin: 4rem 0;
+  margin: 3rem 0;
 }
 
 .spinner {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3rem;
+  height: 3rem;
   border: 3px solid rgba(255, 255, 255, 0.2);
   border-top: 3px solid #fbbf24;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
 }
 
 @keyframes spin {
@@ -575,19 +721,19 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Results Section - updated to match theme */
+/* Results Section */
 .resultsSection {
   width: 100%;
-  max-width: 72rem;
-  margin: 4rem auto;
+  max-width: 1200px;
+  margin: 3rem auto;
   padding: 0 1rem;
 }
 
 .resultsTitle {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: white;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   text-align: center;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -595,7 +741,7 @@
 .resultsGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 @media (min-width: 768px) {
@@ -610,90 +756,76 @@
   }
 }
 
-/* CTA + Auth Section - updated to match theme */
-.ctaAuthSection {
-  width: 100%;
-  max-width: 80rem;
-  margin: 6rem auto 4rem;
-  padding: 0 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 4rem;
-}
+/* Responsive Design - Optimized for laptop screens */
+@media (max-width: 1200px) {
+  .heroSection {
+    min-height: 80vh;
+  }
 
-/* Responsive Design */
-@media (max-width: 768px) {
   .heroTitle {
-    font-size: 2.75rem;
+    font-size: 2.5rem;
   }
 
   .heroSubtitle {
     font-size: 1.25rem;
   }
+}
 
-  .integratedSearchSection {
-    padding: 4rem 1rem 3rem;
+@media (max-width: 1024px) {
+  .heroSection {
+    min-height: 75vh;
   }
 
-  .searchContent {
-    padding: 2.5rem 1.75rem;
-    border-radius: 1.5rem;
-  }
-
-  .searchTitle {
-    font-size: 2.25rem;
-  }
-
-  .searchSubtitle {
-    font-size: 1.125rem;
-  }
-
-  .guidanceTitle {
+  .platformTitle {
     font-size: 1.75rem;
   }
 
-  .quickTips {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .audienceCards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
   }
 
-  .tipCard {
-    padding: 2rem 1.5rem;
+  .audienceCard {
+    min-height: 170px;
+    padding: 1rem 0.75rem;
   }
 
-  .tipIcon {
-    font-size: 2.5rem;
-  }
-
-  .heroSection {
-    background-attachment: scroll;
+  .ctaAuthSection {
+    max-width: 90%;
+    margin: 1.25rem auto 0.75rem;
   }
 }
 
-@media (max-width: 640px) {
-  .integratedSearchSection {
-    margin-bottom: 2rem;
-    padding: 3rem 1rem 2rem;
-  }
-
+@media (max-width: 768px) {
   .heroSection {
-    padding: 1rem;
-  }
-
-  .heroContent {
-    padding: 1rem 0;
+    min-height: 70vh;
+    padding: 0.75rem;
   }
 
   .heroTitle {
     font-size: 2.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.125rem;
+  }
+
+  .actionGrid {
+    gap: 1rem;
   }
 
   .actionCard {
-    padding: 1.5rem 1rem;
+    padding: 1.25rem 1rem;
+  }
+
+  .integratedSearchSection {
+    padding: 2rem 1rem 1.5rem;
   }
 
   .searchContent {
-    padding: 2rem 1.25rem;
+    padding: 2rem 1.5rem;
+    border-radius: 1.25rem;
   }
 
   .searchTitle {
@@ -704,14 +836,132 @@
     font-size: 1.125rem;
   }
 
-  .tipCard h4 {
+  .guidanceTitle {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .quickTips {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .tipCard {
+    padding: 1.25rem 1rem;
+  }
+
+  .tipIcon {
+    font-size: 2rem;
+  }
+
+  .heroSection {
+    background-attachment: scroll;
+  }
+
+  .platformTitle {
+    font-size: 1.5rem;
+  }
+
+  .platformSubtitle {
+    font-size: 1rem;
+  }
+
+  .selectorTitle {
     font-size: 1.25rem;
+  }
+
+  .audienceCards {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .audienceCard {
+    min-height: auto;
+    padding: 1rem 0.75rem;
+  }
+
+  .audienceIcon {
+    font-size: 1.75rem;
+  }
+
+  .audienceTitle {
+    font-size: 1rem;
+  }
+
+  .ctaAuthSection {
+    margin: 1rem auto 0.5rem;
+    padding: 0.75rem 1rem 0;
   }
 }
 
-/* Remove old Lease card styles */
-.leaseCard:hover,
-.leaseIcon,
-.leaseLink {
-  display: none;
+@media (max-width: 640px) {
+  .heroSection {
+    min-height: 65vh;
+  }
+
+  .heroTitle {
+    font-size: 2rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1rem;
+  }
+
+  .actionGrid {
+    gap: 0.75rem;
+  }
+
+  .actionCard {
+    padding: 1rem 0.75rem;
+  }
+
+  .iconContainer {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .cardTitle {
+    font-size: 1rem;
+  }
+
+  .cardDescription {
+    font-size: 0.8125rem;
+  }
+
+  .integratedSearchSection {
+    padding: 1.5rem 1rem 1rem;
+  }
+
+  .searchContent {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .searchTitle {
+    font-size: 1.75rem;
+  }
+
+  .searchSubtitle {
+    font-size: 1rem;
+  }
+
+  .platformForSection {
+    margin-bottom: 0.75rem;
+  }
+
+  .selectorSubtitle {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .ctaAuthSection::before {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .actionCard {
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+  }
 }

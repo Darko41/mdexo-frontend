@@ -1,12 +1,15 @@
-/* Header Container */
+/* Header Container - Updated for dark theme */
 .header {
-  background: white;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid #f1f5f9;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: sticky;
   top: 0;
   z-index: 50;
-  backdrop-filter: blur(8px);
 }
 
 .container {
@@ -19,7 +22,7 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  height: 5rem; /* Increased height to accommodate larger logo */
+  height: 5rem;
   gap: 2rem;
 }
 
@@ -33,7 +36,7 @@
 .leftNav {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 @media (max-width: 768px) {
@@ -43,7 +46,7 @@
 }
 
 .navLink {
-  color: #374151;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
   text-decoration: none;
   padding: 0.75rem 1rem;
@@ -52,32 +55,21 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   position: relative;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .navLink:hover {
-  color: #2563eb;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  color: #fbbf24;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
 }
 
-.navLink::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-}
-
-.navLink:hover::after {
-  width: 80%;
-}
-
-/* Center Logo - BIGGER SIZE */
+/* Center Logo */
 .centerLogo {
   justify-self: center;
 }
@@ -89,19 +81,27 @@
   transition: all 0.3s ease;
   padding: 0.5rem;
   border-radius: 1rem;
-  height: 4rem; /* Increased height */
+  height: 4rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo:hover {
+  background: rgba(255, 255, 255, 0.1);
   transform: scale(1.05);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(251, 191, 36, 0.1);
 }
 
 .logoImage {
-  height: 3.5rem; /* Much larger logo - desktop size */
+  height: 3.5rem;
   width: auto;
-  max-width: 200px; /* Prevent excessive width */
+  max-width: 200px;
   object-fit: contain;
   transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .logo:hover .logoImage {
@@ -124,9 +124,10 @@
 
 .welcomeText {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.9);
   white-space: nowrap;
   font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .authButtons {
@@ -146,27 +147,27 @@
   transition: all 0.3s ease;
   font-size: 0.875rem;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  box-shadow:
+    0 4px 12px rgba(16, 185, 129, 0.3),
+    0 0 8px rgba(16, 185, 129, 0.1);
+  text-decoration: none;
+  backdrop-filter: blur(10px);
 }
 
 .adminButton:hover:not(.adminButtonDisabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+  box-shadow:
+    0 6px 20px rgba(16, 185, 129, 0.4),
+    0 0 12px rgba(16, 185, 129, 0.2);
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
-}
-
-.adminButtonDisabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 /* Sign In Button */
 .signInButton {
-  background: transparent;
-  color: #374151;
-  border: 2px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   padding: 0.625rem 1.5rem;
   border-radius: 0.75rem;
   text-decoration: none;
@@ -177,11 +178,13 @@
 }
 
 .signInButton:hover {
-  background: #2563eb;
+  background: rgba(255, 255, 255, 0.2);
   color: white;
-  border-color: #2563eb;
+  border-color: #fbbf24;
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.2);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(251, 191, 36, 0.1);
 }
 
 .logoutButton {
@@ -195,12 +198,17 @@
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+  box-shadow:
+    0 4px 12px rgba(239, 68, 68, 0.3),
+    0 0 8px rgba(239, 68, 68, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .logoutButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+  box-shadow:
+    0 6px 20px rgba(239, 68, 68, 0.4),
+    0 0 12px rgba(239, 68, 68, 0.2);
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
 }
 
@@ -209,11 +217,12 @@
   display: none;
   padding: 0.75rem;
   border-radius: 0.75rem;
-  color: #374151;
-  background: transparent;
-  border: 2px solid #e5e7eb;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 @media (max-width: 768px) {
@@ -223,9 +232,9 @@
 }
 
 .mobileMenuButton:hover {
-  color: #2563eb;
-  border-color: #2563eb;
-  background: #f8fafc;
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(255, 255, 255, 0.15);
   transform: scale(1.05);
 }
 
@@ -236,10 +245,13 @@
 
 /* Mobile Menu */
 .mobileMenu {
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1rem 0;
-  background: white;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 @media (min-width: 769px) {
@@ -255,7 +267,7 @@
 }
 
 .mobileNavLink {
-  color: #374151;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
   text-decoration: none;
   padding: 1rem 1.5rem;
@@ -263,13 +275,15 @@
   transition: all 0.3s ease;
   font-size: 1rem;
   text-align: left;
-  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .mobileNavLink:hover {
-  color: #2563eb;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-color: #dbeafe;
+  color: #fbbf24;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
   transform: translateX(8px);
 }
 
@@ -278,13 +292,25 @@
   position: relative;
   text-decoration: none;
   color: inherit;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.profileLink:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(251, 191, 36, 0.3);
+  transform: translateY(-2px);
 }
 
 .incompleteProfileBadge {
   position: absolute;
   top: -5px;
   right: -10px;
-  background: #ff4444;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border-radius: 50%;
   width: 16px;
@@ -293,11 +319,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .mobileBadge {
   margin-left: 8px;
-  background: #ff4444;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border-radius: 50%;
   width: 16px;
@@ -306,14 +333,56 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
-/* Responsive adjustments for larger logo */
+/* Mobile user info */
+.mobileUserInfo {
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  margin-top: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobileUserName {
+  display: block;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.25rem;
+}
+
+.mobileUserEmail {
+  display: block;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Mobile admin button */
+.mobileAdminButton {
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  text-align: left;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.mobileAdminButton:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateX(8px);
+}
+
+/* Responsive adjustments */
 @media (max-width: 1024px) {
   .logoImage {
-    height: 3rem; /* Slightly smaller on tablets */
+    height: 3rem;
   }
-  
+
   .navContainer {
     height: 4.5rem;
   }
@@ -321,9 +390,9 @@
 
 @media (max-width: 768px) {
   .logoImage {
-    height: 2.5rem; /* Good size for mobile */
+    height: 2.5rem;
   }
-  
+
   .navContainer {
     height: 4rem;
     gap: 1rem;
@@ -334,15 +403,15 @@
   .container {
     padding: 0 1rem;
   }
-  
+
   .logoImage {
-    height: 2.25rem; /* Maintain good visibility on small mobile */
+    height: 2.25rem;
   }
-  
+
   .welcomeText {
     font-size: 0.75rem;
   }
-  
+
   .adminButton,
   .logoutButton,
   .signInButton {
@@ -353,7 +422,7 @@
 
 @media (max-width: 380px) {
   .logoImage {
-    height: 2rem; /* Minimum readable size for very small screens */
+    height: 2rem;
   }
   
   .welcomeText {

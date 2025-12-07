@@ -1,7 +1,7 @@
 import styles from './styles.module.css';
 
 export default function AuthPrompt({ 
-  message = "Already have an account?",
+  message = "Već imate nalog?",
   onLogin,
   onRegister 
 }) {
@@ -10,10 +10,10 @@ export default function AuthPrompt({
       <p className={styles.authText}>{message}</p>
       <div className={styles.authButtons}>
         <button onClick={onLogin} className={styles.loginButton}>
-          Sign In
+          Ulogujte se
         </button>
         <button onClick={onRegister} className={styles.registerButton}>
-          Register
+          Registrujte se
         </button>
       </div>
     </div>
